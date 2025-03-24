@@ -5,6 +5,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.4.8",
     "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-query": "^5.69.0",
@@ -21,6 +22,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
+    "react-icons": "^5.5.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.4.0",
     "react-router-dom": "^7.4.0",
