@@ -3,7 +3,7 @@ import { Methods } from "./components/lib/types/common";
 
 
 if (process.env.MODE === "development") {
-    axios.defaults.baseURL = "http://127.0.0.1:9800/api/v1";
+    axios.defaults.baseURL = "http://127.0.0.1:8800/api/v1";
     // axios.defaults.baseURL = "http://192.168.1.12:9800/api/v1";
     // axios.defaults.baseURL = "http://192.168.1.2:9800/api/v1";
 } else {
