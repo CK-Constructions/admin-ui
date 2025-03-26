@@ -1,23 +1,21 @@
 import React, { useState } from "react";
-import { TextField, Button, Card, CardContent, Typography, Container } from "@mui/material";
+import { TextField, Button, Typography } from "@mui/material";
 
-// Define types for login form state
+import { FaAdjust } from "react-icons/fa";
 interface LoginForm {
     username: string;
     password: string;
 }
-
+const bgColor = "#2DD4BF";
 const Login: React.FC = () => {
     const [formData, setFormData] = useState<LoginForm>({ username: "", password: "" });
     const [error, setError] = useState<string | null>(null);
 
-    // Handle input changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Simulated login function
     const handleLogin = () => {
         if (formData.username === "admin" && formData.password === "password") {
             alert("Login successful!");
@@ -27,21 +25,21 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="bg-[#171717] flex  items-center justify-center w-full h-[100vh]">
-            <Card
-                sx={{
-                    width: 400,
-                    padding: 3,
-                    textAlign: "center",
-                    backgroundColor: "#ffffff",
-                    borderRadius: 4,
-                    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
-                    transition: "0.3s",
-                    "&:hover": { boxShadow: "0px 6px 15px rgba(0, 0, 0, 0.2)" },
-                }}
-            >
-                <CardContent>
-                    <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>
+        <div className="bg-[#111827] flex  items-center justify-center w-full h-[100vh]">
+            <section className="w-[700px] bg-[#1F2937] rounded-xl p-12   h-[80vh] text-center shadow-2xl">
+                <div>
+                    <div className="flex items-center justify-center mb-10">
+                        <FaAdjust size={120} className="text-white text-center" />
+                    </div>
+                    <Typography
+                        variant="h5"
+                        fontWeight="bold"
+                        color="primary"
+                        sx={{
+                            color: "white",
+                        }}
+                        gutterBottom
+                    >
                         Admin Login
                     </Typography>
                     <TextField
@@ -52,7 +50,32 @@ const Login: React.FC = () => {
                         variant="outlined"
                         value={formData.username}
                         onChange={handleChange}
-                        sx={{ borderRadius: 2 }}
+                        sx={{
+                            borderRadius: 2,
+
+                            "& .MuiOutlinedInput-input": {
+                                color: "#f5f5f5",
+                            },
+
+                            "& .MuiInputLabel-root": {
+                                color: "white",
+                                "&.Mui-focused": {
+                                    color: "white",
+                                },
+                            },
+
+                            "& .MuiOutlinedInput-root": {
+                                "& fieldset": {
+                                    borderColor: "white",
+                                },
+                                "&:hover fieldset": {
+                                    borderColor: "white",
+                                },
+                                "&.Mui-focused fieldset": {
+                                    borderColor: "white",
+                                },
+                            },
+                        }}
                     />
                     <TextField
                         label="Password"
@@ -63,32 +86,77 @@ const Login: React.FC = () => {
                         variant="outlined"
                         value={formData.password}
                         onChange={handleChange}
-                        sx={{ borderRadius: 2 }}
+                        sx={{
+                            borderRadius: 2,
+
+                            "& .MuiOutlinedInput-input": {
+                                color: "#f5f5f5",
+                            },
+
+                            "& .MuiInputLabel-root": {
+                                color: "white",
+                                "&.Mui-focused": {
+                                    color: "white",
+                                },
+                            },
+
+                            "& .MuiOutlinedInput-root": {
+                                "& fieldset": {
+                                    borderColor: "white",
+                                },
+                                "&:hover fieldset": {
+                                    borderColor: "white",
+                                },
+                                "&.Mui-focused fieldset": {
+                                    borderColor: "white",
+                                },
+                            },
+                        }}
                     />
                     {error && (
                         <Typography color="error" sx={{ marginTop: 1 }}>
                             {error}
                         </Typography>
                     )}
+                    <div className="mb-12"></div>
                     <Button
                         variant="contained"
-                        color="primary"
                         fullWidth
                         onClick={handleLogin}
                         sx={{
+                            bgcolor: bgColor,
+                            color: "white",
                             marginTop: 2,
                             borderRadius: 2,
                             fontWeight: "bold",
                             textTransform: "none",
                             padding: "10px 0",
-                            background: "linear-gradient(45deg, #1976d2, #2196f3)",
-                            "&:hover": { background: "linear-gradient(45deg, #1565c0, #1e88e5)" },
+                            background: `linear-gradient(45deg, ${bgColor}, ${bgColor})`,
+                            "&:hover": { background: `linear-gradient(45deg, ${bgColor}, ${bgColor})` },
                         }}
                     >
                         Login
                     </Button>
-                </CardContent>
-            </Card>
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        onClick={handleLogin}
+                        sx={{
+                            bgcolor: bgColor,
+                            color: "white",
+                            marginTop: 2,
+                            borderRadius: 2,
+                            fontWeight: "bold",
+                            textTransform: "none",
+                            padding: "10px 0",
+                            background: `linear-gradient(45deg, ${bgColor}, ${bgColor})`,
+                            "&:hover": { background: `linear-gradient(45deg, ${bgColor}, ${bgColor})` },
+                        }}
+                    >
+                        Forgot Password
+                    </Button>
+                </div>
+            </section>
         </div>
     );
 };

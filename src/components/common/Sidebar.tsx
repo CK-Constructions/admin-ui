@@ -1,35 +1,38 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
     Box,
     Divider,
-    Drawer,
+    Drawer as MuiDrawer,
     IconButton,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
     ListItemText,
-    styled,
     Theme,
     Toolbar,
     useTheme,
+    styled,
 } from "@mui/material";
 import {
     ChevronLeft as ChevronLeftIcon,
     ChevronRight as ChevronRightIcon,
     Dashboard as DashboardIcon,
     People as PeopleIcon,
-    ShoppingCart as ShoppingCartIcon,
-    Settings as SettingsIcon,
     Assessment as AssessmentIcon,
     ListAlt as ListAltIcon,
     Person as PersonIcon,
     Store as StoreIcon,
     HowToReg as ApprovalIcon,
+    Settings as SettingsIcon,
 } from "@mui/icons-material";
 
-// Define the type for sidebar items
+interface SidebarProps {
+    open: boolean;
+    onToggle: () => void;
+}
+
 interface SidebarItem {
     text: string;
     icon: React.ReactNode;
@@ -38,47 +41,51 @@ interface SidebarItem {
 
 const drawerWidth = 240;
 
-const Sidebar: React.FC = () => {
+const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
+    width: open ? 240 : 56,
+    flexShrink: 0,
+    whiteSpace: "nowrap",
+    "& .MuiDrawer-paper": {
+        width: open ? 240 : 56,
+        transition: theme.transitions.create("width", {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+        }),
+        overflowX: "hidden",
+    },
+}));
+
+const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     const theme = useTheme();
     const location = useLocation();
-    const [open, setOpen] = useState(true);
-
-    const handleDrawerToggle = () => {
-        setOpen(!open);
-    };
 
     const sidebarItems: SidebarItem[] = [
         { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
         { text: "Users", icon: <PeopleIcon />, path: "/users" },
         {
             text: "Orders & Analytics",
-            icon: <AssessmentIcon />, // Analytics icon
+            icon: <AssessmentIcon />,
             path: "/orders-analytics",
         },
         {
             text: "Listings",
-            icon: <ListAltIcon />, // List icon
+            icon: <ListAltIcon />,
             path: "/listings",
         },
         {
             text: "Buyers",
-            icon: <PersonIcon />, // Single person icon
+            icon: <PersonIcon />,
             path: "/buyers",
         },
         {
             text: "Vendors",
-            icon: <StoreIcon />, // Store/shop icon
-            path: "/sellers",
+            icon: <StoreIcon />,
+            path: "/vendors",
         },
         {
             text: "Approvals",
-            icon: <ApprovalIcon />, // Checkmark/approval icon
+            icon: <ApprovalIcon />,
             path: "/approvals",
-        },
-        {
-            text: "PromoCodes",
-            icon: <ApprovalIcon />, // Checkmark/approval icon
-            path: "/promo-codes",
         },
         {
             text: "Settings",
@@ -88,26 +95,8 @@ const Sidebar: React.FC = () => {
     ];
 
     return (
-        <Box sx={{ display: "flex" }}>
-            <Drawer
-                variant="permanent"
-                open={open}
-                sx={{
-                    width: open ? drawerWidth : theme.spacing(7),
-                    flexShrink: 0,
-                    whiteSpace: "nowrap",
-                    boxSizing: "border-box",
-                    "& .MuiDrawer-paper": {
-                        width: open ? drawerWidth : theme.spacing(7),
-                        transition: theme.transitions.create("width", {
-                            easing: theme.transitions.easing.sharp,
-                            duration: theme.transitions.duration.enteringScreen,
-                        }),
-                        overflowX: "hidden",
-                        backgroundColor: theme.palette.background.default,
-                    },
-                }}
-            >
+        <Box sx={{ display: "flex", bgcolor: "#111827" }}>
+            <Drawer variant="permanent" open={open}>
                 <Toolbar
                     sx={{
                         display: "flex",
@@ -116,7 +105,7 @@ const Sidebar: React.FC = () => {
                         px: [1],
                     }}
                 >
-                    <IconButton onClick={handleDrawerToggle}>{open ? <ChevronLeftIcon /> : <ChevronRightIcon />}</IconButton>
+                    <IconButton onClick={onToggle}>{open ? <ChevronLeftIcon /> : <ChevronRightIcon />}</IconButton>
                 </Toolbar>
                 <Divider />
                 <List>
