@@ -1,9 +1,23 @@
-
+import { getUserByID, getUsers, getVendorByID, getVendors } from "../api";
+import { queryKeys } from "./keys";
 
 export const queryConfigs = {
-    //METADATA
-    // getMetadata: { queryFn: getMetadata, queryKey: [queryKeys.metadata] },
-    // addClinic: { mutationFn: addClinic, queryKey: [queryKeys.clinics] },
-
-
+  //METADATA
+  useGetUsers: {
+    queryFn: getUsers,
+    queryKey: [queryKeys.users],
+  },
+  useGetUserById: {
+    queryFn: getUserByID,
+    queryKey: [queryKeys.user],
+  },
+  useGetVendors: {
+    queryFn: getVendors,
+    queryKey: [queryKeys.vendors],
+  },
+  useGetVendorById: {
+    queryFn: getVendorByID,
+    queryKey: [queryKeys.vendor],
+  },
+  // addClinic: { mutationFn: addClinic, queryKey: [queryKeys.clinics] },
 };
