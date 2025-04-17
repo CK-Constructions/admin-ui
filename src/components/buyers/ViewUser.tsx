@@ -1,15 +1,5 @@
 import React from "react";
-import {
-  Modal,
-  Box,
-  Typography,
-  Avatar,
-  Divider,
-  IconButton,
-  Paper,
-  Stack,
-  Chip,
-} from "@mui/material";
+import { Modal, Box, Typography, Avatar, Divider, IconButton, Paper, Stack, Chip } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { TUser } from "../lib/types/response";
 import { queryConfigs } from "../../query/queryConfig";
@@ -21,14 +11,8 @@ interface ViewUserProps {
   userid: number;
 }
 
-const ViewUser: React.FC<ViewUserProps> = ({
-  open,
-  onClose,
-  userid,
-}) => {
-  console.log("userid", userid);
-  const { queryFn: UserFunc, queryKey: userKey } =
-    queryConfigs.useGetUserById;
+const ViewUser: React.FC<ViewUserProps> = ({ open, onClose, userid }) => {
+  const { queryFn: UserFunc, queryKey: userKey } = queryConfigs.useGetUserById;
 
   const { data } = useGetQuery({
     func: UserFunc,
@@ -40,12 +24,7 @@ const ViewUser: React.FC<ViewUserProps> = ({
   });
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      aria-labelledby="user-view-modal"
-      aria-describedby="user-details-view"
-    >
+    <Modal open={open} onClose={onClose} aria-labelledby="user-view-modal" aria-describedby="user-details-view">
       <Box
         sx={{
           position: "absolute",
@@ -76,7 +55,8 @@ const ViewUser: React.FC<ViewUserProps> = ({
 
         <Stack spacing={3} alignItems="center">
           <Avatar
-            src={data?.result?.profile_picture}
+            // src={data?.result?.profile_picture}
+            src={`${process.env.REACT_APP_GET_MEDIA}/${data?.result?.profile_picture}`}
             sx={{
               width: 200,
               height: 200,
@@ -84,21 +64,14 @@ const ViewUser: React.FC<ViewUserProps> = ({
               bgcolor: "primary.main",
             }}
           >
-            {!data?.result?.profile_picture &&
-              data?.result?.username
-                .charAt(0)
-                .toUpperCase()}
+            {!data?.result?.profile_picture && data?.result?.username.charAt(0).toUpperCase()}
           </Avatar>
 
           <Box textAlign="center">
             <Typography variant="h5" component="h2">
-              {data?.result?.fullname ||
-                data?.result?.username}
+              {data?.result?.fullname || data?.result?.username}
             </Typography>
-            <Typography
-              variant="subtitle1"
-              color="text.secondary"
-            >
+            <Typography variant="subtitle1" color="text.secondary">
               @{data?.result?.username}
             </Typography>
           </Box>
@@ -106,62 +79,25 @@ const ViewUser: React.FC<ViewUserProps> = ({
           <Divider flexItem />
 
           <Stack spacing={2} width="100%">
-            <DetailRow
-              label="Email"
-              value={data?.result?.email}
-            />
-            <DetailRow
-              label="Mobile"
-              value={data?.result?.mobile}
-            />
-            <DetailRow
-              label="Address"
-              value={data?.result?.address}
-            />
-            <DetailRow
-              label="Gender"
-              value={data?.result?.gender}
-            />
+            <DetailRow label="Email" value={data?.result?.email} />
+            <DetailRow label="Mobile" value={data?.result?.mobile} />
+            <DetailRow label="Address" value={data?.result?.address} />
+            <DetailRow label="Gender" value={data?.result?.gender} />
 
-            <Box
-              display="flex"
-              justifyContent="space-between"
-            >
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
+            <Box display="flex" justifyContent="space-between">
+              <Typography variant="body2" color="text.secondary">
                 Member Since:
               </Typography>
-              <Typography variant="body2">
-                {new Date(
-                  data?.result?.created_on
-                ).toLocaleDateString()}
-              </Typography>
+              <Typography variant="body2">{new Date(data?.result?.created_on).toLocaleDateString()}</Typography>
             </Box>
 
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography
-                variant="body2"
-                color="text.secondary"
-              >
+            <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Typography variant="body2" color="text.secondary">
                 Status:
               </Typography>
               <Chip
-                label={
-                  data?.result?.status === "0"
-                    ? "Active"
-                    : "Disabled"
-                }
-                color={
-                  data?.result?.status === "0"
-                    ? "success"
-                    : "error"
-                }
+                label={data?.result?.status === "0" ? "Active" : "Disabled"}
+                color={data?.result?.status === "0" ? "success" : "error"}
                 size="small"
                 variant="outlined"
                 sx={{
@@ -186,17 +122,12 @@ interface DetailRowProps {
   value?: string | null;
 }
 
-const DetailRow: React.FC<DetailRowProps> = ({
-  label,
-  value,
-}) => (
+const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
   <Box display="flex" justifyContent="space-between">
     <Typography variant="body2" color="text.secondary">
       {label}:
     </Typography>
-    <Typography variant="body2">
-      {value || "Not provided"}
-    </Typography>
+    <Typography variant="body2">{value || "Not provided"}</Typography>
   </Box>
 );
 

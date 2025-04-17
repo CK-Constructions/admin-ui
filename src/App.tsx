@@ -1,9 +1,4 @@
-import {
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { JSX, useEffect, useState } from "react";
 
 import Admin from "./pages/Admin";
@@ -13,9 +8,17 @@ import PrivateRoute from "./components/common/PrivateRoute";
 import { useDispatch } from "react-redux";
 import { getStoredAdminCredentials } from "./components/utils/utils";
 import { setCredentials } from "./redux/features/authSlice";
+// import { ThemeProvider as MuiThemeProvider } from "./components/context/ThemeContext";
+// import { ThemeProvider } from "./components/context/ThemeContext";
+// import { CssBaseline } from "@mui/material";
+import { ThemeProvider, useThemeContext } from "./components/context/ThemeContext";
 // Make sure to import your types
-
-function App(): JSX.Element {
+interface AppProps {
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+}
+// function App(): JSX.Element {
+const App: React.FC<AppProps> = ({ darkMode, toggleDarkMode }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,8 +33,7 @@ function App(): JSX.Element {
 
           // If on login page, redirect to home or intended path
           if (location.pathname === "/login") {
-            const redirectPath =
-              location.state?.from?.pathname || "/";
+            const redirectPath = location.state?.from?.pathname || "/";
             navigate(redirectPath, { replace: true });
           }
         } else {
@@ -44,10 +46,7 @@ function App(): JSX.Element {
           }
         }
       } catch (error) {
-        console.error(
-          "Authentication check failed:",
-          error
-        );
+        console.error("Authentication check failed:", error);
         navigate("/login", { replace: true });
       } finally {
         setIsLoading(false);
@@ -62,16 +61,19 @@ function App(): JSX.Element {
   }
 
   return (
-    <div>
-      <Routes>
-        <Route element={<PrivateRoute />}>
-          <Route path="/*" element={<Admin />} />
-        </Route>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen   dark:bg-[#1e1e1e] text-gray-900 dark:text-white transition-colors duration-200">
+        <Routes>
+          <Route element={<PrivateRoute />}>
+            <Route path="/*" element={<Admin />} />
+            {/* <SettingsPage toggleDarkMode={toggleDarkMode} darkMode={darkMode} /> */}
+          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </div>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
