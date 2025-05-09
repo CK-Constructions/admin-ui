@@ -62,7 +62,7 @@ const App: React.FC<AppProps> = ({ darkMode, toggleDarkMode }) => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen   dark:bg-[#1e1e1e] text-gray-900 dark:text-white transition-colors duration-200">
+      <div className="min-h-screen dark:bg-[#1e1e1e] text-gray-900 dark:text-white transition-colors duration-200">
         <Routes>
           <Route element={<PrivateRoute />}>
             <Route path="/*" element={<Admin />} />

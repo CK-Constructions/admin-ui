@@ -3,6 +3,7 @@ import { Methods, TQueryParams } from "./components/lib/types/common";
 import { TApprovalPayload, TLoginBody, TUserFormData } from "./components/lib/types/payloads";
 
 axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1";
+// axios.defaults.baseURL = "https://tomthin.in/api/v1";
 
 // if (process.env.MODE === "development") {
 //   // axios.defaults.baseURL = "http://192.168.1.12:9800/api/v1";

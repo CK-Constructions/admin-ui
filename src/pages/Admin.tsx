@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
-import { Dashboard } from "@mui/icons-material";
 
 import OrdersAnalyticsPage from "../components/orders/OrdersAnalyticsPage";
 import Listings from "../components/listings/Listings";
@@ -15,6 +14,7 @@ import Header from "../components/common/Header";
 import AddListing from "../components/listings/AddListing";
 import Approval from "../components/approval/Approval";
 import Settings from "../components/settings/Settings";
+import ThemedDashboard from "../components/Dashboard";
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -32,9 +32,9 @@ const App = () => {
       }}
     >
       <Sidebar open={sidebarOpen} onToggle={handleDrawerToggle} />
-      <main className="p-5 overflow-auto h-full">
+      <main className="p-5 overflow-auto h-full bg-gray-100 dark:bg-gray-900">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<ThemedDashboard />} />
           <Route path="*" element={<PageNotFound />} />
           <Route path="/users" element={<Users />} />
           <Route path="/orders-analytics" element={<OrdersAnalyticsPage />} />

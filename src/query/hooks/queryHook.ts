@@ -102,7 +102,6 @@ export function useMutationQuery({ key, func, onSuccess }: TMutationProp) {
   return useMutation({
     mutationFn: func,
     onSuccess: (data: TApiResponse<any>) => {
-      console.log("data", data);
       if (data.success) {
         onSuccess();
         if (Array.isArray(key)) {
