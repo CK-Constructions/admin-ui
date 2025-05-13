@@ -8,8 +8,10 @@ import {
   getAllAdmins,
   getAllApprovals,
   getAllCategories,
+  getCKInquiry,
   getListingById,
   getListings,
+  getTomthinInquiry,
   getUserByID,
   getUsers,
   getVendorByID,
@@ -56,4 +58,7 @@ export const queryConfigs = {
   //APPROVALS
   useGetAllApprovals: { queryFn: getAllApprovals, queryKey: [queryKeys.approvals] },
   useUpdateApproval: { mutationFn: updateApproval, queryKey: [queryKeys.approvals] },
+
+  useGetTomthinInquiry: { queryFn: getTomthinInquiry, queryKey: [queryKeys.ckinquiry] },
+  useGetCKInquiry: { queryFn: getCKInquiry, queryKey: [queryKeys.tomthininquiry] },
 };

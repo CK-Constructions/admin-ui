@@ -11,4 +11,6 @@ export const queryKeys = {
   listing: "listing",
   categories: "categories",
   approvals: "approvals",
+  tomthininquiry: "tomthininquiry",
+  ckinquiry: "ckinquiry",
 };

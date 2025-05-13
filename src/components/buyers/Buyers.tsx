@@ -1,5 +1,21 @@
 import { useState } from "react";
-import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Chip, Tooltip } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Pagination,
+  Chip,
+  Tooltip,
+  CircularProgress,
+  Typography,
+  Box,
+} from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
@@ -30,12 +46,14 @@ export default function Buyers() {
     username: "",
     mobile: "",
   });
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setParams((prev) => ({ ...prev, [name]: value }));
   };
+
   const { queryFn: UserFunc, queryKey: userKey } = queryConfigs.useGetUsers;
-  const { data } = useGetQuery({
+  const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError } = useGetQuery({
     func: UserFunc,
     key: userKey,
     params: {
@@ -44,13 +62,16 @@ export default function Buyers() {
       ...searchParams,
     },
   });
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     event.preventDefault();
     setCurrentPage(value);
   };
+
   const handleSearch = () => {
     setSearchParams(params);
   };
+
   const handleClear = () => {
     setParams({
       email: "",
@@ -63,31 +84,60 @@ export default function Buyers() {
       mobile: "",
     });
   };
+
   const [openBanDialog, setOpenBanDialog] = useState(false);
   const [openViewDialog, setOpenViewDialog] = useState(false);
+
   const handleOpenBanDialog = (user: TUser) => {
     setSelectedUser(user);
     setOpenBanDialog(true);
   };
+
   const handleOpenViewDialog = (user: TUser) => {
     setSelectedUserId(user.id);
-
     setOpenViewDialog(true);
   };
+
   const handleCloseBanDialog = () => {
     setOpenBanDialog(false);
   };
+
+  // Loading state
+  if (isLoading || isFetching || isRefetching) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Error states
+  if (isLoadingError || isRefetchError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">Error loading buyers data. Please try again.</Typography>
+      </Box>
+    );
+  }
+
+  // No data state
+  if (!data || !data.result || !data.result.list || data.result.list.length === 0) {
+    return (
+      <Box display="flex" flexDirection="column" height="100%">
+        <div className="pb-4">
+          <Header onBackClick={() => navigate(-1)} pageName="Buyers" />
+        </div>
+        <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
+          <Typography>No buyers found</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full ">
       <div className=" pb-4">
-        <Header
-          onBackClick={() => navigate(-1)}
-          // onReloadClick={refetch}
-          // showButton={true}
-          // buttonTitle="Add Buyers"
-          pageName="Buyers"
-          // buttonFunc={() => setIsModalOpen(true)}
-        />
+        <Header onBackClick={() => navigate(-1)} pageName="Buyers" />
       </div>
 
       <>
@@ -135,7 +185,7 @@ export default function Buyers() {
           </div>
         </div>
       </>
-      {}
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -201,7 +251,7 @@ export default function Buyers() {
           </TableBody>
         </Table>
       </TableContainer>
-      {}
+
       <div className="flex items-center justify-center mt-5">
         <div className="flex items-center justify-end space-x-3">
           {sanitizeValue(data?.result?.count) > 0 && (
@@ -213,6 +263,7 @@ export default function Buyers() {
           </p>
         </div>
       </div>
+
       <BanDialog
         open={openBanDialog && !!selectedUser}
         onClose={() => setOpenBanDialog(false)}

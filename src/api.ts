@@ -1,7 +1,11 @@
 import axios, { AxiosError } from "axios";
 import { Methods, TQueryParams } from "./components/lib/types/common";
 import { TApprovalPayload, TLoginBody, TUserFormData } from "./components/lib/types/payloads";
+import { store } from "./redux/store";
+import { logOut } from "./redux/features/authSlice";
+import { clearAdminCredentials } from "./components/utils/utils";
 
+// axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1";
 axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1";
 // axios.defaults.baseURL = "https://tomthin.in/api/v1";
 
@@ -29,6 +33,8 @@ export const clearAuthHeader = () => {
 export const loginUser = (body: TLoginBody) => _callApi("/admin/login", "post", body);
 
 export const getAllCategories = () => _callApi(`/admin/categories`, "get");
+export const getTomthinInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/admin/ck-inquiries?offset=${offset}&limit=${limit}`, "get");
+export const getCKInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/admin/inquiries?offset=${offset}&limit=${limit}`, "get");
 
 export const getAllApprovals = () => _callApi(`/admin/approvals`, "get");
 export const updateApproval = ({ body, id }: { body: TApprovalPayload; id: number }) => _callApi(`/admin/approvals/${id}`, "put", body);
@@ -72,19 +78,26 @@ const _callApi = async (url: string, method: Methods = "get", body = {}) => {
   try {
     const response = await axios[method](url, body);
     const { status, data } = response;
+
     if (status === 401) {
-      return { success: false };
-    } else if (status === 200 || status === 201) {
-      return data;
-    } else {
-      return { success: false };
+      if (data?.message === "Access Denied") {
+        store.dispatch(logOut());
+        clearAdminCredentials(); // Initiate logout
+        return { success: false, message: "Access Denied" };
+      }
+      return { success: false }; // Regular 401 without Access Denied message
     }
+
+    if (status === 200 || status === 201) {
+      return data;
+    }
+
+    return { success: false }; // Any other status code
   } catch (error) {
     const err = error as AxiosError;
-    return err.response?.data;
+    return err.response?.data || { success: false, message: "Network Error" };
   }
 };
-
 export const uploadMedia = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

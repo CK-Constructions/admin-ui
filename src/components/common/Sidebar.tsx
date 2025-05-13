@@ -1,5 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
+
 import {
   Box,
   Divider,
@@ -10,7 +12,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Theme,
   Toolbar,
   useTheme,
   styled,
@@ -20,7 +21,6 @@ import {
   ChevronRight as ChevronRightIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
-  Assessment as AssessmentIcon,
   ListAlt as ListAltIcon,
   Person as PersonIcon,
   Store as StoreIcon,
@@ -101,6 +101,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       path: "/listing-approvals",
     },
     {
+      text: "CK Inquiries",
+      icon: <ApprovalIcon />,
+      path: "/ck-inquiry",
+    },
+    {
+      text: "TT Inquiries",
+      icon: <ApprovalIcon />,
+      path: "/tomthin-inquiry",
+    },
+    {
       text: "Settings",
       icon: <SettingsIcon />,
       path: "/settings",
@@ -142,63 +152,58 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         />
         <List>
           {sidebarItems.map((item) => (
-            <ListItem
-              key={item.text}
-              disablePadding
-              sx={{
-                display: "block",
-                "& .MuiListItemButton-root": {
-                  minHeight: 48,
-                  justifyContent: open ? "initial" : "center",
-                  px: 2.5,
-                },
-                "& .MuiListItemIcon-root": {
-                  minWidth: 0,
-                  mr: open ? 3 : "auto",
-                  justifyContent: "center",
-                },
-              }}
-            >
-              <ListItemButton
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                sx={{
-                  "&.Mui-selected": {
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
-                    "&:hover": {
-                      backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
-                    },
-                  },
-                  "&:hover": {
-                    backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.02)",
-                  },
-                  borderRadius: 1,
-                  mx: 1,
-                  my: 0.5,
-                  transition: "all 0.2s ease",
+            <ListItem key={item.text} disablePadding sx={{ display: "block" }}>
+              <motion.div
+                whileHover={{
+                  scale: 1.02,
+                  backgroundColor: open ? "rgba(255, 133, 0, 0.1)" : "rgba(8, 129, 148, 0.1)",
+                  transition: { duration: 0.3 },
                 }}
+                style={{ borderRadius: 8 }}
               >
-                <ListItemIcon
+                <ListItemButton
+                  component={Link}
+                  to={item.path}
+                  selected={location.pathname === item.path}
                   sx={{
-                    color: location.pathname === item.path ? theme.palette.primary.main : theme.palette.mode === "dark" ? "#94a3b8" : "#64748b",
-                    transition: "color 0.2s ease",
+                    minHeight: 48,
+                    justifyContent: open ? "initial" : "center",
+                    px: 2.5,
+                    mx: 1,
+                    my: 0.5,
+                    transition: "all 0.2s ease",
+                    "&.Mui-selected": {
+                      backgroundColor: "rgba(255, 133, 0, 0.2)",
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 133, 0, 0.25)",
+                      },
+                    },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText
-                  primary={item.text}
-                  sx={{
-                    opacity: open ? 1 : 0,
-                    color: location.pathname === item.path ? theme.palette.primary.main : theme.palette.mode === "dark" ? "#e2e8f0" : "#334155",
-                    "& .MuiTypography-root": {
-                      fontWeight: location.pathname === item.path ? 500 : 400,
-                    },
-                    transition: "opacity 0.3s ease, color 0.2s ease",
-                  }}
-                />
-              </ListItemButton>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : "auto",
+                      justifyContent: "center",
+                      color: location.pathname === item.path ? "#ff8500" : theme.palette.mode === "dark" ? "#94a3b8" : "#64748b",
+                      transition: "color 0.2s ease",
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.text}
+                    sx={{
+                      opacity: open ? 1 : 0,
+                      color: location.pathname === item.path ? "#088194" : theme.palette.mode === "dark" ? "#e2e8f0" : "#334155",
+                      "& .MuiTypography-root": {
+                        fontWeight: location.pathname === item.path ? 500 : 400,
+                      },
+                      transition: "opacity 0.3s ease, color 0.2s ease",
+                    }}
+                  />
+                </ListItemButton>
+              </motion.div>
             </ListItem>
           ))}
         </List>

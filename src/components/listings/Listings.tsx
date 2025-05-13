@@ -20,6 +20,7 @@ import {
   Select,
   SelectChangeEvent,
   Pagination,
+  CircularProgress,
 } from "@mui/material";
 import { Visibility as ViewIcon, Block as DisableIcon } from "@mui/icons-material";
 import { queryConfigs } from "../../query/queryConfig";
@@ -47,21 +48,19 @@ const Listings = () => {
     active: "",
   });
 
-  // Assuming you have a list of categories available
+  // Categories data
   const categories = [
     { id: 1, name: "Electronics" },
     { id: 2, name: "Clothing" },
     { id: 3, name: "Furniture" },
-    // Add more categories as needed
   ];
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    event.preventDefault();
-    setCurrentPage(value);
-  };
+
   const {
     data: listings,
     isLoading,
     isFetching,
+    isError,
+    refetch,
   } = useGetQuery({
     func: listFunc,
     key: queryKey,
@@ -70,6 +69,11 @@ const Listings = () => {
 
   const [openBanDialog, setOpenBanDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TListing | null>(null);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    event.preventDefault();
+    setCurrentPage(value);
+  };
 
   const handleParamChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     const { name, value } = e.target;
@@ -87,9 +91,22 @@ const Listings = () => {
   const handleDetail = (id: number) => {
     navigate(`/listings/${id}`);
   };
+
+  const handleClickBack = () => {
+    navigate(-1);
+  };
+
+  // Loading state
   if (isLoading || isFetching) {
     return (
       <Box sx={{ p: 3 }}>
+        <Header
+          showButton={true}
+          buttonFunc={() => navigate("/add-listing")}
+          onBackClick={handleClickBack}
+          onReloadClick={refetch}
+          pageName="Listings"
+        />
         <Grid container spacing={3}>
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <Grid item xs={12} sm={6} md={4} key={item}>
@@ -107,21 +124,60 @@ const Listings = () => {
       </Box>
     );
   }
-  if (!listings || !listings.result || listings.result.list.length === 0) {
+
+  // Error state
+  if (isError) {
     return (
-      <Box sx={{ p: 3, textAlign: "center" }}>
-        <Header showButton={true} buttonFunc={() => navigate("/add-listing")} />
-        <div className=" mt-5">
-          <Typography variant="h6" color="text.secondary">
-            No listings found.
+      <Box sx={{ p: 3, textAlign: "center", minHeight: "60vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <Header
+          showButton={true}
+          buttonFunc={() => navigate("/add-listing")}
+          onBackClick={handleClickBack}
+          onReloadClick={refetch}
+          pageName="Listings"
+        />
+        <Typography variant="h6" color="error" gutterBottom>
+          Failed to load listings
+        </Typography>
+        <Button variant="contained" onClick={() => refetch()} sx={{ mt: 2 }}>
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
+  // Empty state
+  if (!listings?.result?.list || listings.result.list.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        <Header
+          showButton={true}
+          buttonFunc={() => navigate("/add-listing")}
+          onBackClick={handleClickBack}
+          onReloadClick={refetch}
+          pageName="Listings"
+        />
+        <div className="mt-10">
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No listings found
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Try adjusting your search filters or create a new listing
           </Typography>
         </div>
       </Box>
     );
   }
+
   return (
     <Box sx={{ p: 1 }}>
-      <Header showButton={true} buttonFunc={() => navigate("/add-listing")} />
+      <Header
+        showButton={true}
+        buttonFunc={() => navigate("/add-listing")}
+        onBackClick={handleClickBack}
+        onReloadClick={refetch}
+        pageName="Listings"
+      />
 
       {/* Filter Controls */}
       <Box sx={{ mb: 3, p: 2, borderRadius: 1, boxShadow: 1 }}>
@@ -165,6 +221,8 @@ const Listings = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* Results count and pagination */}
       <div className="flex items-center justify-end my-5">
         <div className="flex items-center justify-end space-x-3">
           {sanitizeValue(listings?.result?.count) > 0 && (
@@ -181,8 +239,10 @@ const Listings = () => {
           </p>
         </div>
       </div>
+
+      {/* Listings grid */}
       <Grid container spacing={3}>
-        {listings?.result.list.map((listing: any) => (
+        {listings?.result.list.map((listing: TListing) => (
           <Grid item xs={12} sm={6} md={4} key={listing.id}>
             <Card
               sx={{
@@ -200,7 +260,6 @@ const Listings = () => {
                 <CardMedia
                   component="img"
                   src={`${process.env.REACT_APP_GET_MEDIA}/${listing.image}`}
-                  // src={listing.image}
                   alt={listing.title}
                   sx={{
                     position: "absolute",
@@ -266,13 +325,6 @@ const Listings = () => {
           </Grid>
         ))}
       </Grid>
-      {(!listings || !listings.result || listings.result.list.length === 0) && !isLoading && (
-        <Box sx={{ p: 3, textAlign: "center" }}>
-          <Typography variant="h6" color="text.secondary">
-            No listings found.
-          </Typography>
-        </Box>
-      )}
 
       <BanListing
         open={openBanDialog && !!selectedUser}

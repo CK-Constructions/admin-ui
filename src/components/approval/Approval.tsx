@@ -1,4 +1,17 @@
-import { Chip, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip } from "@mui/material";
+import {
+  Box,
+  Chip,
+  CircularProgress,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { TApprovalData } from "../lib/types/common";
 import Header from "../common/Header";
@@ -10,6 +23,7 @@ import { showNotification } from "../utils/utils";
 import { TApprovalPayload } from "../lib/types/payloads";
 import ApprovalDialog from "./ApprovalDialog";
 import { BiCategory } from "react-icons/bi";
+
 const Approval = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,7 +34,7 @@ const Approval = () => {
   });
   const { mutationFn, queryKey } = queryConfigs.useUpdateApproval;
   const { queryFn: vendorFunc, queryKey: vendorKey } = queryConfigs.useGetAllApprovals;
-  const { data } = useGetQuery({
+  const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError } = useGetQuery({
     func: vendorFunc,
     key: vendorKey,
     params: {
@@ -63,6 +77,38 @@ const Approval = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
+
+  // Loading state
+  if (isLoading || isFetching || isRefetching) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Error states
+  if (isLoadingError || isRefetchError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">Error loading buyers data. Please try again.</Typography>
+      </Box>
+    );
+  }
+
+  // No data state
+  if (!data || !data.result || !data.result.list || data.result.list.length === 0) {
+    return (
+      <Box display="flex" flexDirection="column" height="100%">
+        <div className="pb-4">
+          <Header onBackClick={() => navigate(-1)} pageName="Buyers" />
+        </div>
+        <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
+          <Typography>No buyers found</Typography>
+        </Box>
+      </Box>
+    );
+  }
   return (
     <div className="p-3">
       <>

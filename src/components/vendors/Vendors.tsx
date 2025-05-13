@@ -1,5 +1,21 @@
 import { useState } from "react";
-import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Chip, Tooltip } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Pagination,
+  Chip,
+  Tooltip,
+  Box,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
@@ -17,9 +33,9 @@ export const countStyle = "flex items-center justify-center px-2 py-1 text-lg fo
 export default function Vendors() {
   const navigate = useNavigate();
   const limit = 10;
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<IVendor | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [params, setParams] = useState<TQueryParams>({
     email: "",
     username: "",
@@ -35,7 +51,7 @@ export default function Vendors() {
     setParams((prev) => ({ ...prev, [name]: value }));
   };
   const { queryFn: vendorFunc, queryKey: vendorKey } = queryConfigs.useGetVendors;
-  const { data } = useGetQuery({
+  const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError } = useGetQuery({
     func: vendorFunc,
     key: vendorKey,
     params: {
@@ -77,6 +93,39 @@ export default function Vendors() {
   const handleCloseBanDialog = () => {
     setOpenBanDialog(false);
   };
+
+  // Loading state
+  if (isLoading || isFetching || isRefetching) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Error states
+  if (isLoadingError || isRefetchError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">Error loading buyers data. Please try again.</Typography>
+      </Box>
+    );
+  }
+
+  // No data state
+  if (!data || !data.result || !data.result.list || data.result.list.length === 0) {
+    return (
+      <Box display="flex" flexDirection="column" height="100%">
+        <div className="pb-4">
+          <Header onBackClick={() => navigate(-1)} pageName="Buyers" />
+        </div>
+        <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
+          <Typography>No buyers found</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="pb-4">

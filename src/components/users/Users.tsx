@@ -1,5 +1,21 @@
 import { useState } from "react";
-import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Chip, Tooltip } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Pagination,
+  Chip,
+  Tooltip,
+  CircularProgress,
+  Box,
+  Typography,
+} from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
@@ -41,7 +57,7 @@ export default function Users() {
   // Query and data fetching
   const limit = 10;
   const { queryFn: UserFunc, queryKey: userKey } = queryConfigs.useGetAdmins;
-  const { data, refetch } = useGetQuery({
+  const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
     func: UserFunc,
     key: userKey,
     params: {
@@ -89,12 +105,8 @@ export default function Users() {
   };
   const handleOpenViewDialog = (user: TAdmin) => {
     setSelectedUserId(user.id);
-
     setOpenViewDialog(true);
   };
-  // const handleCloseBanDialog = () => {
-  //   setOpenBanDialog(false);
-  // };
 
   // Form submission and navigation functions
   const handleSubmit = (userData: TUserFormData) => {
@@ -103,6 +115,49 @@ export default function Users() {
   const handleClickBack = () => {
     navigate(-1);
   };
+
+  // Loading and error states
+  if (isLoading || isRefetching) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <Typography color="error">Error loading users. Please try again.</Typography>
+      </Box>
+    );
+  }
+
+  if (!data?.result?.list || data.result.list.length === 0) {
+    return (
+      <>
+        <div className="pb-4">
+          <Header
+            onBackClick={handleClickBack}
+            onReloadClick={refetch}
+            showButton={true}
+            buttonTitle="Add User"
+            pageName="Users"
+            buttonFunc={() => setIsModalOpen(true)}
+          />
+        </div>
+
+        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
+          <Typography variant="h6" color="textSecondary" gutterBottom>
+            No users found
+          </Typography>
+          <Button variant="contained" onClick={() => setIsModalOpen(true)}>
+            Add New User
+          </Button>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <>
@@ -117,60 +172,51 @@ export default function Users() {
         />
       </div>
 
-      <div className="flex flex-col h-full   p-6">
-        {/* <div className="flex items-center justify-between border-b pb-4">
-        <h1 className="text-2xl font-semibold text-[#171717]">Support Admins</h1>
-        <Button onClick={() => setIsModalOpen(true)} variant="outlined">
-          Add User
-        </Button>
-      </div> */}
-        {}
-        <>
-          <div className="my-6 flex gap-2">
-            <TextField
-              name="email"
-              label="Email"
-              variant="outlined"
-              size="small"
-              value={params.email}
-              onChange={handleSearchChange}
-              sx={{
-                width: "20%",
-              }}
-            />
-            <TextField
-              name="username"
-              label="Username"
-              variant="outlined"
-              size="small"
-              value={params.username}
-              onChange={handleSearchChange}
-              sx={{
-                width: "20%",
-              }}
-            />
-            <TextField
-              name="mobile"
-              label="Mobile"
-              variant="outlined"
-              size="small"
-              value={params.mobile}
-              onChange={handleSearchChange}
-              sx={{
-                width: "20%",
-              }}
-            />
-            <div className="flex space-x-2 items-center">
-              <Button variant="outlined" onClick={handleSearch}>
-                Search
-              </Button>
-              <Button variant="outlined" onClick={handleClear}>
-                Clear
-              </Button>
-            </div>
+      <div className="flex flex-col h-full p-6">
+        <div className="my-6 flex gap-2">
+          <TextField
+            name="email"
+            label="Email"
+            variant="outlined"
+            size="small"
+            value={params.email}
+            onChange={handleSearchChange}
+            sx={{
+              width: "20%",
+            }}
+          />
+          <TextField
+            name="username"
+            label="Username"
+            variant="outlined"
+            size="small"
+            value={params.username}
+            onChange={handleSearchChange}
+            sx={{
+              width: "20%",
+            }}
+          />
+          <TextField
+            name="mobile"
+            label="Mobile"
+            variant="outlined"
+            size="small"
+            value={params.mobile}
+            onChange={handleSearchChange}
+            sx={{
+              width: "20%",
+            }}
+          />
+          <div className="flex space-x-2 items-center">
+            <Button variant="outlined" onClick={handleSearch}>
+              Search
+            </Button>
+            <Button variant="outlined" onClick={handleClear}>
+              Clear
+            </Button>
           </div>
-        </>
-        {}
+        </div>
+
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -236,7 +282,7 @@ export default function Users() {
             </TableBody>
           </Table>
         </TableContainer>
-        {}
+
         <div className="flex items-center justify-center mt-5">
           <div className="flex items-center justify-end space-x-3">
             {sanitizeValue(data?.result?.count) > 0 && (

@@ -89,3 +89,12 @@ export interface TCategory {
   created_on: string;
   is_active: number;
 }
+
+export interface TInquiry {
+  id: number;
+  full_name: string;
+  email: string;
+  mobile: string;
+  message: string;
+  created_on: string;
+}

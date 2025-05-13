@@ -15,6 +15,8 @@ import AddListing from "../components/listings/AddListing";
 import Approval from "../components/approval/Approval";
 import Settings from "../components/settings/Settings";
 import ThemedDashboard from "../components/Dashboard";
+import CkInquiry from "../components/inquiry/ckinquiry/CkInquiry";
+import TomthinInquiry from "../components/inquiry/tomthininquiry/TomthinInquiry";
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -44,6 +46,8 @@ const App = () => {
           <Route path="/buyers" element={<Buyers />} />
           <Route path="/vendors" element={<Vendors />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/ck-inquiry" element={<CkInquiry />} />
+          <Route path="/tomthin-inquiry" element={<TomthinInquiry />} />
           {/* <Route path="/vendor-verification" element={<VendorVerification />} /> */}
           <Route path="/listing-approvals" element={<Approval />} />
         </Routes>
