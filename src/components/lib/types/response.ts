@@ -11,7 +11,6 @@ export interface TUser {
   profile_picture?: string;
   is_active: number;
 }
-
 export interface IVendor {
   id: number;
   username: string;
@@ -30,7 +29,6 @@ export interface IVendor {
   is_deleted: number;
   is_active: number;
 }
-
 export interface TAdmin {
   id: number;
   username: string;
@@ -41,26 +39,22 @@ export interface TAdmin {
   password?: string;
   created_on?: string;
   is_active?: number;
-  image?: string; // if you need this field
+  image?: string;
 }
-
 export interface AdminResponse {
   count: number;
   list: TAdmin[];
 }
-
 export interface TAttribute {
   id: number;
   attribute_name: string;
   attribute_value: string;
 }
-
 export interface TImage {
   id: number;
   image: string;
   is_primary: boolean;
 }
-
 export interface TListing {
   id: number;
   seller_id: number;
@@ -77,19 +71,16 @@ export interface TListing {
   attributes?: TAttribute[];
   images?: TImage[];
 }
-
 export interface ListingResponse {
   result: TListing;
   success: boolean;
 }
-
 export interface TCategory {
   id: number;
   name: string;
   created_on: string;
   is_active: number;
 }
-
 export interface TInquiry {
   id: number;
   full_name: string;
@@ -98,3 +89,95 @@ export interface TInquiry {
   message: string;
   created_on: string;
 }
+export type TRentalItem = {
+  id: number;
+  seller_id: number;
+  seller_name: string;
+  seller_fullname: string;
+  category: number;
+  category_name: string;
+  name: string;
+  description: string;
+  delivery_fee: number;
+  contact_phone: string;
+  delivery_time: string;
+  created_on: string;
+  rates?: string;
+  images: string;
+  insurance_required: number;
+  is_active: number;
+};
+export type TRentalBanBody = {
+  id?: number;
+  rental_id?: number;
+  banned_by?: number;
+  lifted_by?: number;
+  ban_reason?: string;
+  lift_reason?: string;
+  banned_on?: string;
+  lifted_on?: string;
+  is_active?: number;
+  banned_by_name?: string;
+  lifted_by_name?: string;
+  created_on?: string;
+  seller_name?: string;
+};
+export type TRentalSpecification = {
+  id: number | null;
+  rental_id: number | null;
+  label: string;
+  value: string;
+};
+export type TRentalRate = {
+  id: number;
+  period: string;
+  rate: number;
+};
+export type TRentalImage = {
+  id: number;
+  image: string;
+  is_primary: number;
+};
+export type TRentalDetails = {
+  id: number;
+  seller_id: number;
+  seller_name: string;
+  seller_fullname: string | null;
+  category: number;
+  category_name: string;
+  name: string;
+  description: string;
+  delivery_fee: number | null;
+  contact_phone: string;
+  delivery_time: string;
+  created_on: string | null;
+  images: string;
+  is_active: number;
+  specifications: TRentalSpecification[];
+  rates_list: TRentalRate[];
+  images_list: TRentalImage[];
+};
+export type TRentalapproval = {
+  id: number;
+  approval_status: number | null;
+  rental_id: number;
+  category: number;
+  seller_id: number;
+  approved_on: string;
+  created_on: string;
+  seller_username: string;
+  seller_fullname: string;
+  category_name: string;
+};
+export type TServiceapproval = {
+  id: number;
+  approval_status: number | null;
+  service_id: number;
+  category: number;
+  seller_id: number;
+  approved_on: string;
+  created_on: string;
+  seller_username: string;
+  seller_fullname: string;
+  category_name: string;
+};

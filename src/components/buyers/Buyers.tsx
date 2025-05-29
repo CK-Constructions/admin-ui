@@ -28,6 +28,7 @@ import { sanitizeValue } from "../utils/utils";
 import { countStyle } from "../vendors/Vendors";
 import Header from "../common/Header";
 import { useNavigate } from "react-router";
+import Loading from "../common/Loader";
 
 export default function Buyers() {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ export default function Buyers() {
   if (isLoading || isFetching || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+        <Loading />
       </Box>
     );
   }
@@ -264,12 +265,7 @@ export default function Buyers() {
         </div>
       </div>
 
-      <BanDialog
-        open={openBanDialog && !!selectedUser}
-        onClose={() => setOpenBanDialog(false)}
-        isBanned={selectedUser?.status === 1 ? true : false}
-        user={selectedUser as TUser}
-      />
+      <BanDialog open={openBanDialog && !!selectedUser} onClose={() => setOpenBanDialog(false)} isBanned={selectedUser?.status === 1 ? true : false} user={selectedUser as TUser} />
       <ViewUser open={openViewDialog && !!selectedUserId} onClose={() => setOpenViewDialog(false)} userid={selectedUserId as number} />
     </div>
   );

@@ -38,3 +38,8 @@ interface TListingBody {
   attributes: TAttribute[];
   images: TImage[];
 }
+
+export interface TCategoryBody {
+  id?: number;
+  name: string;
+}

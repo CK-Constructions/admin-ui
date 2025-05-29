@@ -27,6 +27,7 @@ import { sanitizeValue } from "../utils/utils";
 import { BsUniversalAccessCircle } from "react-icons/bs";
 import Header from "../common/Header";
 import { useNavigate } from "react-router";
+import Loading from "../common/Loader";
 
 export const countStyle = "flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200";
 
@@ -98,7 +99,7 @@ export default function Vendors() {
   if (isLoading || isFetching || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+        <Loading />
       </Box>
     );
   }

@@ -1,32 +1,23 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
+import { Box, Divider, Drawer as MuiDrawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, useTheme, styled } from "@mui/material";
 import {
-  Box,
-  Divider,
-  Drawer as MuiDrawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  useTheme,
-  styled,
-} from "@mui/material";
-import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   Dashboard as DashboardIcon,
   People as PeopleIcon,
-  ListAlt as ListAltIcon,
-  Person as PersonIcon,
+  Inventory as ListingsIcon,
+  Category as CategoryIcon,
+  ShoppingCart as BuyersIcon,
   Store as StoreIcon,
-  HowToReg as ApprovalIcon,
+  DirectionsCar as CarRentalIcon,
+  Build as ServicesIcon,
+  CheckCircle as ApprovalIcon,
+  ContactSupport as InquiryIcon,
   Settings as SettingsIcon,
 } from "@mui/icons-material";
+
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useThemeContext } from "../context/ThemeContext";
 
 interface SidebarProps {
@@ -40,29 +31,39 @@ interface SidebarItem {
   path: string;
 }
 
-const drawerWidth = 240;
-
 const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
-  width: open ? 240 : 56,
+  width: open ? 250 : 66,
   flexShrink: 0,
   whiteSpace: "nowrap",
   "& .MuiDrawer-paper": {
-    width: open ? 240 : 56,
+    width: open ? 250 : 66,
     transition: theme.transitions.create("width", {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: "hidden",
-    // Add the cooling neutral gradient background
-    background:
-      theme.palette.mode === "dark" ? "linear-gradient(180deg, #1e293b 0%, #0f172a 100%)" : "linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)",
-    // Add a subtle border on the right side
-    borderRight: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)"}`,
-    // Add a subtle shadow for depth
+    overflowY: "auto",
+    // Hide scrollbar for webkit browsers
+    "&::-webkit-scrollbar": {
+      display: "none",
+    },
+    // Hide scrollbar for Firefox
+    scrollbarWidth: "none",
+    // Hide scrollbar for IE and Edge
+    msOverflowStyle: "none",
+    // Enhanced gradient background with more depth
+    background: theme.palette.mode === "dark" ? "linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%)" : "linear-gradient(180deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%)",
+    // Enhanced border with subtle glow
+    borderRight: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`,
+    // Enhanced shadow with multiple layers
     boxShadow:
       theme.palette.mode === "dark"
-        ? "0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1)"
-        : "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
+        ? "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+        : "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+    // Add backdrop filter for glass effect
+    backdropFilter: "blur(12px) saturate(180%)",
+    // Smooth transitions for all properties
+    // transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   },
 }));
 
@@ -71,23 +72,37 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const muiTheme = useTheme(); // MUI theme hook
   const { darkMode, toggleDarkMode } = useThemeContext(); // Our custom context
   const location = useLocation();
-
+  const navigate = useNavigate();
+  const handleProfileNavigate = () => {
+    navigate("/profile");
+  };
   const sidebarItems: SidebarItem[] = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
     { text: "Users", icon: <PeopleIcon />, path: "/users" },
-    // {
-    //   text: "Orders & Analytics",
-    //   icon: <AssessmentIcon />,
-    //   path: "/orders-analytics",
-    // },
+    { text: "Profile", icon: <PeopleIcon />, path: "/profile" },
     {
       text: "Listings",
-      icon: <ListAltIcon />,
+      icon: <ListingsIcon />,
       path: "/listings",
     },
     {
+      text: "Listing Categories",
+      icon: <CategoryIcon />,
+      path: "/listing-categories",
+    },
+    {
+      text: "Rental Categories",
+      icon: <CategoryIcon />,
+      path: "/rental-categories",
+    },
+    {
+      text: "Service Categories",
+      icon: <CategoryIcon />,
+      path: "/service-categories",
+    },
+    {
       text: "Buyers",
-      icon: <PersonIcon />,
+      icon: <BuyersIcon />,
       path: "/buyers",
     },
     {
@@ -96,18 +111,38 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       path: "/vendors",
     },
     {
-      text: "Approvals",
+      text: "Vehicle Rentals",
+      icon: <CarRentalIcon />,
+      path: "/rentals",
+    },
+    {
+      text: "Services",
+      icon: <ServicesIcon />,
+      path: "/services",
+    },
+    {
+      text: "Listing Approvals",
       icon: <ApprovalIcon />,
       path: "/listing-approvals",
     },
     {
-      text: "CK Inquiries",
+      text: "Service Approvals",
       icon: <ApprovalIcon />,
+      path: "/service-approvals",
+    },
+    {
+      text: "Vehicle Rental Approvals",
+      icon: <ApprovalIcon />,
+      path: "/rental-approvals",
+    },
+    {
+      text: "CK Inquiries",
+      icon: <InquiryIcon />,
       path: "/ck-inquiry",
     },
     {
       text: "TT Inquiries",
-      icon: <ApprovalIcon />,
+      icon: <InquiryIcon />,
       path: "/tomthin-inquiry",
     },
     {
@@ -123,21 +158,64 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
         <Toolbar
           sx={{
             display: "flex",
+            minHeight: 64,
             alignItems: "center",
-            justifyContent: "flex-end",
+            justifyContent: "space-between", // Changed from flex-end to space-between
             px: [1],
-            // Add a glass-like effect to the toolbar
-            backdropFilter: "blur(8px)",
-            backgroundColor: theme.palette.mode === "dark" ? "rgba(15, 23, 42, 0.8)" : "rgba(248, 250, 252, 0.8)",
-            borderBottom: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)"}`,
+            // Enhanced glass-like effect
+            backdropFilter: "blur(16px) saturate(180%)",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(15, 23, 42, 0.9)" : "rgba(248, 250, 252, 0.9)",
+            borderBottom: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`,
+            // Add subtle inner shadow
+            boxShadow: theme.palette.mode === "dark" ? "inset 0 -1px 0 rgba(255, 255, 255, 0.05)" : "inset 0 -1px 0 rgba(0, 0, 0, 0.05)",
+            position: "relative",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.02) 100%)"
+                  : "linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.02) 100%)",
+              pointerEvents: "none",
+            },
           }}
         >
+          {/* Empty div to balance the space-between layout */}
+          {open && <div style={{ width: "40px" }}></div>}
+
+          {/* Logo in the center */}
+          {open && (
+            <img
+              src="/logo.png"
+              alt="Logo"
+              style={{
+                height: "80px",
+                maxWidth: "100%",
+                objectFit: "contain",
+                filter: theme.palette.mode === "dark" ? "brightness(0.9)" : "none",
+              }}
+            />
+          )}
+
           <IconButton
             onClick={onToggle}
             sx={{
               color: theme.palette.mode === "dark" ? "#94a3b8" : "#64748b",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              borderRadius: "12px",
+              padding: "8px",
               "&:hover": {
-                backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
+                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#475569",
+                transform: "scale(1.05)",
+                boxShadow: theme.palette.mode === "dark" ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.1)",
+              },
+              "&:active": {
+                transform: "scale(0.95)",
               },
             }}
           >
@@ -156,10 +234,16 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
               <motion.div
                 whileHover={{
                   scale: 1.02,
-                  backgroundColor: open ? "rgba(255, 133, 0, 0.1)" : "rgba(8, 129, 148, 0.1)",
-                  transition: { duration: 0.3 },
+                  transition: { duration: 0.2, ease: "easeOut" },
                 }}
-                style={{ borderRadius: 8 }}
+                whileTap={{
+                  scale: 0.98,
+                  transition: { duration: 0.1 },
+                }}
+                style={{
+                  borderRadius: 12,
+                  margin: "2px 8px",
+                }}
               >
                 <ListItemButton
                   component={Link}
@@ -169,13 +253,45 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
                     minHeight: 48,
                     justifyContent: open ? "initial" : "center",
                     px: 2.5,
-                    mx: 1,
-                    my: 0.5,
-                    transition: "all 0.2s ease",
+                    borderRadius: "12px",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    position: "relative",
+                    overflow: "hidden",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: "linear-gradient(90deg, transparent 0%, rgba(255, 133, 0, 0.1) 50%, transparent 100%)",
+                      transform: "translateX(-100%)",
+                      transition: "transform 0.6s ease",
+                    },
+                    "&:hover": {
+                      backgroundColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+                      transform: "translateX(4px)",
+                      boxShadow: theme.palette.mode === "dark" ? "0 4px 12px rgba(0, 0, 0, 0.2)" : "0 4px 12px rgba(0, 0, 0, 0.08)",
+                      "&::before": {
+                        transform: "translateX(0)",
+                      },
+                    },
                     "&.Mui-selected": {
-                      backgroundColor: "rgba(255, 133, 0, 0.2)",
+                      backgroundColor: "rgba(255, 133, 0, 0.15)",
+                      boxShadow: theme.palette.mode === "dark" ? "0 4px 12px rgba(255, 133, 0, 0.2)" : "0 4px 12px rgba(255, 133, 0, 0.15)",
                       "&:hover": {
-                        backgroundColor: "rgba(255, 133, 0, 0.25)",
+                        backgroundColor: "rgba(255, 133, 0, 0.2)",
+                      },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        right: 0,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        width: "3px",
+                        height: "60%",
+                        background: "linear-gradient(180deg, #ff8500 0%, #088194 100%)",
+                        borderRadius: "2px 0 0 2px",
                       },
                     },
                   }}

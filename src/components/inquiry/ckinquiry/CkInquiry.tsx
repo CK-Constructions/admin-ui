@@ -19,6 +19,7 @@ import Header from "../../common/Header";
 import { useNavigate } from "react-router";
 import { MdOutlineEmail } from "react-icons/md";
 import { FaPhone } from "react-icons/fa";
+import Loading from "../../common/Loader";
 
 interface InquiryCardsProps {
   limit: number;
@@ -58,7 +59,7 @@ const CkInquiry = () => {
   if (isLoading || isFetching || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+        <Loading />
       </Box>
     );
   }
@@ -96,10 +97,7 @@ const CkInquiry = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.result.list.map((inquiry: TInquiry) => (
-          <div
-            key={inquiry.id}
-            className="border border-gray-100 rounded-xl p-5 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-          >
+          <div key={inquiry.id} className="border border-gray-100 rounded-xl p-5 bg-white shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="flex justify-between items-start mb-3">
               <h3 className="font-semibold text-lg text-gray-800 truncate">{inquiry.full_name}</h3>
               <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-600 rounded-full">{formatDate(inquiry.created_on)}</span>

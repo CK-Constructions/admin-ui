@@ -1,17 +1,4 @@
-import {
-  Box,
-  Chip,
-  CircularProgress,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Chip, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Tooltip, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { TApprovalData } from "../lib/types/common";
 import Header from "../common/Header";
@@ -23,6 +10,7 @@ import { showNotification } from "../utils/utils";
 import { TApprovalPayload } from "../lib/types/payloads";
 import ApprovalDialog from "./ApprovalDialog";
 import { BiCategory } from "react-icons/bi";
+import Loading from "../common/Loader";
 
 const Approval = () => {
   const navigate = useNavigate();
@@ -82,7 +70,7 @@ const Approval = () => {
   if (isLoading || isFetching || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-        <CircularProgress />
+        <Loading />
       </Box>
     );
   }
@@ -170,13 +158,7 @@ const Approval = () => {
           </Table>
         </TableContainer>
       </>
-      <ApprovalDialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        approval={selectedApproval}
-        handleApprove={handleApprove}
-        handleReject={handleReject}
-      />
+      <ApprovalDialog open={openDialog} onClose={handleCloseDialog} approval={selectedApproval} handleApprove={handleApprove} handleReject={handleReject} />
     </div>
   );
 };

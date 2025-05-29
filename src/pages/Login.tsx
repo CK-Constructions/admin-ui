@@ -69,12 +69,7 @@ const Login: React.FC = () => {
 
   if (!showUI) {
     return (
-      <motion.div
-        className="bg-[#111827] flex items-center justify-center w-full h-[100vh]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
+      <motion.div className="bg-[#111827] flex items-center justify-center w-full h-[100vh]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}>
           <FaAdjust size={80} color="#2DD4BF" />
         </motion.div>
@@ -93,23 +88,23 @@ const Login: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div>
             <div className="flex items-center justify-center mb-10">
-              <FaAdjust size={120} className="text-white text-center" />
+              {/* <FaAdjust size={120} className="text-white text-center" /> */}
+              <img
+                src="/logo.png"
+                alt="Logo"
+                style={{
+                  height: "250px",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
             </div>
             <Typography variant="h5" fontWeight="bold" sx={{ color: "white" }} gutterBottom>
-              Admin Login
+              Tomthin Admin Login
             </Typography>
 
             {/* Username */}
-            <TextField
-              label="Username"
-              name="username"
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              value={formData.username}
-              onChange={handleChange}
-              sx={textFieldStyle}
-            />
+            <TextField label="Username" name="username" fullWidth margin="normal" variant="outlined" value={formData.username} onChange={handleChange} sx={textFieldStyle} />
 
             {/* Password */}
             <TextField
