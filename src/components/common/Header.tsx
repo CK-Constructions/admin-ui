@@ -1,17 +1,17 @@
-import React, { useState } from "react";
-import { AiOutlineArrowLeft, AiOutlineReload } from "react-icons/ai";
+import React, { MouseEvent, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TbReload } from "react-icons/tb";
 import { FaArrowLeft } from "react-icons/fa";
-import { Button } from "@mui/material";
-import { useGetQuery } from "../../query/hooks/queryHook";
-import { queryConfigs } from "../../query/queryConfig";
-import { useSelector } from "react-redux";
-import { selectCurrentAuth } from "../../redux/features/authSlice";
+import { Avatar, Button, IconButton, ListItemIcon, Menu, MenuItem } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { logOut, selectCurrentAuth } from "../../redux/features/authSlice";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { logoutUser } from "../../api";
+import { showNotification } from "../utils/utils";
 interface RouteTitles {
   [key: string]: string;
 }
-
 const routeTitles: RouteTitles = {
   "/": "Dashboard",
   "/users": "Users",
@@ -21,7 +21,6 @@ const routeTitles: RouteTitles = {
   "/buyers": "Buyers",
   "/vendors": "Vendors",
 };
-
 interface HeaderProps {
   buttonTitle?: string;
   onBackClick?: () => void;
@@ -32,11 +31,40 @@ interface HeaderProps {
   showButton?: boolean;
   pageName?: string;
 }
-
 const Header: React.FC<HeaderProps> = ({ buttonFunc, buttonTitle, onBackClick, onReloadClick, pageName, showBackButton = true, showReloadButton = true, showButton = false }) => {
   const location = useLocation();
   const title = routeTitles[location.pathname] || "Page 404";
   const [isRotating, setIsRotating] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const dispatch = useDispatch();
+  const logoutSeller = async () => {
+    try {
+      const response = await logoutUser();
+      if (response.success) {
+        showNotification("success", "Logged Out Successfully");
+        dispatch(logOut());
+      } else {
+        showNotification("success", "Logged Out Successfully");
+        dispatch(logOut());
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+  const handleLogoutClick = () => {
+    handleMenuClose();
+    handleLogout();
+  };
+  const handleLogout = () => {
+    logoutSeller();
+  };
   const navigate = useNavigate();
   const handleProfileNavigate = () => {
     navigate("/profile");
@@ -48,9 +76,7 @@ const Header: React.FC<HeaderProps> = ({ buttonFunc, buttonTitle, onBackClick, o
     }, 1000);
     onReloadClick?.();
   };
-
   const auth = useSelector(selectCurrentAuth);
-
   return (
     <div className="flex justify-between items-center p-4 border-b border-gray-200">
       <div className="flex items-center">
@@ -73,7 +99,6 @@ const Header: React.FC<HeaderProps> = ({ buttonFunc, buttonTitle, onBackClick, o
           </button>
         )}
       </div>
-
       <div className="flex items-center space-x-4">
         {showButton && (
           <Button onClick={buttonFunc} variant="outlined">
@@ -91,14 +116,44 @@ const Header: React.FC<HeaderProps> = ({ buttonFunc, buttonTitle, onBackClick, o
           </svg>
         </button>
         <div className="relative">
-          <button onClick={handleProfileNavigate} className="flex items-center space-x-2 focus:outline-none">
-            <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">{auth?.user?.fullname.charAt(0)}</div>
-            {/* <span className="text-gray-700">{profileData?.result.username}</span> */}
-          </button>
+          <div>
+            <IconButton onClick={handleMenuOpen} size="small">
+              <Avatar sx={{ bgcolor: "#6366f1", width: 32, height: 32 }}>{auth?.user?.fullname?.charAt(0) ?? "?"}</Avatar>
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              PaperProps={{
+                elevation: 3,
+                sx: { mt: 1.5 },
+              }}
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "right",
+              }}
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+            >
+              <MenuItem onClick={handleProfileNavigate}>
+                <ListItemIcon>
+                  <AccountCircleIcon fontSize="small" />
+                </ListItemIcon>
+                Profile
+              </MenuItem>
+              <MenuItem onClick={handleLogoutClick}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
 export default Header;

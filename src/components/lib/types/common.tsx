@@ -7,6 +7,7 @@ export type TMutationProp = {
   invalidateKey?: QueryKey | QueryKey[];
   func: (body: any) => Promise<TApiResponse<any>>;
   onSuccess: () => void;
+  onError?: () => void; // Optional error handler
 };
 
 export type TOption = {

@@ -97,21 +97,45 @@ export function useGetSingleQuery({ key, params, isEnabled, func }: TSingleQuery
 //   });
 // }
 
-export function useMutationQuery({ key, func, onSuccess }: TMutationProp) {
+// export function useMutationQuery({ key, func, onSuccess }: TMutationProp) {
+//   const client = useQueryClient();
+//   return useMutation({
+//     mutationFn: func,
+//     onSuccess: (data: TApiResponse<any>) => {
+//       if (data.success) {
+//         onSuccess();
+//         if (Array.isArray(key)) {
+//           key.forEach((k) => client.invalidateQueries({ queryKey: k }));
+//         } else {
+//           client.invalidateQueries({ queryKey: key });
+//         }
+//       } else {
+//         toast.error(data?.message || "");
+//       }
+//     },
+//   });
+// }
+
+export function useMutationQuery({ key, func, onSuccess, onError }: TMutationProp) {
   const client = useQueryClient();
   return useMutation({
     mutationFn: func,
     onSuccess: (data: TApiResponse<any>) => {
       if (data.success) {
-        onSuccess();
+        onSuccess?.();
         if (Array.isArray(key)) {
           key.forEach((k) => client.invalidateQueries({ queryKey: k }));
         } else {
           client.invalidateQueries({ queryKey: key });
         }
       } else {
-        toast.error(data?.message || "");
+        toast.error(data?.message || "Operation failed");
+        onError?.(); // Call onError if the API response indicates failure
       }
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "An error occurred");
+      onError?.(); // Call onError for network/request errors
     },
   });
 }

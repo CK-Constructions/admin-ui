@@ -77,7 +77,6 @@ export default function RentalApproval() {
     category_name: "",
   });
   const handleOpenDialog = (approval: TRentalapproval) => {
-    console.log("approval", approval);
     setSelectedApproval({
       id: approval.id || 0,
       approval_status: approval.approval_status || 0,

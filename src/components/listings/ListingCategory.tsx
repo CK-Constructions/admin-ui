@@ -53,8 +53,8 @@ export default function ListingCategory() {
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const limit = 10;
-  const { queryFn: getCategoryFunc, queryKey: categoryKey } = queryConfigs.useGetAllCategories;
   const { queryFn: addCategory } = queryConfigs.useAddCategories;
+  const { queryFn: getCategoryFunc, queryKey: categoryKey } = queryConfigs.useGetAllCategories;
   const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
     func: getCategoryFunc,
     key: categoryKey,

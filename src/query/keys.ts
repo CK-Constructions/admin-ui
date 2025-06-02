@@ -31,4 +31,9 @@ export const queryKeys = {
   rental_categories: "rental_categories",
   service_category: "service_category",
   rental_category: "rental_category",
+  sub_categories: "sub_categories",
+  sub_category: "sub_category",
+  brands: "brands",
+  brand: "brand",
+  brand_images: "brand_images",
 };

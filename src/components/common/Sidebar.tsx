@@ -43,34 +43,25 @@ const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
     }),
     overflowX: "hidden",
     overflowY: "auto",
-    // Hide scrollbar for webkit browsers
     "&::-webkit-scrollbar": {
       display: "none",
     },
-    // Hide scrollbar for Firefox
     scrollbarWidth: "none",
-    // Hide scrollbar for IE and Edge
     msOverflowStyle: "none",
-    // Enhanced gradient background with more depth
     background: theme.palette.mode === "dark" ? "linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #020617 100%)" : "linear-gradient(180deg, #ffffff 0%, #f8fafc 50%, #e2e8f0 100%)",
-    // Enhanced border with subtle glow
     borderRight: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`,
-    // Enhanced shadow with multiple layers
     boxShadow:
       theme.palette.mode === "dark"
         ? "0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
         : "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-    // Add backdrop filter for glass effect
     backdropFilter: "blur(12px) saturate(180%)",
-    // Smooth transitions for all properties
-    // transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   },
 }));
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const theme = useTheme();
-  const muiTheme = useTheme(); // MUI theme hook
-  const { darkMode, toggleDarkMode } = useThemeContext(); // Our custom context
+  const muiTheme = useTheme();
+  const { darkMode, toggleDarkMode } = useThemeContext();
   const location = useLocation();
   const navigate = useNavigate();
   const handleProfileNavigate = () => {
@@ -86,9 +77,20 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
       path: "/listings",
     },
     {
+      text: "Brands",
+      icon: <ListingsIcon />,
+      path: "/brands",
+    },
+
+    {
       text: "Listing Categories",
       icon: <CategoryIcon />,
       path: "/listing-categories",
+    },
+    {
+      text: "Sub Listing Category",
+      icon: <ListingsIcon />,
+      path: "/sub-category",
     },
     {
       text: "Rental Categories",
@@ -160,13 +162,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             display: "flex",
             minHeight: 64,
             alignItems: "center",
-            justifyContent: "space-between", // Changed from flex-end to space-between
+            justifyContent: "space-between",
             px: [1],
-            // Enhanced glass-like effect
             backdropFilter: "blur(16px) saturate(180%)",
             backgroundColor: theme.palette.mode === "dark" ? "rgba(15, 23, 42, 0.9)" : "rgba(248, 250, 252, 0.9)",
             borderBottom: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`,
-            // Add subtle inner shadow
             boxShadow: theme.palette.mode === "dark" ? "inset 0 -1px 0 rgba(255, 255, 255, 0.05)" : "inset 0 -1px 0 rgba(0, 0, 0, 0.05)",
             position: "relative",
             "&::before": {
@@ -184,10 +184,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
             },
           }}
         >
-          {/* Empty div to balance the space-between layout */}
           {open && <div style={{ width: "40px" }}></div>}
 
-          {/* Logo in the center */}
           {open && (
             <img
               src="/logo.png"

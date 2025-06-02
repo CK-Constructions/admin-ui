@@ -4,7 +4,7 @@ import { TApprovalPayload, TCategoryBody, TLoginBody, TUserFormData } from "./co
 import { store } from "./redux/store";
 import { logOut } from "./redux/features/authSlice";
 import { clearAdminCredentials } from "./components/utils/utils";
-import { TRentalapproval, TServiceapproval } from "./components/lib/types/response";
+import { TBrand, TBrandImageBody, TRentalapproval, TServiceapproval } from "./components/lib/types/response";
 
 if (process.env.NODE_ENV === "development") {
   axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1/admin";
@@ -89,12 +89,32 @@ export const UpdateServiceCategory = ({ body, id }: { body: TCategoryBody; id: n
 export const getActiveServiceCategories = ({ offset, limit, name, id }: TQueryParams) =>
   _callApi(`/service-categories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
 
+//Sub Categories
+export const addSubCategory = (body: TCategoryBody) => _callApi(`/subcategories`, "post", body);
+export const updateSubCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/subcategories/${id}`, "put", body);
+export const getAllSubCategories = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/subcategories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
+export const getSubCategoryById = ({ id }: TQueryParams) => _callApi(`/subcategories?id=${id}`, "get");
+export const deleteSubCategory = (id: number) => _callApi(`/subcategories/${id}`, "delete");
+
+//Brands
+export const getAllBrands = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/brands?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
+export const getBrandById = ({ id }: TQueryParams) => _callApi(`/brands?id=${id}`, "get");
+export const deleteBrand = ({ body, id }: { body: TBrand; id: number }) => _callApi(`/brands/delete/${id}`, "put", body);
+export const addBrand = (body: TBrand) => _callApi(`/brands`, "post", body);
+export const updateBrand = ({ body, id }: { body: TBrand; id: number }) => _callApi(`/brands/${id}`, "put", body);
+
+//Brand Images
+export const getBrandImages = ({ id }: TQueryParams) => _callApi(`/brands/images?id=${id}`, "get");
+export const addBrandImages = (body: TBrandImageBody) => _callApi(`/brands/images`, "post", body);
+export const updateBrandImages = ({ id, body }: { id: number; body: TBrandImageBody }) => _callApi(`/brands/images/${id}`, "put", body);
+
 //Listing Categories
-export const getAllCategories = () => _callApi(`/categories`, "get");
+export const getAllCategories = ({ offset, limit }: TQueryParams) => _callApi(`/categories?offset=${offset}&limit=${limit}`, "get");
 export const addListingCategory = (body: TCategoryBody) => _callApi(`/categories`, "post", body);
 export const UpdateListingCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/categories/${id}`, "put", body);
 
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
+
 const _callApi = async (url: string, method: Methods = "get", body = {}) => {
   try {
     const response = await axios[method](url, body);

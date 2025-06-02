@@ -90,7 +90,6 @@ export default function ServiceApproval() {
     category_name: "",
   });
   const handleOpenDialog = (approval: TServiceapproval) => {
-    console.log("approval", approval);
     setSelectedApproval({
       id: approval.id || 0,
       approval_status: approval.approval_status || 0,

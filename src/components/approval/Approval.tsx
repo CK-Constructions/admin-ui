@@ -89,7 +89,7 @@ const Approval = () => {
     return (
       <Box display="flex" flexDirection="column" height="100%">
         <div className="pb-4">
-          <Header onBackClick={() => navigate(-1)} pageName="Buyers" />
+          <Header onBackClick={() => navigate(-1)} pageName="Listing Approvals" />
         </div>
         <Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
           <Typography>No buyers found</Typography>

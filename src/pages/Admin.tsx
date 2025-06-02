@@ -1,16 +1,15 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Sidebar from "../components/common/Sidebar";
+import AnimatedRoute from "../components/common/AnimatedRoute";
 
 import OrdersAnalyticsPage from "../components/orders/OrdersAnalyticsPage";
 import Listings from "../components/listings/Listings";
-
 import Vendors from "../components/vendors/Vendors";
 import PageNotFound from "./PageNotFound";
 import Buyers from "../components/buyers/Buyers";
 import Users from "../components/users/Users";
 import ListingDetailPage from "../components/listings/ListingDetailPage";
-import Header from "../components/common/Header";
 import AddListing from "../components/listings/AddListing";
 import Approval from "../components/approval/Approval";
 import Settings from "../components/settings/Settings";
@@ -34,33 +33,12 @@ import { useDispatch } from "react-redux";
 import { logOut } from "../redux/features/authSlice";
 import { logoutUser } from "../api";
 import ProfilePage from "../components/profile/ProfilePage";
+import Brands from "../components/brands/Brands";
+import SubCategory from "../components/subCategory/SubCategory";
+import BrandImages from "../components/brands/BrandImages";
 
 const App = () => {
-  const dispatch = useDispatch();
-  const logoutSeller = async () => {
-    try {
-      const response = await logoutUser();
-      if (response.success) {
-        showNotification("success", "Logged Out Successfully");
-        dispatch(logOut());
-      } else {
-        showNotification("success", "Logged Out Successfully");
-        dispatch(logOut());
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { queryFn: logout, queryKey: logoutKey } = queryConfigs.useLogoutUser;
-  const { mutate: useLogout } = useMutationQuery({
-    func: logout,
-    key: logoutKey,
-    onSuccess: () => {
-      showNotification("success", "Logged Out Successfully");
-      dispatch(logOut());
-    },
-  });
   const handleDrawerToggle = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -76,31 +54,222 @@ const App = () => {
       <Sidebar open={sidebarOpen} onToggle={handleDrawerToggle} />
       <main className="p-5 overflow-auto h-full bg-gray-100 dark:bg-gray-900">
         <Routes>
-          <Route path="/" element={<ThemedDashboard />} />
-          <Route path="*" element={<PageNotFound />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/listing-categories" element={<ListingCategory />} />
-          <Route path="/rental-categories" element={<RentalCategory />} />
-          <Route path="/service-categories" element={<ServiceCategory />} />
-          <Route path="/rental-approvals" element={<RentalApproval />} />
-          <Route path="/service-approvals" element={<ServiceApproval />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:id" element={<ServiceDetails />} />
-          <Route path="/rental-approvals/:id" element={<RentalApprovalDetails />} />
-          <Route path="/rentals" element={<Rentals />} />
-          <Route path="/rentals/:id" element={<RentalView />} />
-          <Route path="/orders-analytics" element={<OrdersAnalyticsPage />} />
-          <Route path="/listings" element={<Listings />} />
-          <Route path="/add-listing" element={<AddListing />} />
-          <Route path="/listings/:id" element={<ListingDetailPage />} />
-          <Route path="/buyers" element={<Buyers />} />
-          <Route path="/vendors" element={<Vendors />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/ck-inquiry" element={<CkInquiry />} />
-          <Route path="/tomthin-inquiry" element={<TomthinInquiry />} />
-          {/* <Route path="/vendor-verification" element={<VendorVerification />} /> */}
-          <Route path="/listing-approvals" element={<Approval />} />
+          <Route
+            path="/"
+            element={
+              <AnimatedRoute>
+                <ThemedDashboard />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <AnimatedRoute>
+                <PageNotFound />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <AnimatedRoute>
+                <Users />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <AnimatedRoute>
+                <ProfilePage />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/sub-category"
+            element={
+              <AnimatedRoute>
+                <SubCategory />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/brands"
+            element={
+              <AnimatedRoute>
+                <Brands />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/brands/images/:id"
+            element={
+              <AnimatedRoute>
+                <BrandImages />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/listing-categories"
+            element={
+              <AnimatedRoute>
+                <ListingCategory />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/rental-categories"
+            element={
+              <AnimatedRoute>
+                <RentalCategory />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/service-categories"
+            element={
+              <AnimatedRoute>
+                <ServiceCategory />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/rental-approvals"
+            element={
+              <AnimatedRoute>
+                <RentalApproval />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/service-approvals"
+            element={
+              <AnimatedRoute>
+                <ServiceApproval />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/services"
+            element={
+              <AnimatedRoute>
+                <Services />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/services/:id"
+            element={
+              <AnimatedRoute>
+                <ServiceDetails />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/rental-approvals/:id"
+            element={
+              <AnimatedRoute>
+                <RentalApprovalDetails />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/rentals"
+            element={
+              <AnimatedRoute>
+                <Rentals />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/rentals/:id"
+            element={
+              <AnimatedRoute>
+                <RentalView />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/orders-analytics"
+            element={
+              <AnimatedRoute>
+                <OrdersAnalyticsPage />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/listings"
+            element={
+              <AnimatedRoute>
+                <Listings />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/add-listing"
+            element={
+              <AnimatedRoute>
+                <AddListing />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/listings/:id"
+            element={
+              <AnimatedRoute>
+                <ListingDetailPage />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/buyers"
+            element={
+              <AnimatedRoute>
+                <Buyers />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/vendors"
+            element={
+              <AnimatedRoute>
+                <Vendors />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <AnimatedRoute>
+                <Settings />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/ck-inquiry"
+            element={
+              <AnimatedRoute>
+                <CkInquiry />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/tomthin-inquiry"
+            element={
+              <AnimatedRoute>
+                <TomthinInquiry />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/listing-approvals"
+            element={
+              <AnimatedRoute>
+                <Approval />
+              </AnimatedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>

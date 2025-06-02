@@ -1,12 +1,17 @@
 import {
   addAdmin,
+  addBrand,
+  addBrandImages,
   addListingCategory,
   AddRentalCategory,
   AddServiceCategory,
+  addSubCategory,
   banAdminByID,
   banListing,
   banUserByID,
   banVendorByID,
+  deleteBrand,
+  deleteSubCategory,
   getActiveRentalApprovals,
   getActiveRentalCategories,
   getActiveServiceApprovals,
@@ -14,10 +19,14 @@ import {
   getAllAdminById,
   getAllAdmins,
   getAllApprovals,
+  getAllBrands,
   getAllCategories,
   getAllRentalBans,
   getAllRentals,
   getAllService,
+  getAllSubCategories,
+  getBrandById,
+  getBrandImages,
   getCKInquiry,
   getConfirmedRentalApprovals,
   getConfirmedServiceApprovals,
@@ -29,6 +38,7 @@ import {
   getRentalBanByID,
   getRentalByID,
   getServiceDetails,
+  getSubCategoryById,
   getTomthinInquiry,
   getUserByID,
   getUsers,
@@ -43,11 +53,14 @@ import {
   UpdateActivityServiceCategory,
   updateAdmin,
   updateApproval,
+  updateBrand,
+  updateBrandImages,
   UpdateListingCategory,
   updateRentalApprovals,
   UpdateRentalCategory,
   updateServiceApprovals,
   UpdateServiceCategory,
+  updateSubCategory,
 } from "../api";
 import { queryKeys } from "./keys";
 
@@ -125,4 +138,25 @@ export const queryConfigs = {
   useAddRentalCategory: { queryFn: AddRentalCategory, queryKeys: [queryKeys.rental_categories] },
   useUpdateRentalCategory: { queryFn: UpdateRentalCategory, queryKeys: [queryKeys.rental_categories] },
   useUpdateRentalActivity: { queryFn: UpdateActivityRentalCategory, queryKeys: [queryKeys.rental_categories] },
+
+  //subCategory
+  useGetAllSubCategories: { queryFn: getAllSubCategories, queryKeys: [queryKeys.sub_categories] },
+  useSubCategoryById: { queryFn: getSubCategoryById, queryKeys: [queryKeys.sub_category] },
+  useAddSubCategory: { queryFn: addSubCategory, queryKeys: [queryKeys.sub_categories] },
+  useUpdateSubCategory: { queryFn: updateSubCategory, queryKeys: [queryKeys.sub_categories] },
+  useDeleteSubCategory: { queryFn: deleteSubCategory, queryKeys: [queryKeys.sub_categories] },
+
+  //Brands
+
+  useAllBrands: { queryFn: getAllBrands, queryKeys: [queryKeys.brands] },
+  useBrandById: { queryFn: getBrandById, queryKeys: [queryKeys.brand] },
+  useAddBrand: { queryFn: addBrand, queryKeys: [queryKeys.brands] },
+  useUpdateBrand: { queryFn: updateBrand, queryKeys: [queryKeys.brands] },
+  useDeleteBrand: { queryFn: deleteBrand, queryKeys: [queryKeys.brands] },
+
+  //Brands Images
+
+  useGetAllBrandImages: { queryFn: getBrandImages, queryKeys: [queryKeys.brand_images] },
+  useAddBrandImages: { queryFn: addBrandImages, queryKeys: [queryKeys.brand_images] },
+  useUpdateBrandImages: { queryFn: updateBrandImages, queryKeys: [queryKeys.brand_images] },
 };

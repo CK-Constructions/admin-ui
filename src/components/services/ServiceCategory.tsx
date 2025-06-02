@@ -92,7 +92,6 @@ export default function ServiceCategory() {
     });
   };
   const handleOpenModal = () => {
-    console.log("touched");
     setIsModalOpen(true);
   };
 

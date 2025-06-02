@@ -81,6 +81,23 @@ export interface TCategory {
   created_on: string;
   is_active: number;
 }
+
+export interface TBrand {
+  id: number;
+  name: string;
+  created_on: string;
+  category_name: string;
+  category_id: number;
+  is_active: number;
+}
+export interface TSubCategory {
+  id: number;
+  name: string;
+  created_on: string;
+  category_name: string;
+  category_id: number;
+  is_active: number;
+}
 export interface TInquiry {
   id: number;
   full_name: string;
@@ -181,3 +198,15 @@ export type TServiceapproval = {
   seller_fullname: string;
   category_name: string;
 };
+
+export interface TBrandImage {
+  id?: number;
+  image?: string;
+  brand_id?: number;
+  brand_name?: number;
+}
+
+export interface TBrandImageBody {
+  id?: number;
+  images?: TBrandImage[];
+}

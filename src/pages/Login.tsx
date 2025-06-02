@@ -1,22 +1,73 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Button, Typography, Box } from "@mui/material";
-import { FaAdjust } from "react-icons/fa";
-import { TLoginBody } from "../components/lib/types/payloads";
+import type React from "react";
+import { useState, useEffect } from "react";
+import { TextField, Button, Typography, Box, Paper, Container, Alert, CircularProgress, InputAdornment, IconButton } from "@mui/material";
+import { Visibility, VisibilityOff, Settings } from "@mui/icons-material";
+import { motion, AnimatePresence } from "framer-motion";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { loginUser } from "../api";
-import { useDispatch } from "react-redux";
 import { setCredentials } from "../redux/features/authSlice";
-import { TAdminResponse } from "../components/lib/types/common";
 import { showNotification, storeAdminCredentials } from "../components/utils/utils";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
-import { motion } from "framer-motion";
+import { TAdminResponse } from "../components/lib/types/common";
 
-const bgColor = "#2DD4BF";
-const hoverBgColor = "#0D9488";
+// Types (you can move these to a separate types file)
+type TLoginBody = {
+  username: string;
+  password: string;
+};
+
+// Create a dark theme
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: {
+      main: "#2DD4BF",
+    },
+    secondary: {
+      main: "#0D9488",
+    },
+    background: {
+      default: "#111827",
+      paper: "#1F2937",
+    },
+    text: {
+      primary: "#f5f5f5",
+      secondary: "#94a3b8",
+    },
+  },
+  components: {
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            "& fieldset": {
+              borderColor: "rgba(255, 255, 255, 0.23)",
+            },
+            "&:hover fieldset": {
+              borderColor: "rgba(255, 255, 255, 0.5)",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#2DD4BF",
+            },
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: "0.375rem",
+        },
+      },
+    },
+  },
+});
 
 const Login: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState<TLoginBody>({
     username: "",
     password: "",
@@ -24,11 +75,12 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showUI, setShowUI] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowUI(true);
-    }, 3000); // Simulate loading delay (1 second)
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -67,129 +119,218 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleTogglePassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
+  // Loading screen
   if (!showUI) {
     return (
-      <motion.div className="bg-[#111827] flex items-center justify-center w-full h-[100vh]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}>
-          <FaAdjust size={80} color="#2DD4BF" />
-        </motion.div>
-      </motion.div>
+      <ThemeProvider theme={darkTheme}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            bgcolor: "background.default",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Number.POSITIVE_INFINITY, duration: 1.5, ease: "linear" }}
+              style={{
+                padding: "16px",
+                borderRadius: "50%",
+                backgroundColor: "rgba(45, 212, 191, 0.2)",
+              }}
+            >
+              <Settings sx={{ fontSize: 48, color: "#2DD4BF" }} />
+            </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+              <Typography variant="body2" color="text.secondary">
+                Loading...
+              </Typography>
+            </motion.div>
+          </motion.div>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   return (
-    <div className="bg-[#111827] flex items-center justify-center w-full h-[100vh]">
-      <motion.section
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-[700px] bg-[#1F2937] rounded-xl p-12 h-[80vh] text-center shadow-2xl"
+    <ThemeProvider theme={darkTheme}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          bgcolor: "background.default",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          p: 2,
+        }}
       >
-        <form onSubmit={handleSubmit}>
-          <div>
-            <div className="flex items-center justify-center mb-10">
-              {/* <FaAdjust size={120} className="text-white text-center" /> */}
-              <img
-                src="/logo.png"
-                alt="Logo"
-                style={{
-                  height: "250px",
-                  maxWidth: "100%",
-                  objectFit: "contain",
-                }}
-              />
-            </div>
-            <Typography variant="h5" fontWeight="bold" sx={{ color: "white" }} gutterBottom>
-              Tomthin Admin Login
-            </Typography>
+        <Container maxWidth="sm">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} style={{ width: "100%" }}>
+            <Paper
+              elevation={8}
+              sx={{
+                bgcolor: "background.paper",
+                borderRadius: 2,
+                overflow: "hidden",
+                p: { xs: 3, sm: 4 },
+              }}
+            >
+              <Box sx={{ textAlign: "center", mb: 4 }}>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  style={{ display: "flex", justifyContent: "center", marginBottom: "24px" }}
+                >
+                  <Box
+                    sx={{
+                      width: { xs: 120, sm: 160 },
+                      height: { xs: 120, sm: 160 },
+                      position: "relative",
+                    }}
+                  >
+                    <img src="/logo.png" alt="Tomthin Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  </Box>
+                </motion.div>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+                  <Typography variant="h5" component="h1" fontWeight="bold" gutterBottom>
+                    Tomthin Admin Login
+                  </Typography>
+                </motion.div>
+              </Box>
 
-            {/* Username */}
-            <TextField label="Username" name="username" fullWidth margin="normal" variant="outlined" value={formData.username} onChange={handleChange} sx={textFieldStyle} />
+              <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+                  <TextField
+                    fullWidth
+                    id="username"
+                    name="username"
+                    label="Username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    margin="normal"
+                    variant="outlined"
+                    disabled={isLoading}
+                    placeholder="Enter your username"
+                    sx={{ mb: 2 }}
+                  />
+                </motion.div>
 
-            {/* Password */}
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              fullWidth
-              margin="normal"
-              variant="outlined"
-              value={formData.password}
-              onChange={handleChange}
-              sx={textFieldStyle}
-            />
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}>
+                  <TextField
+                    fullWidth
+                    id="password"
+                    name="password"
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={handleChange}
+                    margin="normal"
+                    variant="outlined"
+                    disabled={isLoading}
+                    placeholder="Enter your password"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton aria-label="toggle password visibility" onClick={handleTogglePassword} edge="end">
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ mb: 2 }}
+                  />
+                </motion.div>
 
-            {/* Error */}
-            {error && (
-              <Typography color="error" sx={{ marginTop: 1 }}>
-                {error}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      style={{ marginBottom: "16px" }}
+                    >
+                      <Alert severity="error" sx={{ bgcolor: "rgba(211, 47, 47, 0.15)" }}>
+                        {error}
+                      </Alert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }} style={{ marginTop: "16px" }}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    disabled={isLoading}
+                    sx={{
+                      bgcolor: "#2DD4BF",
+                      color: "white",
+                      py: 1.5,
+                      fontWeight: 600,
+                      "&:hover": {
+                        bgcolor: "#0D9488",
+                        transform: "translateY(-2px)",
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+                      },
+                      "&:active": {
+                        transform: "translateY(0)",
+                      },
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {isLoading ? (
+                      <>
+                        <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                        Logging in...
+                      </>
+                    ) : (
+                      "Login"
+                    )}
+                  </Button>
+
+                  <Button
+                    fullWidth
+                    variant="text"
+                    disabled={isLoading}
+                    sx={{
+                      color: "text.secondary",
+                      mt: 2,
+                      "&:hover": {
+                        bgcolor: "rgba(255,255,255,0.05)",
+                        color: "text.primary",
+                      },
+                    }}
+                  >
+                    Forgot Password?
+                  </Button>
+                </motion.div>
+              </Box>
+            </Paper>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} style={{ textAlign: "center", marginTop: "24px" }}>
+              <Typography variant="body2" color="text.secondary">
+                Secure admin access for Tomthin platform
               </Typography>
-            )}
-
-            <Box sx={{ mb: 4 }} />
-
-            {/* Login Button */}
-            <Button type="submit" variant="contained" fullWidth disabled={isLoading} sx={loginButtonStyle}>
-              {isLoading ? "Logging in..." : "Login"}
-            </Button>
-
-            {/* Forgot Password */}
-            <Button variant="text" fullWidth sx={forgotButtonStyle}>
-              Forgot Password?
-            </Button>
-          </div>
-        </form>
-      </motion.section>
-    </div>
+            </motion.div>
+          </motion.div>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
-};
-
-// MUI Styles
-const textFieldStyle = {
-  borderRadius: 2,
-  "& .MuiOutlinedInput-input": { color: "#f5f5f5" },
-  "& .MuiInputLabel-root": {
-    color: "white",
-    "&.Mui-focused": { color: "white" },
-  },
-  "& .MuiOutlinedInput-root": {
-    "& fieldset": { borderColor: "white" },
-    "&:hover fieldset": { borderColor: "white" },
-    "&.Mui-focused fieldset": { borderColor: "white" },
-  },
-};
-
-const loginButtonStyle = {
-  bgcolor: "#2DD4BF",
-  color: "white",
-  marginTop: 2,
-  borderRadius: 2,
-  fontWeight: "bold",
-  textTransform: "none",
-  padding: "12px 0",
-  fontSize: "1rem",
-  "&:hover": {
-    bgcolor: "#0D9488",
-    transform: "translateY(-1px)",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-  },
-  "&:active": {
-    transform: "translateY(0)",
-  },
-  transition: "all 0.2s ease",
-};
-
-const forgotButtonStyle = {
-  color: "white",
-  marginTop: 2,
-  borderRadius: 2,
-  fontWeight: "bold",
-  textTransform: "none",
-  padding: "12px 0",
-  fontSize: "1rem",
-  "&:hover": {
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
 };
 
 export default Login;

@@ -48,7 +48,7 @@ const AddListing = () => {
     attributes: [],
     images: [],
   });
-  console.log(formData.images);
+
   const [previewImage, setPreviewImage] = useState<string>("");
   const [attributeName, setAttributeName] = useState<string>("");
   const [attributeValue, setAttributeValue] = useState<string>("");
@@ -186,7 +186,7 @@ const AddListing = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   };
-  console.log(formData.images.map((img) => `${process.env.REACT_APP_GET_MEDIA}/${img.image}`));
+
   return (
     <Box sx={{ padding: 4, backgroundColor: "#f9f9f9" }}>
       <Typography variant="h4" sx={{ marginBottom: 2 }}>
@@ -222,13 +222,7 @@ const AddListing = () => {
             />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Title"
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              fullWidth
-            />
+            <TextField label="Title" type="text" value={formData.title} onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))} fullWidth />
           </Grid>
           <Grid item xs={12}>
             <TextField
@@ -242,13 +236,7 @@ const AddListing = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              label="Price"
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData((prev) => ({ ...prev, price: parseFloat(e.target.value) }))}
-              fullWidth
-            />
+            <TextField label="Price" type="number" value={formData.price} onChange={(e) => setFormData((prev) => ({ ...prev, price: parseFloat(e.target.value) }))} fullWidth />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -287,20 +275,8 @@ const AddListing = () => {
               ))}
             </ul>
             <div className="flex items-center mb-2">
-              <TextField
-                label="Attribute Name"
-                type="text"
-                value={attributeName}
-                onChange={(e) => setAttributeName(e.target.value)}
-                sx={{ marginRight: 2 }}
-              />
-              <TextField
-                label="Attribute Value"
-                type="text"
-                value={attributeValue}
-                onChange={(e) => setAttributeValue(e.target.value)}
-                sx={{ marginRight: 2 }}
-              />
+              <TextField label="Attribute Name" type="text" value={attributeName} onChange={(e) => setAttributeName(e.target.value)} sx={{ marginRight: 2 }} />
+              <TextField label="Attribute Value" type="text" value={attributeValue} onChange={(e) => setAttributeValue(e.target.value)} sx={{ marginRight: 2 }} />
               <Button variant="contained" color="primary" onClick={handleAttributeAdd}>
                 Add Attribute
               </Button>
