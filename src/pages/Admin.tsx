@@ -26,16 +26,12 @@ import ServiceDetails from "../components/services/ServiceDetails";
 import ServiceCategory from "../components/services/ServiceCategory";
 import RentalCategory from "../components/rentals/RentalCategory";
 import ListingCategory from "../components/listings/ListingCategory";
-import { queryConfigs } from "../query/queryConfig";
-import { useMutationQuery } from "../query/hooks/queryHook";
-import { showNotification } from "../components/utils/utils";
-import { useDispatch } from "react-redux";
-import { logOut } from "../redux/features/authSlice";
-import { logoutUser } from "../api";
 import ProfilePage from "../components/profile/ProfilePage";
 import Brands from "../components/brands/Brands";
 import SubCategory from "../components/subCategory/SubCategory";
 import BrandImages from "../components/brands/BrandImages";
+import SubCategoryImages from "../components/subCategory/SubCategoryImages";
+import Banners from "../components/banners/Banners";
 
 const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -95,10 +91,26 @@ const App = () => {
             }
           />
           <Route
+            path="/sub-category/images/:id"
+            element={
+              <AnimatedRoute>
+                <SubCategoryImages />
+              </AnimatedRoute>
+            }
+          />
+          <Route
             path="/brands"
             element={
               <AnimatedRoute>
                 <Brands />
+              </AnimatedRoute>
+            }
+          />
+          <Route
+            path="/banners"
+            element={
+              <AnimatedRoute>
+                <Banners />
               </AnimatedRoute>
             }
           />

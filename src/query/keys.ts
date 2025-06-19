@@ -36,4 +36,6 @@ export const queryKeys = {
   brands: "brands",
   brand: "brand",
   brand_images: "brand_images",
+  subcategory_images: "subcategory_images",
+  banners: "banners",
 };

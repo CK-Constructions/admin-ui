@@ -1,10 +1,10 @@
 import axios, { AxiosError } from "axios";
-import { Methods, TQueryParams } from "./components/lib/types/common";
+import { Methods, TBannerBody, TQueryParams } from "./components/lib/types/common";
 import { TApprovalPayload, TCategoryBody, TLoginBody, TUserFormData } from "./components/lib/types/payloads";
 import { store } from "./redux/store";
 import { logOut } from "./redux/features/authSlice";
 import { clearAdminCredentials } from "./components/utils/utils";
-import { TBrand, TBrandImageBody, TRentalapproval, TServiceapproval } from "./components/lib/types/response";
+import { TBrand, TBrandImageBody, TDeleteBrandImageBody, TDeleteSubCatImageBody, TRentalapproval, TServiceapproval, TSubCatImageBody } from "./components/lib/types/response";
 
 if (process.env.NODE_ENV === "development") {
   axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1/admin";
@@ -96,6 +96,12 @@ export const getAllSubCategories = ({ offset, limit, name, id }: TQueryParams) =
 export const getSubCategoryById = ({ id }: TQueryParams) => _callApi(`/subcategories?id=${id}`, "get");
 export const deleteSubCategory = (id: number) => _callApi(`/subcategories/${id}`, "delete");
 
+//SubCategory Images
+export const getSubCatImage = ({ id }: TQueryParams) => _callApi(`/subcategories/images?id=${id}`, "get");
+export const addSubCatImage = (body: TSubCatImageBody) => _callApi(`/subcategories/images`, "post", body);
+// export const updateSubCatImage = ({ id, body }: { id: number; body: TSubCatImageBody }) => _callApi(`/subcategories/images/${id}`, "put", body);
+export const deleteSubCatImage = ({ id, body }: { id: number; body: TDeleteSubCatImageBody }) => _callApi(`/subcategories/images/${id}`, "put", body);
+
 //Brands
 export const getAllBrands = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/brands?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
 export const getBrandById = ({ id }: TQueryParams) => _callApi(`/brands?id=${id}`, "get");
@@ -106,12 +112,20 @@ export const updateBrand = ({ body, id }: { body: TBrand; id: number }) => _call
 //Brand Images
 export const getBrandImages = ({ id }: TQueryParams) => _callApi(`/brands/images?id=${id}`, "get");
 export const addBrandImages = (body: TBrandImageBody) => _callApi(`/brands/images`, "post", body);
-export const updateBrandImages = ({ id, body }: { id: number; body: TBrandImageBody }) => _callApi(`/brands/images/${id}`, "put", body);
+export const deleteBrandImages = ({ id, body }: { id: number; body: TDeleteBrandImageBody }) => _callApi(`/brands/images/${id}`, "put", body);
 
 //Listing Categories
 export const getAllCategories = ({ offset, limit }: TQueryParams) => _callApi(`/categories?offset=${offset}&limit=${limit}`, "get");
 export const addListingCategory = (body: TCategoryBody) => _callApi(`/categories`, "post", body);
 export const UpdateListingCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/categories/${id}`, "put", body);
+
+//Banners
+export const getAllBanners = ({ offset, limit }: TQueryParams) => _callApi(`/banners?offset=${offset}&limit=${limit}`, "get");
+export const addBanner = (body: TBannerBody) => _callApi(`/banners`, "post", body);
+// banner.Put("/disable/:id", handlers.EnableBanner)
+// 	banner.Put("/enable/:id", handlers.DisableBanner)
+export const disableBanner = ({ id }: { id: number }) => _callApi(`/banners/disable/${id}`, "put", "");
+export const enableBanner = ({ id }: { id: number }) => _callApi(`/banners/enable/${id}`, "put", "");
 
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
 
@@ -146,7 +160,7 @@ export const uploadMedia = async (file: File) => {
     },
   };
   try {
-    const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/media/upload`, formData, config);
+    const response = await axios.post(`${process.env.REACT_APP_ADD_MEDIA}`, formData, config);
     return response.data;
   } catch (error) {
     console.error(error);

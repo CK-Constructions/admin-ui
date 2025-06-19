@@ -5,7 +5,7 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { TAdmin, TUser } from "../lib/types/response";
+import { TAdmin } from "../lib/types/response";
 import { Box, Stack, Typography } from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useMutationQuery } from "../../query/hooks/queryHook";

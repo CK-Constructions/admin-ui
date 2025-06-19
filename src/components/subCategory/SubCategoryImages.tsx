@@ -12,10 +12,10 @@ import { uploadMedia } from "../../api";
 const tileSize = 200;
 const SubCategoryImages = () => {
   const params = useParams();
-  const { queryFn: getBrandsFunc, queryKeys: brandKey } = queryConfigs.useGetAllBrandImages;
-  const { queryFn: addBrandImgFunc, queryKeys: bImgKey } = queryConfigs.useAddBrandImages;
+  const { queryFn: getBrandsFunc, queryKeys: brandKey } = queryConfigs.useGetAllSubCategoryImages;
+  const { queryFn: addBrandImgFunc, queryKeys: bImgKey } = queryConfigs.useAddSubCategoryImage;
 
-  const { queryFn: deleteSubCatImagesFunc, queryKeys: deleteKey } = queryConfigs.useDeleteBrandImages;
+  const { queryFn: deleteSubCatImagesFunc, queryKeys: deleteKey } = queryConfigs.useDeleteSubCategoryImages;
 
   const [selectMode, setSelectMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);

@@ -1,23 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Box,
-  Typography,
-  Avatar,
-  Divider,
-  IconButton,
-  Paper,
-  Stack,
-  Chip,
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-} from "@mui/material";
+import { Modal, Box, Typography, Avatar, Divider, IconButton, Paper, Stack, TextField, Button } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { TUser } from "../lib/types/response";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery, useMutationQuery } from "../../query/hooks/queryHook";
 import { showNotification } from "../utils/utils";
@@ -220,38 +203,13 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
             <Divider flexItem />
 
             <Stack spacing={2} width="100%">
-              <TextField
-                fullWidth
-                name="fullname"
-                label="Full Name"
-                value={values.fullname}
-                onChange={handleChange}
-                error={!!errors.fullname}
-                helperText={errors.fullname}
-              />
+              <TextField fullWidth name="fullname" label="Full Name" value={values.fullname} onChange={handleChange} error={!!errors.fullname} helperText={errors.fullname} />
 
               <TextField fullWidth name="username" label="Username" value={values.username} onChange={handleChange} disabled />
 
-              <TextField
-                fullWidth
-                name="email"
-                label="Email"
-                type="email"
-                value={values.email}
-                onChange={handleChange}
-                error={!!errors.email}
-                helperText={errors.email}
-              />
+              <TextField fullWidth name="email" label="Email" type="email" value={values.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} />
 
-              <TextField
-                fullWidth
-                name="phone"
-                label="Phone Number"
-                value={values.phone}
-                onChange={handleChange}
-                error={!!errors.phone}
-                helperText={errors.phone}
-              />
+              <TextField fullWidth name="phone" label="Phone Number" value={values.phone} onChange={handleChange} error={!!errors.phone} helperText={errors.phone} />
 
               <TextField
                 fullWidth

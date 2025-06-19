@@ -1,3 +1,4 @@
+import type React from "react";
 import { useState } from "react";
 import {
   Button,
@@ -20,7 +21,7 @@ import {
   DialogContent,
   DialogActions,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   FormControl,
   InputLabel,
   MenuItem,
@@ -28,10 +29,11 @@ import {
 } from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery, useMutationQuery } from "../../query/hooks/queryHook";
-import { TQueryParams } from "../lib/types/common";
-import { TSubCategory } from "../lib/types/response";
-import { FaBan, FaEdit, FaTrash } from "react-icons/fa";
+import type { TQueryParams } from "../lib/types/common";
+import type { TSubCategory, TSubCatImage } from "../lib/types/response";
+import { FaBan, FaCameraRetro, FaEdit, FaTrash } from "react-icons/fa";
 import { BsUniversalAccessCircle } from "react-icons/bs";
+import { MdOutlineCategory } from "react-icons/md";
 import { sanitizeValue, showNotification } from "../utils/utils";
 import { countStyle } from "../vendors/Vendors";
 import { useNavigate } from "react-router";
@@ -39,7 +41,6 @@ import Header from "../common/Header";
 import dayjs from "dayjs";
 import Loading from "../common/Loader";
 import { ConfirmationDialog } from "../common/ConfirmationDialog";
-
 export default function SubCategory() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +49,6 @@ export default function SubCategory() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TSubCategory | null>(null);
-
   const [params, setParams] = useState<TQueryParams>({
     id: "",
     name: "",
@@ -59,7 +59,6 @@ export default function SubCategory() {
   });
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [openBanDialog, setOpenBanDialog] = useState(false);
-
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [editCategoryData, setEditCategoryData] = useState<number | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -78,10 +77,9 @@ export default function SubCategory() {
     setSelectedItem(event.target.value);
   };
   const [editCategory, setEditCategory] = useState<TSubCategory | null>(null);
-
   const limit = 10;
-  const { queryFn: useUpdateFunc, queryKeys: updateKey } = queryConfigs.useUpdateSubCategory;
   const { queryFn: useDeleteFunc, queryKeys: deleteKey } = queryConfigs.useDeleteSubCategory;
+  const { queryFn: useUpdateFunc, queryKeys: updateKey } = queryConfigs.useUpdateSubCategory;
   const { queryFn: getSubCategoryFunc, queryKeys: subCategoryKey } = queryConfigs.useGetAllSubCategories;
   const { queryFn: addSubCategoryFunc } = queryConfigs.useAddSubCategory;
   const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
@@ -93,6 +91,9 @@ export default function SubCategory() {
       ...searchParams,
     },
   });
+  const handleOpenImages = (category: TSubCatImage) => {
+    navigate(`/sub-category/images/${category.id}`);
+  };
   const { mutate: addSubCategory } = useMutationQuery({
     invalidateKey: subCategoryKey,
     func: addSubCategoryFunc,
@@ -109,12 +110,9 @@ export default function SubCategory() {
     invalidateKey: updateKey,
     func: useUpdateFunc,
     onSuccess: () => {
-      showNotification("success", "SubCategory updated successfully");
-      handleCloseEditModal();
+      showNotification("success", "SubCategory added successfully");
+      handleCloseModal();
       refetch();
-    },
-    onError: () => {
-      setIsUpdating(false);
     },
   });
   const { mutate: deleteSubCategory } = useMutationQuery({
@@ -169,7 +167,6 @@ export default function SubCategory() {
     setOpenBanDialog(false);
     setSelectedUser(null);
   };
-
   const handleOpenDeleteDialog = (category: TSubCategory) => {
     setSelectedUser(category);
     setOpenDeleteDialog(true);
@@ -196,7 +193,7 @@ export default function SubCategory() {
     setIsAdding(true);
     addSubCategory({
       name: trimmedName.toLowerCase(),
-      category_id: parseInt(selectedItem),
+      category_id: Number.parseInt(selectedItem),
     });
   };
   const handleUpdateCategory = () => {
@@ -279,14 +276,49 @@ export default function SubCategory() {
             </Button>
           </div>
         </div>
-        {!data?.result?.list || data.result.list.length === 0 ? (
-          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
-            <Typography variant="h6" color="textSecondary" gutterBottom>
-              No categories found
+        {!data?.result?.list || data?.result?.list?.length === 0 ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            minHeight="50vh"
+            sx={{
+              backgroundColor: "#f9f9f9",
+              borderRadius: "8px",
+              padding: "2rem",
+              border: "1px dashed #ccc",
+            }}
+          >
+            <MdOutlineCategory size={60} color="#9e9e9e" />
+            <Typography variant="h5" color="textSecondary" gutterBottom sx={{ mt: 2, fontWeight: 500 }}>
+              No subcategories found
             </Typography>
-            <Button variant="contained" onClick={handleOpenModal}>
-              Add New Category
-            </Button>
+            <Typography variant="body1" color="textSecondary" align="center" sx={{ mb: 3, maxWidth: "400px" }}>
+              {searchParams.name || searchParams.id
+                ? "No results match your search criteria. Try clearing filters or add a new subcategory."
+                : "There are no subcategories available. Get started by adding your first subcategory."}
+            </Typography>
+            <div className="flex gap-3">
+              {(searchParams.name || searchParams.id) && (
+                <Button variant="outlined" onClick={handleClear} startIcon={<FaBan />}>
+                  Clear Filters
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                onClick={handleOpenModal}
+                startIcon={<FaEdit />}
+                sx={{
+                  backgroundColor: "#1976d2",
+                  color: "white",
+
+                  "&:hover": { backgroundColor: "#1565c0" },
+                }}
+              >
+                Add New Subcategory
+              </Button>
+            </div>
           </Box>
         ) : (
           <>
@@ -302,7 +334,7 @@ export default function SubCategory() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data?.result.list.map((category: TSubCategory) => (
+                  {data?.result?.list?.map((category: TSubCategory) => (
                     <TableRow key={category.id}>
                       <TableCell sx={{ px: 2 }}>{category.id}</TableCell>
                       <TableCell sx={{ px: 2 }}>{category.name}</TableCell>
@@ -324,6 +356,11 @@ export default function SubCategory() {
                       <TableCell sx={{ px: 2 }}>{dayjs(category?.created_on).format("DD-MM-YYYY")}</TableCell>
                       <TableCell sx={{ px: 2 }}>
                         <section className="w-full flex gap-2">
+                          <Tooltip title="Images">
+                            <button onClick={() => handleOpenImages(category)} className="action-button">
+                              <FaCameraRetro size={14} />
+                            </button>
+                          </Tooltip>
                           <Tooltip title="Edit">
                             <button onClick={() => handleOpenEdit(category)} className="action-button">
                               <FaEdit size={14} />
@@ -369,7 +406,6 @@ export default function SubCategory() {
           </>
         )}
       </div>
-
       <Dialog open={isModalOpen} onClose={handleCloseModal} fullWidth maxWidth="sm">
         <DialogTitle>Add New SubCategory</DialogTitle>
         <DialogContent>
@@ -379,7 +415,7 @@ export default function SubCategory() {
               <FormControl fullWidth>
                 <InputLabel id="dropdown-label">Select Category</InputLabel>
                 <Select labelId="dropdown-label" id="dropdown" value={selectedItem} label="Select Category" onChange={handleChange}>
-                  {catData?.result.list.map((item: TSubCategory) => (
+                  {catData?.result.list?.map((item: TSubCategory) => (
                     <MenuItem key={item.id} value={item.id.toString()}>
                       {item.name}
                     </MenuItem>
@@ -398,7 +434,6 @@ export default function SubCategory() {
           </Button>
         </DialogActions>
       </Dialog>
-
       <Dialog open={openEditDialog && !!editCategory} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
         <DialogTitle>Edit SubCategory</DialogTitle>
         <DialogContent>
@@ -413,9 +448,9 @@ export default function SubCategory() {
                 disabled={isUpdating}
               />
               <Autocomplete
-                options={catData?.result.list || []}
+                options={catData?.result?.list || []}
                 getOptionLabel={(option: TSubCategory) => option.category_name}
-                value={data?.result.list.find((item: TSubCategory) => item.category_id === editCategory?.category_id) || null}
+                value={data?.result?.list?.find((item: TSubCategory) => item.category_id === editCategory?.category_id) || null}
                 onChange={(event, newValue: TSubCategory | null) => {
                   if (newValue && editCategory) {
                     setEditCategory({ ...editCategory, category_id: newValue.category_id });
@@ -431,12 +466,19 @@ export default function SubCategory() {
           <Button onClick={handleCloseEditModal} disabled={isUpdating}>
             Cancel
           </Button>
-          <Button onClick={handleUpdateCategory} variant="contained" disabled={isUpdating || !editCategory} color="primary">
+          <Button
+            onClick={handleUpdateCategory}
+            variant="contained"
+            disabled={isUpdating || !editCategory}
+            color="primary"
+            sx={{
+              color: "white",
+            }}
+          >
             {isUpdating ? <CircularProgress size={24} /> : "Update"}
           </Button>
         </DialogActions>
       </Dialog>
-
       <ConfirmationDialog
         open={openBanDialog && !editCategoryData}
         onClose={handleCloseBanDialog}
@@ -445,7 +487,6 @@ export default function SubCategory() {
         onConfirm={handleToggleStatus}
         loading={isUpdating}
       />
-
       <ConfirmationDialog
         open={openDeleteDialog}
         onClose={handleCloseDeleteDialog}

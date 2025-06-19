@@ -108,3 +108,23 @@ export interface TApprovalData {
   approval_status: number;
   approved_on: string;
 }
+
+// For BannerBody (request payload)
+export type TBannerBody = {
+  image?: string;
+  description?: string;
+  path?: string;
+  title?: string;
+};
+
+// For BannerResponseBody (response payload)
+export type TBanner = {
+  id: number;
+  image: string;
+  description: string;
+  path: string;
+  title: string;
+  created_on: string;
+  is_active?: number;
+  is_deleted?: number;
+};

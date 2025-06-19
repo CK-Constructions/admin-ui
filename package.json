@@ -39,8 +39,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "dev": "cross-env NODE_ENV=development PORT=3650 react-scripts start",
+    "start": "cross-env PORT=8050 react-scripts start",
+    "dev": "cross-env NODE_ENV=development PORT=8050 react-scripts start",
     "debug-env": "cross-env react-scripts printenv",
     "build": "react-scripts build",
     "test": "react-scripts test",

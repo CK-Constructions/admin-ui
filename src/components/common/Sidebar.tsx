@@ -70,6 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
   const sidebarItems: SidebarItem[] = [
     { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
     { text: "Users", icon: <PeopleIcon />, path: "/users" },
+    { text: "Banners", icon: <PeopleIcon />, path: "/banners" },
     { text: "Profile", icon: <PeopleIcon />, path: "/profile" },
     {
       text: "Listings",

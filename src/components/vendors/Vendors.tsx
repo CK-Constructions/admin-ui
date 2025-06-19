@@ -1,21 +1,5 @@
 import { useState } from "react";
-import {
-  Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Pagination,
-  Chip,
-  Tooltip,
-  Box,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Chip, Tooltip, Box, Typography } from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
@@ -28,9 +12,7 @@ import { BsUniversalAccessCircle } from "react-icons/bs";
 import Header from "../common/Header";
 import { useNavigate } from "react-router";
 import Loading from "../common/Loader";
-
 export const countStyle = "flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200";
-
 export default function Vendors() {
   const navigate = useNavigate();
   const limit = 10;
@@ -88,14 +70,8 @@ export default function Vendors() {
   };
   const handleOpenViewDialog = (user: IVendor) => {
     setSelectedUserId(user.id);
-
     setOpenViewDialog(true);
   };
-  const handleCloseBanDialog = () => {
-    setOpenBanDialog(false);
-  };
-
-  // Loading state
   if (isLoading || isFetching || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -103,8 +79,6 @@ export default function Vendors() {
       </Box>
     );
   }
-
-  // Error states
   if (isLoadingError || isRefetchError) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -112,8 +86,6 @@ export default function Vendors() {
       </Box>
     );
   }
-
-  // No data state
   if (!data || !data.result || !data.result.list || data.result.list.length === 0) {
     return (
       <Box display="flex" flexDirection="column" height="100%">
@@ -126,13 +98,11 @@ export default function Vendors() {
       </Box>
     );
   }
-
   return (
     <div className="flex flex-col h-full">
       <div className="pb-4">
         <Header onBackClick={() => navigate(-1)} pageName="Vendors" />
       </div>
-
       <>
         <div className="my-6 flex gap-2">
           <TextField
@@ -178,12 +148,10 @@ export default function Vendors() {
           </div>
         </div>
       </>
-
       <TableContainer sx={{ maxHeight: 540, scrollbarWidth: 0 }} component={Paper}>
         <Table stickyHeader aria-label="sticky table">
           <TableHead sx={{ backgroundColor: "black" }}>
             {" "}
-            {}
             <TableRow>
               <TableCell sx={{ color: "white", backgroundColor: "black" }}>ID</TableCell>
               <TableCell sx={{ color: "white", backgroundColor: "black" }}>Name</TableCell>
@@ -250,7 +218,6 @@ export default function Vendors() {
           </TableBody>
         </Table>
       </TableContainer>
-
       <div className="flex items-center justify-center mt-5">
         <div className="flex items-center justify-end space-x-3">
           {sanitizeValue(data?.result?.count) > 0 && (

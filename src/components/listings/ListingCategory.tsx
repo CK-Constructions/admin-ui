@@ -36,6 +36,7 @@ import Loading from "../common/Loader";
 export default function ListingCategory() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TCategory | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [params, setParams] = useState<TQueryParams>({
@@ -47,13 +48,19 @@ export default function ListingCategory() {
     name: "",
   });
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [editCategoryName, setEditCategoryName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editCategory, setEditCategory] = useState<TCategory | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
   const [openBanDialog, setOpenBanDialog] = useState(false);
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const limit = 10;
   const { queryFn: addCategory } = queryConfigs.useAddCategories;
+  const { queryFn: updateCategoryFunc } = queryConfigs.useUpdateCategories;
   const { queryFn: getCategoryFunc, queryKey: categoryKey } = queryConfigs.useGetAllCategories;
   const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
     func: getCategoryFunc,
@@ -73,6 +80,24 @@ export default function ListingCategory() {
       refetch();
     },
   });
+  const { mutate: updateCategory } = useMutationQuery({
+    invalidateKey: categoryKey,
+    func: updateCategoryFunc,
+    onSuccess: () => {
+      showNotification("success", "Brand updated successfully");
+      handleCloseEditModal();
+      refetch();
+    },
+    onError: () => {
+      setIsUpdating(false);
+    },
+  });
+
+  const handleOpenEdit = (category: TCategory) => {
+    setEditCategory(category);
+    setOpenEditDialog(true);
+  };
+
   const handleAddCategory = () => {
     const trimmedName = newCategoryName.trim();
 
@@ -106,10 +131,6 @@ export default function ListingCategory() {
     event.preventDefault();
     setCurrentPage(value);
   };
-  const handleOpenEdit = (category: TCategory) => {
-    setEditingUserId(category.id);
-    setOpenBanDialog(true);
-  };
   const handleOpenBanDialog = (category: TCategory) => {
     setSelectedUser(category);
     setOpenBanDialog(true);
@@ -125,10 +146,24 @@ export default function ListingCategory() {
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
+  const handleCloseEditModal = () => {
+    setOpenEditDialog(false);
+    setEditCategory(null);
+    setIsUpdating(false);
+  };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setNewCategoryName("");
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editCategory || !editCategory?.name.trim()) {
+      showNotification("error", "Brand name cannot be empty");
+      return;
+    }
+    setIsUpdating(true);
+    updateCategory({ body: editCategory, id: editCategory.id });
   };
   if (isLoading || isRefetching) {
     return (
@@ -308,6 +343,31 @@ export default function ListingCategory() {
             }}
           >
             {isAdding ? <CircularProgress size={24} /> : "Add"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openEditDialog && !!editCategory} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+        <DialogTitle>Edit Brand</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <div className="space-y-5">
+              <TextField
+                fullWidth
+                label="Brand"
+                variant="outlined"
+                value={editCategory?.name}
+                onChange={(e) => setEditCategory((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
+                disabled={isUpdating}
+              />
+            </div>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal} disabled={isUpdating}>
+            Cancel
+          </Button>
+          <Button onClick={handleUpdateCategory} variant="contained" disabled={isUpdating || !editCategory} color="primary">
+            {isUpdating ? <CircularProgress size={24} /> : "Update"}
           </Button>
         </DialogActions>
       </Dialog>

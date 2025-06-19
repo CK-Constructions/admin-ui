@@ -20,7 +20,7 @@ import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
 import { TRentalItem } from "../lib/types/response";
-import { FaBan, FaEdit, FaEye } from "react-icons/fa";
+import { FaBan, FaEye } from "react-icons/fa";
 import { BsUniversalAccessCircle } from "react-icons/bs";
 import { sanitizeValue } from "../utils/utils";
 import { countStyle } from "../vendors/Vendors";

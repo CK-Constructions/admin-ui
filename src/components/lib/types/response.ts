@@ -210,3 +210,20 @@ export interface TBrandImageBody {
   id?: number;
   images?: TBrandImage[];
 }
+export interface TSubCatImage {
+  id?: number;
+  image?: string;
+  brand_id?: number;
+  brand_name?: number;
+}
+
+export interface TSubCatImageBody {
+  id?: number;
+  images?: TSubCatImage[];
+}
+export interface TDeleteSubCatImageBody {
+  id?: number[];
+}
+export interface TDeleteBrandImageBody {
+  id?: number[];
+}
