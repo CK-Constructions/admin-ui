@@ -11,11 +11,28 @@ import { FaBan, FaCheck, FaSearchMinus, FaSearchPlus, FaTimes, FaTrash } from "r
 import { TBanner, TBannerBody } from "../lib/types/common";
 import { MdOutlineAddToPhotos } from "react-icons/md";
 import { BsUniversalAccessCircle } from "react-icons/bs";
+import { BannerStatusModal } from "../buyers/ActiveBannerModal";
 
 const Banners = () => {
   const LIMIT = 10;
-  const [currentPage, setCurrentPage] = useState(1);
   const tileSize = 200;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<TBanner | null>(null);
+  const [isBannerActive, setIsBannerActive] = useState(false);
+
+  const handleOpenDeactivateModal = (banner: TBanner) => {
+    setSelectedBanner(banner);
+    setIsBannerActive(true); // true means the banner is currently active
+    setIsModalOpen(true);
+  };
+
+  const handleOpenActivateModal = (banner: TBanner) => {
+    setSelectedBanner(banner);
+    setIsBannerActive(false); // false means the banner is currently inactive
+    setIsModalOpen(true);
+  };
+
   const [selectMode, setSelectMode] = useState(false);
   const [selectedImages, setSelectedImages] = useState<number[]>([]);
   const { queryFn: getAllBannersFunc, queryKeys: bannerKey } = queryConfigs.useGetAllBanners;
@@ -285,15 +302,15 @@ const Banners = () => {
               <div className="border-1 border-gray-600 px-5"></div>
               <div>
                 {item.is_active === 0 && (
-                  <Tooltip title="Ban User">
-                    <button onClick={() => handleOpenBanDialog(item)} className="red-action-button">
+                  <Tooltip title="Disable Banner">
+                    <button onClick={() => handleOpenActivateModal(item)} className="red-action-button">
                       <FaBan size={14} />
                     </button>
                   </Tooltip>
                 )}
                 {item.is_active === 1 && (
-                  <Tooltip title="UnBan User">
-                    <button onClick={() => handleOpenBanDialog(item)} className="green-action-button">
+                  <Tooltip title="Enable Banner">
+                    <button onClick={() => handleOpenDeactivateModal(item)} className="green-action-button">
                       <BsUniversalAccessCircle size={14} />
                     </button>
                   </Tooltip>
@@ -438,39 +455,7 @@ const Banners = () => {
           </Box>
         </Modal>
       </div>
-      {/* <Modal open={openAddModal} onClose={handleCloseAddImages} aria-labelledby="add-images-modal" aria-describedby="add-images-to-brand">
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: { xs: "90%", sm: 600 },
-            bgcolor: "background.paper",
-            boxShadow: 24,
-            borderRadius: 2,
-            p: 4,
-            outline: "none",
-          }}
-          component={Paper}
-        >
-          <h2>Add Images to Brand</h2>
-          <input type="file" accept="image/*" multiple onChange={handleImageChange} />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "20px" }}>
-            {previews.map((preview, index) => (
-              <div key={index} style={{ position: "relative" }}>
-                <img src={preview} alt={`Preview ${index}`} style={{ width: "100px", height: "100px", objectFit: "cover" }} />
-                <button onClick={() => removeImage(index)} style={{ position: "absolute", top: 0, right: 0 }}>
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-          <button onClick={handleSubmit} disabled={images.length === 0} style={{ marginTop: "20px" }}>
-            Submit Images
-          </button>
-        </Box>
-      </Modal> */}
+      {selectedBanner && <BannerStatusModal open={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedBanner} isActive={isBannerActive} />}
     </>
   );
 };

@@ -122,8 +122,6 @@ export const UpdateListingCategory = ({ body, id }: { body: TCategoryBody; id: n
 //Banners
 export const getAllBanners = ({ offset, limit }: TQueryParams) => _callApi(`/banners?offset=${offset}&limit=${limit}`, "get");
 export const addBanner = (body: TBannerBody) => _callApi(`/banners`, "post", body);
-// banner.Put("/disable/:id", handlers.EnableBanner)
-// 	banner.Put("/enable/:id", handlers.DisableBanner)
 export const disableBanner = ({ id }: { id: number }) => _callApi(`/banners/disable/${id}`, "put", "");
 export const enableBanner = ({ id }: { id: number }) => _callApi(`/banners/enable/${id}`, "put", "");
 
