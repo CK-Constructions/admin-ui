@@ -1,12 +1,13 @@
-import {
-  TApiResponse,
-  TApiSingleResponse,
-} from "../models";
+import { QueryKey } from "@tanstack/react-query";
+import { TApiResponse, TApiSingleResponse } from "../models";
 
 export type TMutationProp = {
-  key: string[];
+  // key: string[];
+  key?: QueryKey;
+  invalidateKey?: QueryKey | QueryKey[];
   func: (body: any) => Promise<TApiResponse<any>>;
   onSuccess: () => void;
+  onError?: () => void; // Optional error handler
 };
 
 export type TOption = {
@@ -16,60 +17,39 @@ export type TOption = {
 };
 
 export type TQueryParams = {
-  id?: number | null;
+  id?: number | null | string;
   offset?: number;
   limit?: number;
   brand?: number | string;
   model?: number | string;
-  showTransferred?: boolean;
-  serial_number?: string;
   username?: string;
-  branch?: number | string;
+  active?: number | string;
   startDate?: string;
   endDate?: string;
   name?: string;
   mobile?: string;
-  contact?: string;
-  patientId?: number | string;
-  workflow?: boolean;
-  referral?: boolean;
-  showReferredFrom?: boolean;
-  appointmentFor?: number | string;
-  appointment_for?: number | string;
-  day?: number;
-  showReferred?: boolean;
-  role?: number | string;
+  category?: string;
+  seller?: string;
   designation?: number | string;
   email?: string;
-  specialty?: number | string;
   year?: string | number | null;
   month?: string | number | null;
-  employeeId?: string | number;
-  specialist?: string | number;
   status?: string | number;
-  patientName?: string;
-  appointment?: number | string;
-  appointmentId?: number;
   type?: string;
-  patient?: number | string;
 };
 
 export type TQueryProp = {
   key: string[];
   params?: TQueryParams;
   isEnabled?: boolean;
-  func: (
-    params: TQueryParams
-  ) => Promise<TApiResponse<any>>;
+  func: (params: TQueryParams) => Promise<TApiResponse<any>>;
 };
 
 export type TSingleQueryProp = {
   key: string[];
   params?: TQueryParams;
   isEnabled?: boolean;
-  func: (
-    params: TQueryParams
-  ) => Promise<TApiSingleResponse<any>>;
+  func: (params: TQueryParams) => Promise<TApiSingleResponse<any>>;
 };
 
 export interface SlicePayload<T> {
@@ -93,14 +73,7 @@ export type TableItem = {
   chipLabel?: string;
 };
 
-export type Methods =
-  | "head"
-  | "options"
-  | "put"
-  | "post"
-  | "patch"
-  | "delete"
-  | "get";
+export type Methods = "head" | "options" | "put" | "post" | "patch" | "delete" | "get";
 
 export type LoginResponse = {
   id: number;
@@ -124,4 +97,34 @@ export type TAdminResponse = {
   };
   success: boolean;
   message?: string;
+};
+
+export interface TApprovalData {
+  id: number;
+  seller_name: string;
+  category_name: string;
+  listing_id: number;
+  listing_price: number;
+  approval_status: number;
+  approved_on: string;
+}
+
+// For BannerBody (request payload)
+export type TBannerBody = {
+  image?: string;
+  description?: string;
+  path?: string;
+  title?: string;
+};
+
+// For BannerResponseBody (response payload)
+export type TBanner = {
+  id: number;
+  image: string;
+  description: string;
+  path: string;
+  title: string;
+  created_on: string;
+  is_active?: number;
+  is_deleted?: number;
 };

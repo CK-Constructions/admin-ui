@@ -1,5 +1,48 @@
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* index.css */
+.dark-mode {
+  @apply bg-gray-100;
+}
+
+.dark-mode.dark {
+  @apply bg-gray-900;
+}
+
+.action-button {
+  @apply flex items-center justify-center p-2 rounded-md 
+         transition-colors border shadow-sm hover:shadow-md 
+         w-8 h-8
+         
+         /* Light mode styles */
+         bg-white border-neutral-200 hover:bg-neutral-100
+         
+         /* Dark mode styles */
+         dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700;
+}
+
+.red-action-button {
+  @apply flex items-center justify-center p-2 rounded-md 
+         transition-colors border shadow-sm hover:shadow-md 
+         w-8 h-8
+         
+         /* Light mode */
+         text-red-600 border-red-200 hover:bg-red-50
+         
+         /* Dark mode */
+         dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/30;
+}
+
+.green-action-button {
+  @apply flex items-center justify-center p-2 rounded-md 
+         transition-colors border shadow-sm hover:shadow-md 
+         w-8 h-8
+         
+         /* Light mode */
+         text-green-600 border-green-200 hover:bg-green-50
+         
+         /* Dark mode */
+         dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30;
+}

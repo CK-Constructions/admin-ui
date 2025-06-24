@@ -1,9 +1,7 @@
-import {
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { setAuthHeader, clearAuthHeader } from "../../api";
+import { clearAdminCredentials } from "../../components/utils/utils";
 
 type User = {
   id: number;
@@ -26,10 +24,7 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<User>
-    ) => {
+    setCredentials: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.token = action.payload.token;
       setAuthHeader(action.payload.token);
@@ -38,6 +33,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       clearAuthHeader();
+      clearAdminCredentials();
     },
   },
 });
@@ -45,5 +41,4 @@ const authSlice = createSlice({
 export const { setCredentials, logOut } = authSlice.actions;
 export default authSlice.reducer;
 
-export const selectCurrentAuth = (state: RootState) =>
-  state.auth;
+export const selectCurrentAuth = (state: RootState) => state.auth;

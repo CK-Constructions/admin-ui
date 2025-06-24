@@ -56,3 +56,26 @@ export function isEmpty(value: any): boolean {
 export function sanitizeValue(value: any): number {
   return isEmpty(value) ? 0 : isNaN(value) ? 0 : Number(value);
 }
+
+export const debouncer = function (func: (e: any, value: string) => void, wait: number) {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  return function (this: any, e: any, value: string) {
+    const context = this;
+    const later = function () {
+      timeout = null;
+      func.apply(context, [e, value]);
+    };
+    if (timeout !== null) {
+      clearTimeout(timeout);
+    }
+    timeout = setTimeout(later, wait);
+  };
+};
+export function simpleDebounce<T extends any[]>(func: (...args: T) => void, wait: number) {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+  return (...args: T) => {
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), wait);
+  };
+}
