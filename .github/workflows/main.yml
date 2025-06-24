@@ -1,0 +1,30 @@
+name: Automated Deployment Of Admin Panel
+
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into server and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e  # Exit immediately if any command fails
+            cd /var/www/tomthin/admin
+            echo "Removing previous build..."
+            rm -rf build
+            echo "Pulling latest changes from dev branch..."
+            git pull origin dev
+            echo "Installing dependencies..."
+            npm install
+            echo "Building application..."
+            npm run build
+            echo "Restarting nginx..."
+            sudo systemctl restart nginx
+            echo "Deployment completed successfully!"
