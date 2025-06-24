@@ -2,12 +2,19 @@ name: Automated Deployment Of Admin Panel
 
 on:
   push:
-    branches: [ dev ]
+    branches: [dev]  # Case-sensitive! Must match your branch name.
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # Debug: Print branch info (verify trigger)
+      - name: Check Trigger
+        run: |
+          echo "Branch: $GITHUB_REF"
+          echo "Event: $GITHUB_EVENT_NAME"
+
+      # SSH and deploy
       - name: SSH into server and deploy
         uses: appleboy/ssh-action@master
         with:
@@ -17,12 +24,9 @@ jobs:
           script: |
             set -e
             cd /var/www/apps/tomthin/admin
-            # Load SSH key for Git
-            eval "$(ssh-agent -s)"
-            echo "${{ secrets.SSH_KEY }}" | ssh-add -
-            git config --global url."git@github.com:".insteadOf "https://github.com/"
-            # Pull changes
+            echo "Current dir: $(pwd)"
+            git remote -v  # Debug: Check Git remote
             git pull origin dev
-            # Build and restart
-            npm install && npm run build
+            npm install
+            npm run build
             sudo systemctl restart nginx
