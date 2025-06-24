@@ -1,22 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Stack,
-  Paper,
-  styled,
-  Tabs,
-  Tab,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-} from "@mui/material";
+import { Box, Typography, Card, CardContent, Stack, Paper, styled, Tabs, Tab, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Chip } from "@mui/material";
 import {
   People as PeopleIcon,
   ShoppingCart as OrdersIcon,
@@ -138,7 +121,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, backgroundColor: "black" }}>
       {/* Date and Time */}
       <Typography variant="h5" gutterBottom>
         Admin Dashboard
@@ -254,11 +237,7 @@ const Dashboard: React.FC = () => {
                     <TableCell>{request.name}</TableCell>
                     <TableCell>{request.date}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={request.status}
-                        color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"}
-                        size="small"
-                      />
+                      <Chip label={request.status} color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"} size="small" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -285,11 +264,7 @@ const Dashboard: React.FC = () => {
                     <TableCell>{request.name}</TableCell>
                     <TableCell>{request.date}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={request.status}
-                        color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"}
-                        size="small"
-                      />
+                      <Chip label={request.status} color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"} size="small" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -316,11 +291,7 @@ const Dashboard: React.FC = () => {
                     <TableCell>{request.name}</TableCell>
                     <TableCell>{request.date}</TableCell>
                     <TableCell>
-                      <Chip
-                        label={request.status}
-                        color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"}
-                        size="small"
-                      />
+                      <Chip label={request.status} color={request.status === "approved" ? "success" : request.status === "rejected" ? "error" : "warning"} size="small" />
                     </TableCell>
                   </TableRow>
                 ))}

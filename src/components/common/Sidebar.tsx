@@ -4,18 +4,26 @@ import { motion } from "framer-motion";
 
 import { Box, Divider, Drawer as MuiDrawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, useTheme, styled } from "@mui/material";
 import {
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
-  Inventory as ListingsIcon,
-  Category as CategoryIcon,
-  ShoppingCart as BuyersIcon,
-  Store as StoreIcon,
-  DirectionsCar as CarRentalIcon,
-  Build as ServicesIcon,
-  CheckCircle as ApprovalIcon,
-  ContactSupport as InquiryIcon,
-  Settings as SettingsIcon,
-} from "@mui/icons-material";
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  Users,
+  ImageIcon,
+  User,
+  Package,
+  Tag,
+  FolderTree,
+  Car,
+  Wrench,
+  CheckCircle,
+  MessageSquare,
+  Settings,
+  ShoppingCart,
+  Store,
+  ClipboardCheck,
+  HelpCircle,
+  Layers,
+} from "lucide-react";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useThemeContext } from "../context/ThemeContext";
@@ -68,91 +76,26 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
     navigate("/profile");
   };
   const sidebarItems: SidebarItem[] = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/" },
-    { text: "Users", icon: <PeopleIcon />, path: "/users" },
-    { text: "Banners", icon: <PeopleIcon />, path: "/banners" },
-    { text: "Profile", icon: <PeopleIcon />, path: "/profile" },
-    {
-      text: "Listings",
-      icon: <ListingsIcon />,
-      path: "/listings",
-    },
-    {
-      text: "Brands",
-      icon: <ListingsIcon />,
-      path: "/brands",
-    },
-
-    {
-      text: "Listing Categories",
-      icon: <CategoryIcon />,
-      path: "/listing-categories",
-    },
-    {
-      text: "Sub Listing Category",
-      icon: <ListingsIcon />,
-      path: "/sub-category",
-    },
-    {
-      text: "Rental Categories",
-      icon: <CategoryIcon />,
-      path: "/rental-categories",
-    },
-    {
-      text: "Service Categories",
-      icon: <CategoryIcon />,
-      path: "/service-categories",
-    },
-    {
-      text: "Buyers",
-      icon: <BuyersIcon />,
-      path: "/buyers",
-    },
-    {
-      text: "Vendors",
-      icon: <StoreIcon />,
-      path: "/vendors",
-    },
-    {
-      text: "Vehicle Rentals",
-      icon: <CarRentalIcon />,
-      path: "/rentals",
-    },
-    {
-      text: "Services",
-      icon: <ServicesIcon />,
-      path: "/services",
-    },
-    {
-      text: "Listing Approvals",
-      icon: <ApprovalIcon />,
-      path: "/listing-approvals",
-    },
-    {
-      text: "Service Approvals",
-      icon: <ApprovalIcon />,
-      path: "/service-approvals",
-    },
-    {
-      text: "Vehicle Rental Approvals",
-      icon: <ApprovalIcon />,
-      path: "/rental-approvals",
-    },
-    {
-      text: "CK Inquiries",
-      icon: <InquiryIcon />,
-      path: "/ck-inquiry",
-    },
-    {
-      text: "TT Inquiries",
-      icon: <InquiryIcon />,
-      path: "/tomthin-inquiry",
-    },
-    {
-      text: "Settings",
-      icon: <SettingsIcon />,
-      path: "/settings",
-    },
+    { text: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, path: "/" },
+    { text: "Users", icon: <Users className="w-5 h-5" />, path: "/users" },
+    { text: "Banners", icon: <ImageIcon className="w-5 h-5" />, path: "/banners" },
+    { text: "Profile", icon: <User className="w-5 h-5" />, path: "/profile" },
+    { text: "Listings", icon: <Package className="w-5 h-5" />, path: "/listings" },
+    { text: "Brands", icon: <Tag className="w-5 h-5" />, path: "/brands" },
+    { text: "Listing Categories", icon: <Layers className="w-5 h-5" />, path: "/listing-categories" },
+    { text: "Sub Listing Category", icon: <FolderTree className="w-5 h-5" />, path: "/sub-category" },
+    { text: "Rental Categories", icon: <Car className="w-5 h-5" />, path: "/rental-categories" },
+    { text: "Service Categories", icon: <Wrench className="w-5 h-5" />, path: "/service-categories" },
+    { text: "Buyers", icon: <ShoppingCart className="w-5 h-5" />, path: "/buyers" },
+    { text: "Vendors", icon: <Store className="w-5 h-5" />, path: "/vendors" },
+    { text: "Vehicle Rentals", icon: <Car className="w-5 h-5" />, path: "/rentals" },
+    { text: "Services", icon: <Wrench className="w-5 h-5" />, path: "/services" },
+    { text: "Listing Approvals", icon: <CheckCircle className="w-5 h-5" />, path: "/listing-approvals" },
+    { text: "Service Approvals", icon: <ClipboardCheck className="w-5 h-5" />, path: "/service-approvals" },
+    { text: "Vehicle Rental Approvals", icon: <CheckCircle className="w-5 h-5" />, path: "/rental-approvals" },
+    { text: "CK Inquiries", icon: <MessageSquare className="w-5 h-5" />, path: "/ck-inquiry" },
+    { text: "TT Inquiries", icon: <HelpCircle className="w-5 h-5" />, path: "/tomthin-inquiry" },
+    { text: "Settings", icon: <Settings className="w-5 h-5" />, path: "/settings" },
   ];
 
   return (
