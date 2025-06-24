@@ -2,7 +2,7 @@ name: Automated Deployment Of Admin Panel
 
 on:
   push:
-    branches: [dev]  # Case-sensitive! Must match your branch name.
+    branches: [deployment]  # Case-sensitive! Must match your branch name.
 
 jobs:
   deploy:
@@ -26,7 +26,9 @@ jobs:
             cd /var/www/apps/tomthin/admin
             echo "Current dir: $(pwd)"
             git remote -v  # Debug: Check Git remote
-            git pull origin dev
+            git fetch --all
+            git checkout deployment
+            git pull origin deployment
             npm install
             npm run build
             sudo systemctl restart nginx
