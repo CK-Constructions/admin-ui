@@ -10,20 +10,6 @@ interface DarkModeToggleProps {
 
 const DarkModeToggle = ({ darkMode, toggleDarkMode }: DarkModeToggleProps) => {
   return (
-    // <div>
-    //   <Switch
-    //     checked={darkMode}
-    //     onChange={toggleDarkMode}
-    //     sx={{
-    //       "& .MuiSwitch-switchBase.Mui-checked": {
-    //         "& + .MuiSwitch-track": {
-    //           backgroundColor: "primary.main",
-    //         },
-    //       },
-    //     }}
-    //   />
-    //   {darkMode ? <Brightness7 /> : <Brightness4 />}
-    // </div>
     <ListItem disablePadding sx={{ display: "block" }}>
       <ListItemButton
         onClick={toggleDarkMode}
