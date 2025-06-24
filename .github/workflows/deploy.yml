@@ -2,33 +2,40 @@ name: Automated Deployment Of Admin Panel
 
 on:
   push:
-    branches: [deployment] # Case-sensitive! Must match your branch name.
+    branches: [deployment]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Debug: Print branch info (verify trigger)
-      - name: Check Trigger
-        run: |
-          echo "Branch: $GITHUB_REF"
-          echo "Event: $GITHUB_EVENT_NAME"
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # SSH and deploy
-      - name: SSH into server and deploy
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_HOST }} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE0oBb3+xH9gqLDAmc9zp/1DZsuScEqoxBCLFcZdDTU4" >> ~/.ssh/known_hosts
+
+      - name: Test SSH Connection
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key \
+            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+            "echo 'SSH connection successful!'"
+
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: 22
+          script_timeout: 120s
           script: |
-            set -e
+            set -ex
             cd /var/www/apps/tomthin/admin
-            echo "Current dir: $(pwd)"
-            git remote -v  # Debug: Check Git remote
-            git fetch --all
-            git checkout deployment
-            git pull origin deployment
+            git pull origin dev
             npm install
             npm run build
             sudo systemctl restart nginx
