@@ -16,11 +16,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.SSH_HOST }} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE0oBb3+xH9gqLDAmc9zp/1DZsuScEqoxBCLFcZdDTU4" >> ~/.ssh/known_hosts
+          # Remove old host key and add new one
+          ssh-keygen -R ${{ secrets.SSH_HOST }}
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
       - name: Test SSH Connection
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/deploy_key \
+          ssh -v -i ~/.ssh/deploy_key \
             ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
             "echo 'SSH connection successful!'"
 

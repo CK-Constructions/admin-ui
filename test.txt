@@ -1,3 +1,1 @@
-test ts
-
-test 2
+TESTING AUTOMATED DEPLOYMENT 2
