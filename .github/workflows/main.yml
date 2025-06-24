@@ -15,16 +15,19 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e  # Exit immediately if any command fails
-            cd /var/www/tomthin/admin
-            echo "Removing previous build..."
+            set -e  # Exit on error
+            cd /var/www/apps/tomthin/admin
+            echo "Setting up SSH for Git..."
+            eval $(ssh-agent -s)
+            echo "${{ secrets.SSH_KEY }}" | ssh-add -
+            git config --global url."git@github.com:".insteadOf "https://github.com/"
+            echo "Removing old build..."
             rm -rf build
-            echo "Pulling latest changes from dev branch..."
+            echo "Pulling latest changes..."
             git pull origin dev
             echo "Installing dependencies..."
             npm install
-            echo "Building application..."
+            echo "Building..."
             npm run build
-            echo "Restarting nginx..."
+            echo "Restarting Nginx..."
             sudo systemctl restart nginx
-            echo "Deployment completed successfully!"
