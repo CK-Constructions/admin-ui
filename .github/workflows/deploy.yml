@@ -11,26 +11,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH Environment
+      - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          # Create known_hosts if doesn't exist
-          touch ~/.ssh/known_hosts
+          # Add host key verification
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-          # Add host key without trying to remove first
-          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
-
-      - name: Verify SSH Connection
-        run: |
-          ssh -o StrictHostKeyChecking=yes \
-              -i ~/.ssh/deploy_key \
-              "${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}" \
-              "echo 'SSH connection successful!'"
+          # Test connection with verbose output
+          ssh -vvv -i ~/.ssh/deploy_key \
+              -o IdentitiesOnly=yes \
+              ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+              exit
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
@@ -39,10 +35,10 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          script_timeout: 120s
+          script_timeout: 300s
           script: |
             set -ex
-            cd /var/www/apps/tomthin/admin || { echo "Directory missing!"; exit 1; }
+            cd /var/www/apps/tomthin/admin
             git pull origin dev
             npm install
             npm run build
