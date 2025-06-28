@@ -121,7 +121,7 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <Box sx={{ p: 3, backgroundColor: "black" }}>
+    <Box sx={{ p: 3, backgroundColor: "white" }}>
       {/* Date and Time */}
       <Typography variant="h5" gutterBottom>
         Admin Dashboard
