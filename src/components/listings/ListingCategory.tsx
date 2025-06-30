@@ -239,8 +239,8 @@ export default function ListingCategory() {
                   </TableCell>
                   <TableCell sx={{ px: 2 }}>
                     <Chip
-                      label={category.is_active === 1 ? "Active" : "Disabled"}
-                      color={category.is_active === 1 ? "success" : "error"}
+                      label={category.is_active === 0 ? "Active" : "Disabled"}
+                      color={category.is_active === 0 ? "success" : "error"}
                       size="small"
                       variant="outlined"
                       sx={{
@@ -261,7 +261,7 @@ export default function ListingCategory() {
                         </button>
                       </Tooltip>
 
-                      {category.is_active === 1 ? (
+                      {category.is_active === 0 ? (
                         <Tooltip title="Disable">
                           <button onClick={() => handleOpenBanDialog(category)} className="red-action-button">
                             <FaBan size={14} />
