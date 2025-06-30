@@ -24,21 +24,19 @@ import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery, useMutationQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
 import { TCategory } from "../lib/types/response";
-import { FaBan, FaEdit, FaEye } from "react-icons/fa";
+import { FaBan, FaEdit } from "react-icons/fa";
 import { BsUniversalAccessCircle } from "react-icons/bs";
 import { sanitizeValue, showNotification } from "../utils/utils";
 import { countStyle } from "../vendors/Vendors";
-import { TUserFormData } from "../lib/types/payloads";
 import { useNavigate } from "react-router";
 import Header from "../common/Header";
 import dayjs from "dayjs";
 import Loading from "../common/Loader";
+
 export default function ListingCategory() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<TCategory | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [params, setParams] = useState<TQueryParams>({
     id: "",
     name: "",
@@ -48,20 +46,17 @@ export default function ListingCategory() {
     name: "",
   });
   const [newCategoryName, setNewCategoryName] = useState("");
-  const [editCategoryName, setEditCategoryName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<TCategory | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const [openBanDialog, setOpenBanDialog] = useState(false);
-  const [openViewDialog, setOpenViewDialog] = useState(false);
-  const [editingUserId, setEditingUserId] = useState<number | null>(null);
+
   const limit = 10;
   const { queryFn: addCategory } = queryConfigs.useAddCategories;
   const { queryFn: updateCategoryFunc } = queryConfigs.useUpdateCategories;
   const { queryFn: getCategoryFunc, queryKey: categoryKey } = queryConfigs.useGetAllCategories;
+
   const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
     func: getCategoryFunc,
     key: categoryKey,
@@ -71,6 +66,7 @@ export default function ListingCategory() {
       ...searchParams,
     },
   });
+
   const { mutate } = useMutationQuery({
     invalidateKey: categoryKey,
     func: addCategory,
@@ -80,11 +76,12 @@ export default function ListingCategory() {
       refetch();
     },
   });
+
   const { mutate: updateCategory } = useMutationQuery({
     invalidateKey: categoryKey,
     func: updateCategoryFunc,
     onSuccess: () => {
-      showNotification("success", "Brand updated successfully");
+      showNotification("success", "Category updated successfully");
       handleCloseEditModal();
       refetch();
     },
@@ -92,11 +89,6 @@ export default function ListingCategory() {
       setIsUpdating(false);
     },
   });
-
-  const handleOpenEdit = (category: TCategory) => {
-    setEditCategory(category);
-    setOpenEditDialog(true);
-  };
 
   const handleAddCategory = () => {
     const trimmedName = newCategoryName.trim();
@@ -110,13 +102,16 @@ export default function ListingCategory() {
       name: trimmedName.toLowerCase(),
     });
   };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setParams((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSearch = () => {
     setSearchParams(params);
   };
+
   const handleClear = () => {
     setParams({
       id: "",
@@ -127,25 +122,24 @@ export default function ListingCategory() {
       name: "",
     });
   };
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     event.preventDefault();
     setCurrentPage(value);
   };
+
   const handleOpenBanDialog = (category: TCategory) => {
-    setSelectedUser(category);
     setOpenBanDialog(true);
   };
-  const handleOpenViewDialog = (category: TCategory) => {
-    setSelectedUserId(category.id);
-    setOpenViewDialog(true);
-  };
-  const handleSubmit = (categoryData: TUserFormData) => {};
+
   const handleClickBack = () => {
     navigate(-1);
   };
+
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
+
   const handleCloseEditModal = () => {
     setOpenEditDialog(false);
     setEditCategory(null);
@@ -159,12 +153,18 @@ export default function ListingCategory() {
 
   const handleUpdateCategory = () => {
     if (!editCategory || !editCategory?.name.trim()) {
-      showNotification("error", "Brand name cannot be empty");
+      showNotification("error", "Category name cannot be empty");
       return;
     }
     setIsUpdating(true);
     updateCategory({ body: editCategory, id: editCategory.id });
   };
+
+  const handleOpenEdit = (category: TCategory) => {
+    setEditCategory(category);
+    setOpenEditDialog(true);
+  };
+
   if (isLoading || isRefetching) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
@@ -172,48 +172,37 @@ export default function ListingCategory() {
       </Box>
     );
   }
+
   if (isError) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <Typography color="error">Error loading categorys. Please try again.</Typography>
+        <Typography color="error">Error loading categories. Please try again.</Typography>
       </Box>
     );
   }
+
   if (!data?.result?.list || data.result.list.length === 0) {
     return (
       <>
         <div className="pb-4">
-          <Header
-            onBackClick={handleClickBack}
-            onReloadClick={refetch}
-            showButton={true}
-            buttonTitle="Add Listing Category"
-            pageName="Listing Categories"
-            buttonFunc={handleOpenModal}
-          />
+          <Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={true} buttonTitle="Add Listing Category" pageName="Listing Categories" buttonFunc={handleOpenModal} />
         </div>
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
           <Typography variant="h6" color="textSecondary" gutterBottom>
-            No categorys found
+            No categories found
           </Typography>
-          <Button variant="contained" onClick={() => setIsModalOpen(true)}>
-            Add New User
+          <Button variant="contained" onClick={handleOpenModal}>
+            Add New Category
           </Button>
         </Box>
       </>
     );
   }
+
   return (
     <>
       <div className="pb-4">
-        <Header
-          onBackClick={handleClickBack}
-          onReloadClick={refetch}
-          showButton={true}
-          buttonTitle="Add Listing Category"
-          pageName="Listing Categories"
-          buttonFunc={handleOpenModal}
-        />
+        <Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={true} buttonTitle="Add Listing Category" pageName="Listing Categories" buttonFunc={handleOpenModal} />
       </div>
       <div className="flex flex-col h-full p-6">
         <div className="my-6 flex gap-2">
@@ -268,8 +257,8 @@ export default function ListingCategory() {
                   </TableCell>
                   <TableCell sx={{ px: 2 }}>
                     <Chip
-                      label={category.is_active === 0 ? "Active" : "Disabled"}
-                      color={category.is_active === 0 ? "success" : "error"}
+                      label={category.is_active === 1 ? "Active" : "Disabled"}
+                      color={category.is_active === 1 ? "success" : "error"}
                       size="small"
                       variant="outlined"
                       sx={{
@@ -290,14 +279,13 @@ export default function ListingCategory() {
                         </button>
                       </Tooltip>
 
-                      {category.is_active === 0 && (
+                      {category.is_active === 1 ? (
                         <Tooltip title="Disable">
                           <button onClick={() => handleOpenBanDialog(category)} className="red-action-button">
                             <FaBan size={14} />
                           </button>
                         </Tooltip>
-                      )}
-                      {category.is_active === 1 && (
+                      ) : (
                         <Tooltip title="Enable">
                           <button onClick={() => handleOpenBanDialog(category)} className="green-action-button">
                             <BsUniversalAccessCircle size={14} />
@@ -313,9 +301,7 @@ export default function ListingCategory() {
         </TableContainer>
         <div className="flex items-center justify-center mt-5">
           <div className="flex items-center justify-end space-x-3">
-            {sanitizeValue(data?.result?.count) > 0 && (
-              <Pagination count={Math.ceil(sanitizeValue(data?.result?.count) / limit)} size="medium" page={currentPage} onChange={handlePageChange} />
-            )}
+            {sanitizeValue(data?.result?.count) > 0 && <Pagination count={Math.ceil(sanitizeValue(data?.result?.count) / limit)} size="medium" page={currentPage} onChange={handlePageChange} />}
             <p className="flex items-center space-x-2 font-medium text-slate-700">
               <span>Total result:</span>
               <span className={countStyle}>{sanitizeValue(data?.result?.count)}</span>
@@ -324,7 +310,7 @@ export default function ListingCategory() {
         </div>
       </div>
       <Dialog open={isModalOpen} onClose={handleCloseModal}>
-        <DialogTitle>Add New Rental Category</DialogTitle>
+        <DialogTitle>Add New Listing Category</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <TextField fullWidth label="Category Name" variant="outlined" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} disabled={isAdding} />
@@ -346,17 +332,17 @@ export default function ListingCategory() {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={openEditDialog && !!editCategory} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
-        <DialogTitle>Edit Brand</DialogTitle>
+      <Dialog open={openEditDialog} onClose={handleCloseEditModal} fullWidth maxWidth="sm">
+        <DialogTitle>Edit Category</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <div className="space-y-5">
               <TextField
                 fullWidth
-                label="Brand"
+                label="Category"
                 variant="outlined"
-                value={editCategory?.name}
-                onChange={(e) => setEditCategory((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
+                value={editCategory?.name || ""}
+                onChange={(e) => setEditCategory((prev) => (prev ? { ...prev, name: e.target.value } : null))}
                 disabled={isUpdating}
               />
             </div>

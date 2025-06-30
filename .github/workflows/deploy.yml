@@ -17,7 +17,9 @@ jobs:
           port: 22
           script: |
             cd /var/www/apps/tomthin/admin
-            git pull origin dev
+            rm -rf build
+            git pull origin deployment
+            git fetch --all
             npm install
             npm run build
             sudo systemctl restart nginx
