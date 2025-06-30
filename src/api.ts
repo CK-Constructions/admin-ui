@@ -7,7 +7,8 @@ import { clearAdminCredentials } from "./components/utils/utils";
 import { TBrand, TBrandImageBody, TDeleteBrandImageBody, TDeleteSubCatImageBody, TRentalapproval, TServiceapproval, TSubCatImageBody } from "./components/lib/types/response";
 
 if (process.env.NODE_ENV === "development") {
-  axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1/admin";
+  // axios.defaults.baseURL = "http://127.0.0.1:8080/api/v1/admin";
+  axios.defaults.baseURL = "https://tomthin.in/api/v1/admin";
 } else {
   axios.defaults.baseURL = "https://tomthin.in/api/v1/admin";
 }
@@ -45,8 +46,7 @@ export const banListing = ({ id }: TQueryParams) => _callApi(`/listings/ban/${id
 export const unBanListing = ({ id }: TQueryParams) => _callApi(`/listings/unban/${id}`, "put");
 export const getListings = ({ id, category, seller, active, offset, limit }: TQueryParams) =>
   _callApi(`/listings?id=${id}&category=${category}&seller=${seller}&active=${active}&offset=${offset}&limit=${limit}`, "get");
-export const getUsers = ({ username, mobile, email, offset, limit }: TQueryParams) =>
-  _callApi(`/users?offset=${offset}&limit=${limit}&mobile=${mobile}&email=${email}&username=${username}`, "get");
+export const getUsers = ({ username, mobile, email, offset, limit }: TQueryParams) => _callApi(`/users?offset=${offset}&limit=${limit}&mobile=${mobile}&email=${email}&username=${username}`, "get");
 export const getUserByID = ({ id }: TQueryParams) => _callApi(`/users/${id}`, "get");
 export const banUserByID = ({ id }: TQueryParams) => _callApi(`/users/ban/${id}`, "put");
 export const unbanUserByID = ({ id }: TQueryParams) => _callApi(`/users/unban/${id}`, "put");
@@ -86,8 +86,7 @@ export const UpdateRentalCategory = ({ body, id }: { body: TCategoryBody; id: nu
 export const AddServiceCategory = (body: TCategoryBody) => _callApi(`/service-categories`, "post", body);
 export const UpdateActivityServiceCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/service-categories/activity/${id}`, "put", body);
 export const UpdateServiceCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/service-categories/${id}`, "put", body);
-export const getActiveServiceCategories = ({ offset, limit, name, id }: TQueryParams) =>
-  _callApi(`/service-categories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
+export const getActiveServiceCategories = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/service-categories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, "get");
 
 //Sub Categories
 export const addSubCategory = (body: TCategoryBody) => _callApi(`/subcategories`, "post", body);

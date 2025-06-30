@@ -181,24 +181,6 @@ export default function ListingCategory() {
     );
   }
 
-  if (!data?.result?.list || data.result.list.length === 0) {
-    return (
-      <>
-        <div className="pb-4">
-          <Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={true} buttonTitle="Add Listing Category" pageName="Listing Categories" buttonFunc={handleOpenModal} />
-        </div>
-        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
-          <Typography variant="h6" color="textSecondary" gutterBottom>
-            No categories found
-          </Typography>
-          <Button variant="contained" onClick={handleOpenModal}>
-            Add New Category
-          </Button>
-        </Box>
-      </>
-    );
-  }
-
   return (
     <>
       <div className="pb-4">
