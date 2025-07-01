@@ -55,7 +55,7 @@ const VIewSupport: React.FC<VVIewSupportProps> = ({ open, onClose, userid }) => 
         <Stack spacing={3} alignItems="center">
           <Avatar
             // src={data?.result?.profile_picture}
-            src={`${process.env.REACT_APP_GET_MEDIA}/${data?.result?.image}`}
+            src={`${process.env.REACT_APP_BASE_URL}/${data?.result?.image}`}
             sx={{
               width: 200,
               height: 200,

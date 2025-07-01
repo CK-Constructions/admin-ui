@@ -57,7 +57,7 @@ const ViewVendor: React.FC<ViewVendorProps> = ({ open, onClose, vendorId }) => {
         <Stack spacing={3} alignItems="center">
           <Avatar
             // src={vendorData?.profile_picture}
-            src={`${process.env.REACT_APP_GET_MEDIA}/${data?.result?.profile_picture}`}
+            src={`${process.env.REACT_APP_BASE_URL}/${data?.result?.profile_picture}`}
             sx={{
               width: 200,
               height: 200,

@@ -53,7 +53,7 @@ export default function RentalView() {
               {rentalData.images_list?.length > 0 && (
                 <>
                   <img
-                    src={`${process.env.REACT_APP_GET_MEDIA}/${rentalData.images_list[currentImageIndex].image}`}
+                    src={`${process.env.REACT_APP_BASE_URL}/${rentalData.images_list[currentImageIndex].image}`}
                     alt={`${rentalData.name}-${currentImageIndex + 1}`}
                     className="object-cover w-full h-full"
                   />
@@ -71,11 +71,7 @@ export default function RentalView() {
 
                   <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
                     {rentalData.images_list.map((_: any, index: number) => (
-                      <button
-                        key={index}
-                        className={`w-2.5 h-2.5 rounded-full ${index === currentImageIndex ? "bg-primary" : "bg-primary/30"}`}
-                        onClick={() => setCurrentImageIndex(index)}
-                      >
+                      <button key={index} className={`w-2.5 h-2.5 rounded-full ${index === currentImageIndex ? "bg-primary" : "bg-primary/30"}`} onClick={() => setCurrentImageIndex(index)}>
                         <span className="sr-only">Go to image {index + 1}</span>
                       </button>
                     ))}
@@ -92,7 +88,7 @@ export default function RentalView() {
                     className={`relative w-20 h-20 overflow-hidden rounded-md flex-shrink-0 ${index === currentImageIndex ? "ring-2 ring-primary" : "opacity-70"}`}
                     onClick={() => setCurrentImageIndex(index)}
                   >
-                    <img src={`${process.env.REACT_APP_GET_MEDIA}/${image.image}`} alt={`Thumbnail ${index + 1}`} className="object-cover w-full h-full" />
+                    <img src={`${process.env.REACT_APP_BASE_URL}/${image.image}`} alt={`Thumbnail ${index + 1}`} className="object-cover w-full h-full" />
                   </button>
                 ))}
               </div>

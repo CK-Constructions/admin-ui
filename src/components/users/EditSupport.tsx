@@ -67,7 +67,7 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
         address: data.result.address || "",
         image: data.result.image || "",
       });
-      setPreviewImage(`${process.env.REACT_APP_GET_MEDIA}/${data.result.image}`);
+      setPreviewImage(`${process.env.REACT_APP_BASE_URL}/${data.result.image}`);
     }
   }, [data]);
 
@@ -177,7 +177,7 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
         <form onSubmit={handleSubmit}>
           <Stack spacing={3} alignItems="center">
             <Avatar
-              src={previewImage || `${process.env.REACT_APP_GET_MEDIA}/${data?.result?.image}`}
+              src={previewImage || `${process.env.REACT_APP_BASE_URL}/${data?.result?.image}`}
               sx={{
                 width: 120,
                 height: 120,
@@ -211,17 +211,7 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
 
               <TextField fullWidth name="phone" label="Phone Number" value={values.phone} onChange={handleChange} error={!!errors.phone} helperText={errors.phone} />
 
-              <TextField
-                fullWidth
-                name="address"
-                label="Address"
-                multiline
-                rows={3}
-                value={values.address}
-                onChange={handleChange}
-                error={!!errors.address}
-                helperText={errors.address}
-              />
+              <TextField fullWidth name="address" label="Address" multiline rows={3} value={values.address} onChange={handleChange} error={!!errors.address} helperText={errors.address} />
             </Stack>
 
             <Box display="flex" justifyContent="flex-end" width="100%" gap={2} mt={3}>

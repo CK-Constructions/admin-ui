@@ -100,13 +100,7 @@ const Listings = () => {
   if (isLoading || isFetching) {
     return (
       <Box sx={{ p: 3 }}>
-        <Header
-          showButton={true}
-          buttonFunc={() => navigate("/add-listing")}
-          onBackClick={handleClickBack}
-          onReloadClick={refetch}
-          pageName="Listings"
-        />
+        <Header showButton={true} buttonFunc={() => navigate("/add-listing")} onBackClick={handleClickBack} onReloadClick={refetch} pageName="Listings" />
         <Grid container spacing={3}>
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <Grid item xs={12} sm={6} md={4} key={item}>
@@ -129,13 +123,7 @@ const Listings = () => {
   if (isError) {
     return (
       <Box sx={{ p: 3, textAlign: "center", minHeight: "60vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <Header
-          showButton={true}
-          buttonFunc={() => navigate("/add-listing")}
-          onBackClick={handleClickBack}
-          onReloadClick={refetch}
-          pageName="Listings"
-        />
+        <Header showButton={true} buttonFunc={() => navigate("/add-listing")} onBackClick={handleClickBack} onReloadClick={refetch} pageName="Listings" />
         <Typography variant="h6" color="error" gutterBottom>
           Failed to load listings
         </Typography>
@@ -150,13 +138,7 @@ const Listings = () => {
   if (!listings?.result?.list || listings.result.list.length === 0) {
     return (
       <Box sx={{ textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        <Header
-          showButton={true}
-          buttonFunc={() => navigate("/add-listing")}
-          onBackClick={handleClickBack}
-          onReloadClick={refetch}
-          pageName="Listings"
-        />
+        <Header showButton={true} buttonFunc={() => navigate("/add-listing")} onBackClick={handleClickBack} onReloadClick={refetch} pageName="Listings" />
         <div className="mt-10">
           <Typography variant="h6" color="text.secondary" gutterBottom>
             No listings found
@@ -171,13 +153,7 @@ const Listings = () => {
 
   return (
     <Box sx={{ p: 1 }}>
-      <Header
-        showButton={true}
-        buttonFunc={() => navigate("/add-listing")}
-        onBackClick={handleClickBack}
-        onReloadClick={refetch}
-        pageName="Listings"
-      />
+      <Header showButton={true} buttonFunc={() => navigate("/add-listing")} onBackClick={handleClickBack} onReloadClick={refetch} pageName="Listings" />
 
       {/* Filter Controls */}
       <Box sx={{ mb: 3, p: 2, borderRadius: 1, boxShadow: 1 }}>
@@ -186,15 +162,7 @@ const Listings = () => {
             <TextField fullWidth label="Listing ID" name="id" value={params.id} onChange={handleParamChange} variant="outlined" size="small" />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label="Username"
-              name="username"
-              value={params.username}
-              onChange={handleParamChange}
-              variant="outlined"
-              size="small"
-            />
+            <TextField fullWidth label="Username" name="username" value={params.username} onChange={handleParamChange} variant="outlined" size="small" />
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth size="small">
@@ -225,14 +193,7 @@ const Listings = () => {
       {/* Results count and pagination */}
       <div className="flex items-center justify-end my-5">
         <div className="flex items-center justify-end space-x-3">
-          {sanitizeValue(listings?.result?.count) > 0 && (
-            <Pagination
-              count={Math.ceil(sanitizeValue(listings?.result?.count) / limit)}
-              size="medium"
-              page={currentPage}
-              onChange={handlePageChange}
-            />
-          )}
+          {sanitizeValue(listings?.result?.count) > 0 && <Pagination count={Math.ceil(sanitizeValue(listings?.result?.count) / limit)} size="medium" page={currentPage} onChange={handlePageChange} />}
           <p className="flex items-center space-x-2 font-medium text-slate-700">
             <span>Total result:</span>
             <span className={countStyle}>{sanitizeValue(listings?.result?.count)}</span>
@@ -259,7 +220,7 @@ const Listings = () => {
               <Box sx={{ position: "relative", pt: "56.25%", bgcolor: theme.palette.grey[100] }}>
                 <CardMedia
                   component="img"
-                  src={`${process.env.REACT_APP_GET_MEDIA}/${listing.image}`}
+                  src={`${process.env.REACT_APP_BASE_URL}/${listing.image}`}
                   alt={listing.title}
                   sx={{
                     position: "absolute",
@@ -326,12 +287,7 @@ const Listings = () => {
         ))}
       </Grid>
 
-      <BanListing
-        open={openBanDialog && !!selectedUser}
-        onClose={() => setOpenBanDialog(false)}
-        isBanned={selectedUser?.is_active === 1 ? true : false}
-        user={selectedUser as TListing}
-      />
+      <BanListing open={openBanDialog && !!selectedUser} onClose={() => setOpenBanDialog(false)} isBanned={selectedUser?.is_active === 1 ? true : false} user={selectedUser as TListing} />
     </Box>
   );
 };

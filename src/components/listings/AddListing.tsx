@@ -225,15 +225,7 @@ const AddListing = () => {
             <TextField label="Title" type="text" value={formData.title} onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))} fullWidth />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Description"
-              type="text"
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              fullWidth
-              multiline
-              rows={4}
-            />
+            <TextField label="Description" type="text" value={formData.description} onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))} fullWidth multiline rows={4} />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField label="Price" type="number" value={formData.price} onChange={(e) => setFormData((prev) => ({ ...prev, price: parseFloat(e.target.value) }))} fullWidth />
@@ -290,7 +282,7 @@ const AddListing = () => {
             {previewImage && <img src={previewImage} alt="Preview" className="w-32 h-32 object-cover mb-2" />}
             <div className="grid grid-cols-4 gap-2">
               {formData.images.map((image, index) => {
-                const imgUrl = `${process.env.REACT_APP_GET_MEDIA}/${image.image}`;
+                const imgUrl = `${process.env.REACT_APP_BASE_URL}/${image.image}`;
                 return (
                   <div key={index} className="relative">
                     <img

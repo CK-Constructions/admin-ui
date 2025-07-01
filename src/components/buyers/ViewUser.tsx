@@ -56,7 +56,7 @@ const ViewUser: React.FC<ViewUserProps> = ({ open, onClose, userid }) => {
         <Stack spacing={3} alignItems="center">
           <Avatar
             // src={data?.result?.profile_picture}
-            src={`${process.env.REACT_APP_GET_MEDIA}/${data?.result?.profile_picture}`}
+            src={`${process.env.REACT_APP_BASE_URL}/${data?.result?.profile_picture}`}
             sx={{
               width: 200,
               height: 200,

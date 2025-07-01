@@ -194,10 +194,7 @@ const SubCategoryImages = () => {
               <FaTrash /> Delete Selected ({selectedImages.length})
             </button>
           )}
-          <button
-            onClick={toggleSelectMode}
-            className={`px-3 py-1 rounded flex items-center gap-2 ${selectMode ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-200 hover:bg-gray-300"}`}
-          >
+          <button onClick={toggleSelectMode} className={`px-3 py-1 rounded flex items-center gap-2 ${selectMode ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-200 hover:bg-gray-300"}`}>
             {selectMode ? <FaCheck /> : <FaTrash />}
             {selectMode ? "Cancel Selection" : "Select Images"}
           </button>
@@ -229,7 +226,7 @@ const SubCategoryImages = () => {
               />
             )}
             <img
-              src={`${process.env.REACT_APP_GET_MEDIA}/${item.image}`}
+              src={`${process.env.REACT_APP_BASE_URL}/${item.image}`}
               alt={`Brand ${item.id}`}
               className="w-full h-full object-contain"
               style={{
@@ -258,12 +255,8 @@ const SubCategoryImages = () => {
           }}
         >
           <div className="relative w-full h-full">
-            <img src={`${process.env.REACT_APP_GET_MEDIA}/${selectedImage?.image}`} alt={`Brand ${selectedImage?.id}`} className="w-full h-full object-contain" />
-            <button
-              onClick={closeFullscreen}
-              className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all"
-              aria-label="Close"
-            >
+            <img src={`${process.env.REACT_APP_BASE_URL}/${selectedImage?.image}`} alt={`Brand ${selectedImage?.id}`} className="w-full h-full object-contain" />
+            <button onClick={closeFullscreen} className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all" aria-label="Close">
               <FaTimes className="h-6 w-6" />
             </button>
           </div>

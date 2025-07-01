@@ -195,7 +195,7 @@ const Banners = () => {
     <>
       <div className="p-4">
         <div className="pb-4">
-          <Header onBackClick={() => navigate(-1)} onReloadClick={refetch} showButton={true} buttonTitle="Add Images" pageName="Sub Category Image" buttonFunc={handleOpenModal} />
+          <Header onBackClick={() => navigate(-1)} onReloadClick={refetch} showButton={true} buttonTitle="Add Images" pageName="Banners" buttonFunc={handleOpenModal} />
         </div>
         <div className="flex items-center gap-4 mb-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -218,10 +218,7 @@ const Banners = () => {
               <FaTrash /> Delete Selected ({selectedImages.length})
             </button>
           )} */}
-            <button
-              onClick={toggleSelectMode}
-              className={`px-3 py-1 rounded flex items-center gap-2 ${selectMode ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-200 hover:bg-gray-300"}`}
-            >
+            <button onClick={toggleSelectMode} className={`px-3 py-1 rounded flex items-center gap-2 ${selectMode ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-200 hover:bg-gray-300"}`}>
               {selectMode ? <FaCheck /> : <FaTrash />}
               {selectMode ? "Cancel Selection" : "Select Images"}
             </button>
@@ -340,11 +337,7 @@ const Banners = () => {
           >
             <div className="relative w-full h-full">
               <img src={`${process.env.REACT_APP_BASE_URL}/${selectedImage?.image}`} alt={`Brand ${selectedImage?.id}`} className="w-full h-full object-contain" />
-              <button
-                onClick={closeFullscreen}
-                className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all"
-                aria-label="Close"
-              >
+              <button onClick={closeFullscreen} className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all" aria-label="Close">
                 <FaTimes className="h-6 w-6" />
               </button>
             </div>
