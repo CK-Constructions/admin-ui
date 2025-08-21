@@ -182,15 +182,7 @@ const AddUser: React.FC<AddUserModalProps> = ({ open, onClose, onSubmit }) => {
 
               {/* Second row of half-width fields */}
               <Box display="flex" gap={2} sx={{ width: "100%" }}>
-                <TextField
-                  label="Password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  sx={{ flex: 1 }}
-                />
+                <TextField label="Password" name="password" type="password" value={formData.password} onChange={handleChange} required sx={{ flex: 1 }} />
                 <TextField label="Phone Number" name="phone" value={formData.phone} onChange={handleChange} sx={{ flex: 1 }} />
               </Box>
 

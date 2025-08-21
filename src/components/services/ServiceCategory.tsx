@@ -1,31 +1,10 @@
 import { useState } from "react";
-import {
-  Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Pagination,
-  Chip,
-  Tooltip,
-  CircularProgress,
-  Box,
-  Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Modal,
-} from "@mui/material";
+import { Button, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Pagination, Chip, Tooltip, CircularProgress, Box, Typography, Modal } from "@mui/material";
 import { queryConfigs } from "../../query/queryConfig";
 import { useGetQuery, useMutationQuery } from "../../query/hooks/queryHook";
 import { TQueryParams } from "../lib/types/common";
 import { TCategory } from "../lib/types/response";
-import { FaBan, FaEdit, FaEye } from "react-icons/fa";
+import { FaBan, FaEdit } from "react-icons/fa";
 import { BsUniversalAccessCircle } from "react-icons/bs";
 import { sanitizeValue, showNotification } from "../utils/utils";
 import { countStyle } from "../vendors/Vendors";
@@ -155,14 +134,7 @@ export default function ServiceCategory() {
     return (
       <>
         <div className="pb-4">
-          <Header
-            onBackClick={handleClickBack}
-            onReloadClick={refetch}
-            showButton={true}
-            buttonTitle="Add Service Category"
-            pageName="Service Categories"
-            buttonFunc={handleOpenModal}
-          />
+          <Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={true} buttonTitle="Add Service Category" pageName="Service Categories" buttonFunc={handleOpenModal} />
         </div>
         <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
           <Typography variant="h6" color="textSecondary" gutterBottom>
@@ -207,14 +179,7 @@ export default function ServiceCategory() {
   return (
     <>
       <div className="pb-4">
-        <Header
-          onBackClick={handleClickBack}
-          onReloadClick={refetch}
-          showButton={true}
-          buttonTitle="Add Service Category"
-          pageName="Service Categories"
-          buttonFunc={handleOpenModal}
-        />
+        <Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={true} buttonTitle="Add Service Category" pageName="Service Categories" buttonFunc={handleOpenModal} />
       </div>
       <div className="flex flex-col h-full p-6">
         <div className="my-6 flex gap-2">
@@ -314,9 +279,7 @@ export default function ServiceCategory() {
         </TableContainer>
         <div className="flex items-center justify-center mt-5">
           <div className="flex items-center justify-end space-x-3">
-            {sanitizeValue(data?.result?.count) > 0 && (
-              <Pagination count={Math.ceil(sanitizeValue(data?.result?.count) / limit)} size="medium" page={currentPage} onChange={handlePageChange} />
-            )}
+            {sanitizeValue(data?.result?.count) > 0 && <Pagination count={Math.ceil(sanitizeValue(data?.result?.count) / limit)} size="medium" page={currentPage} onChange={handlePageChange} />}
             <p className="flex items-center space-x-2 font-medium text-slate-700">
               <span>Total result:</span>
               <span className={countStyle}>{sanitizeValue(data?.result?.count)}</span>

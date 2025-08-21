@@ -147,6 +147,7 @@ const _callApi = async (url: string, method: Methods = "get", body = {}) => {
     return err.response?.data || { success: false, message: "Network Error" };
   }
 };
+
 export const uploadMedia = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);

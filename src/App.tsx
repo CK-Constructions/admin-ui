@@ -54,7 +54,6 @@ const App: React.FC<AppProps> = ({ darkMode, toggleDarkMode }) => {
         <Routes>
           <Route element={<PrivateRoute />}>
             <Route path="/*" element={<Admin />} />
-            {}
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="*" element={<PageNotFound />} />

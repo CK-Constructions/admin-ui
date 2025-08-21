@@ -26,11 +26,6 @@ export type TApiResponse<T> = {
   success: boolean;
   result?: T;
   message?: string;
-  clinic_share?: number;
-  rudh_share?: number;
-  total_charge?: number;
-  rudh_amt_collected?: number;
-  clinic_amt_collected?: number;
 };
 
 export type TApiCountResponse = {
