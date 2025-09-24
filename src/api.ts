@@ -127,13 +127,13 @@ export const getOrderByID = ({ id }: TQueryParams) => _callApi(`/orders/listings
 //service order
 export const getAllServiceOrders = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/services?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
-export const getServiceOrder = ({ id }: TQueryParams) => _callApi(`/orders/rental/${id}`, 'get');
-
+export const getServiceOrder = ({ id }: TQueryParams) => _callApi(`/orders/services/${id}`, 'get');
+export const cancelserviceOrder = ({ id }: TQueryParams) => _callApi(`/orders/services/cancel-order/${id}`, 'put');
 //rental order
 export const getAllRentalOrder = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/rentals?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
-export const getRentalOrder = ({ id }: TQueryParams) => _callApi(`/orders/service/${id}`, 'get');
-
+export const getRentalOrder = ({ id }: TQueryParams) => _callApi(`/orders/rentals/${id}`, 'get');
+export const cancelRentalOrder = ({ id }: TQueryParams) => _callApi(`/orders/rentals/cancel-order/${id}`, 'put');
 //Brand Images
 export const getBrandImages = ({ id }: TQueryParams) => _callApi(`/brands/images?id=${id}`, 'get');
 export const addBrandImages = (body: TBrandImageBody) => _callApi(`/brands/images`, 'post', body);

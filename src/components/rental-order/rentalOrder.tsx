@@ -22,6 +22,9 @@ import {
 import Loading from '../common/Loader';
 import Header from '../common/Header';
 import { MoreVerticalIcon } from 'lucide-react';
+import ViewRentalOrder from './ViewRentalOrder';
+
+// ✅ Import the reusable modal
 
 export const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
 
@@ -34,6 +37,10 @@ const RentalOrderList: React.FC = () => {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [menuOrder, setMenuOrder] = useState<RentalOrderType | null>(null);
 	const menuOpen = Boolean(anchorEl);
+
+	// ✅ Modal state
+	const [viewOpen, setViewOpen] = useState(false);
+	const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
 	const { queryFn: rentalorderFunc, queryKeys: rentalorderKey } = queryConfigs.useGetAllRentalOrder;
 
@@ -75,7 +82,9 @@ const RentalOrderList: React.FC = () => {
 				console.log('Update', menuOrder.id);
 				break;
 			case 'view':
-				console.log('View', menuOrder.id);
+				// ✅ Open the modal and set the selected order id
+				setSelectedOrderId(menuOrder.id);
+				setViewOpen(true);
 				break;
 			case 'print':
 				window.print();
@@ -195,6 +204,9 @@ const RentalOrderList: React.FC = () => {
 					<span className={countStyle}>{totalCount}</span>
 				</p>
 			</div>
+
+			{/* ✅ ViewRentalOrder Modal */}
+			{selectedOrderId && <ViewRentalOrder open={viewOpen} onClose={() => setViewOpen(false)} orderId={selectedOrderId} />}
 		</div>
 	);
 };

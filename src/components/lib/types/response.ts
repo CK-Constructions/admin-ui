@@ -275,6 +275,7 @@ export interface ServiceOrder {
 	id: number;
 	user_id: number;
 	service_id: number;
+	service_order_id?: number;
 	service_rate_id: number;
 	address_id: number;
 	discount_id: number | null;

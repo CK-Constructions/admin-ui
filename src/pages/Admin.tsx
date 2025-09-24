@@ -35,6 +35,7 @@ import Banners from '../components/banners/Banners';
 import ListingOrders from '../components/listing-orders/ListingOrders';
 import RentalOrder from '../components/rental-order/rentalOrder';
 import ServiceOrder from '../components/service-order/serviceOrder';
+import TestService from '../components/service-order/tetsService';
 
 const App = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -297,7 +298,7 @@ const App = () => {
 						path="/service-orders"
 						element={
 							<AnimatedRoute>
-								<ServiceOrder />
+								<TestService />
 							</AnimatedRoute>
 						}
 					/>

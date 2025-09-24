@@ -12,6 +12,7 @@ import {
 	banListing,
 	banUserByID,
 	banVendorByID,
+	cancelRentalOrder,
 	deleteBrand,
 	deleteBrandImages,
 	deleteSubCategory,
@@ -192,8 +193,10 @@ export const queryConfigs = {
 	//servcieorder
 	useGetAllServiceOrder: { queryFn: getAllServiceOrders, queryKeys: [queryKeys.serviceorders] },
 	useGetServiceOrder: { queryFn: getServiceOrder, queryKeys: [queryKeys.serviceorder] },
+	useCancelServiceOrder: { queryFn: cancelRentalOrder, queryKeys: [queryKeys.serviceorder] },
 
 	//rentalorder
 	useGetAllRentalOrder: { queryFn: getAllRentalOrder, queryKeys: [queryKeys.rentalorders] },
 	useGetRentalOrder: { queryFn: getRentalOrder, queryKeys: [queryKeys.rentalorder] },
+	useCancelRentalOrder: { queryFn: cancelRentalOrder, queryKeys: [queryKeys.rentalorder] },
 };
