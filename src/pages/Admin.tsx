@@ -59,6 +59,7 @@ const App = () => {
 						element={
 							<AnimatedRoute>
 								<ThemedDashboard />
+								{/* <Dashboard /> */}
 							</AnimatedRoute>
 						}
 					/>
@@ -298,7 +299,7 @@ const App = () => {
 						path="/service-orders"
 						element={
 							<AnimatedRoute>
-								<TestService />
+								<ServiceOrder />
 							</AnimatedRoute>
 						}
 					/>

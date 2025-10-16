@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Header from '../common/Header';
+import { useNavigate } from 'react-router-dom';
 import {
 	Box,
 	Chip,
@@ -15,90 +15,165 @@ import {
 	TableRow,
 	Tooltip,
 	Typography,
+	Pagination,
 	Dialog,
 	DialogTitle,
 	DialogContent,
 	DialogActions,
 	Button,
+	Divider,
+	Grid,
 } from '@mui/material';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { useNavigate } from 'react-router-dom';
-
-import { queryConfigs } from '../../query/queryConfig';
-import { useGetQuery } from '../../query/hooks/queryHook';
+import { MoreVerticalIcon } from 'lucide-react';
+import Header from '../common/Header';
 import Loading from '../common/Loader';
 import { ServiceOrder } from '../lib/types/response';
+import { queryConfigs } from '../../query/queryConfig';
+import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
+import { showNotification } from '../utils/utils';
 
 export const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
 
-const ServiceOrderPage = () => {
+const ServiceOrderPage: React.FC = () => {
 	const navigate = useNavigate();
 	const limit = 10;
 	const [currentPage, setCurrentPage] = useState(1);
-
-	// Dropdown menu state
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [menuOrder, setMenuOrder] = useState<ServiceOrder | null>(null);
-	const menuOpen = Boolean(anchorEl);
+	const [isCancelling, setIsCancelling] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
 
-	// Modal state
+	// modal state
 	const [viewOpen, setViewOpen] = useState(false);
 	const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
 
-	const { queryFn: serviceorderFunc, queryKeys: serviceorderKey } = queryConfigs.useGetAllServiceOrder;
+	const menuOpen = Boolean(anchorEl);
 
-	const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError } = useGetQuery({
-		func: serviceorderFunc,
-		key: serviceorderKey,
+	const { queryFn: serviceOrderFunc, queryKeys: serviceOrderKey } = queryConfigs.useGetAllServiceOrder;
+
+	// Fetch service orders
+	const { data, refetch, isLoading, isFetching, isRefetching, isLoadingError, isRefetchError } = useGetQuery({
+		func: serviceOrderFunc,
+		key: serviceOrderKey,
 		params: {
 			limit,
 			offset: (currentPage - 1) * limit,
 		},
 	});
 
-	const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+	// Cancel service order
+	const { queryFn: cancelServiceFunc } = queryConfigs.useCancelServiceOrder;
+	const { mutate: cancelService } = useMutationQuery({
+		func: cancelServiceFunc,
+		invalidateKey: serviceOrderKey,
+		onSuccess: () => {
+			showNotification('success', `Order ${menuOrder?.id} cancelled successfully`);
+			refetch();
+			setIsCancelling(false);
+			handleMenuClose();
+		},
+		onError: () => {
+			showNotification('error', 'Failed to cancel order');
+			setIsCancelling(false);
+			handleMenuClose();
+		},
+	});
+
+	// Redirect service order
+	const { queryFn: redirectServiceFn } = queryConfigs.useRedirectServiceOrder;
+	const { mutate: redirectService } = useMutationQuery({
+		func: redirectServiceFn,
+		invalidateKey: serviceOrderKey,
+		onSuccess: () => {
+			showNotification('success', `Order ${menuOrder?.id} redirected successfully`);
+			refetch();
+			setIsRedirecting(false);
+			handleMenuClose();
+		},
+		onError: () => {
+			showNotification('error', 'Failed to redirect order');
+			setIsRedirecting(false);
+			handleMenuClose();
+		},
+	});
+
+	const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
 		setCurrentPage(value);
 	};
 
-	// Menu handlers
 	const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>, order: ServiceOrder) => {
 		setAnchorEl(event.currentTarget);
 		setMenuOrder(order);
 	};
+
 	const handleMenuClose = () => {
 		setAnchorEl(null);
 		setMenuOrder(null);
 	};
 
-	// Action handlers
 	const handleAction = (action: string) => {
 		if (!menuOrder) return;
-
 		switch (action) {
 			case 'cancel':
-				console.log('Cancel', menuOrder.id);
+				setIsCancelling(true);
+				cancelService({ id: menuOrder.id });
 				break;
 			case 'redirect':
-				navigate(`/orders/${menuOrder.id}`);
+				setIsRedirecting(true);
+				redirectService({ service_order_id: menuOrder.id }); // ✅ send service_order_id
 				break;
 			case 'update':
 				console.log('Update', menuOrder.id);
+				handleMenuClose();
 				break;
 			case 'view':
 				setSelectedOrder(menuOrder);
 				setViewOpen(true);
+				handleMenuClose();
 				break;
 			case 'print':
 				window.print();
+				handleMenuClose();
 				break;
 			default:
+				handleMenuClose();
 				break;
 		}
-
-		handleMenuClose();
 	};
 
-	// Loading / Error states
+	const isOrderCancelled = (order: ServiceOrder) => {
+		const status = order.order_status as string;
+		return status === 'cancelled' || status === 'completed';
+	};
+
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case 'success':
+				return 'success';
+			case 'pending':
+				return 'warning';
+			case 'failed':
+				return 'error';
+			default:
+				return 'default';
+		}
+	};
+
+	const getOrderStatusColor = (status: string) => {
+		switch (status) {
+			case 'confirmed':
+				return 'success';
+			case 'pending':
+				return 'warning';
+			case 'completed':
+				return 'info';
+			case 'cancelled':
+				return 'error';
+			default:
+				return 'default';
+		}
+	};
+
 	if (isLoading || isFetching || isRefetching) {
 		return (
 			<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -110,19 +185,25 @@ const ServiceOrderPage = () => {
 	if (isLoadingError || isRefetchError) {
 		return (
 			<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-				<Typography color="error">Error loading orders. Please try again.</Typography>
+				<Typography color="error">Error loading service orders. Please try again.</Typography>
 			</Box>
 		);
 	}
 
-	if (!data?.result || data.result.count === 0) {
+	const orders: ServiceOrder[] = Array.isArray(data?.result?.list) ? data?.result.list : [];
+	const totalCount: number = data?.result?.count ?? 0;
+	const totalPages = Math.ceil(totalCount / limit);
+
+	if (orders.length === 0) {
 		return (
 			<Box display="flex" flexDirection="column" height="100%">
 				<div className="pb-4">
 					<Header onBackClick={() => navigate(-1)} pageName="Service Orders" />
 				</div>
 				<Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
-					<Typography>No orders found</Typography>
+					<Typography variant="h6" color="textSecondary">
+						No service orders found
+					</Typography>
 				</Box>
 			</Box>
 		);
@@ -134,55 +215,78 @@ const ServiceOrderPage = () => {
 				<Header onBackClick={() => navigate(-1)} pageName="Service Orders" />
 			</div>
 
-			{/* Orders Table */}
-			<TableContainer sx={{ maxHeight: 540 }} component={Paper}>
+			<TableContainer sx={{ maxHeight: 540, flexGrow: 1 }} component={Paper}>
 				<Table stickyHeader aria-label="service orders table">
 					<TableHead>
 						<TableRow>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Order ID</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Name</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Rate ID</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Payment Status</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Order Status</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Actions</TableCell>
+							{['Order ID', 'Service Name', 'Service Rate ID', 'Total Amount', 'Final Amount', 'Payment Status', 'Order Status', 'Actions'].map(
+								(header) => (
+									<TableCell key={header} sx={{ color: 'white', backgroundColor: 'black', fontWeight: 'bold' }}>
+										{header}
+									</TableCell>
+								)
+							)}
 						</TableRow>
 					</TableHead>
+
 					<TableBody>
-						{data.result.list.map((order: ServiceOrder) => (
-							<TableRow key={order.id}>
-								<TableCell>{order.id}</TableCell>
-								<TableCell>{order.service_name}</TableCell>
-								<TableCell>{order.service_rate_id}</TableCell>
-								<TableCell>
-									<Chip
-										label={order.payment_status}
-										color={order.payment_status === 'success' ? 'success' : order.payment_status === 'pending' ? 'warning' : 'error'}
-										size="small"
-										variant="outlined"
-									/>
-								</TableCell>
-								<TableCell>
-									<Chip
-										label={order.order_status}
-										color={order.order_status === 'completed' ? 'success' : order.order_status === 'pending' ? 'warning' : 'info'}
-										size="small"
-										variant="outlined"
-									/>
-								</TableCell>
-								<TableCell>
-									<Tooltip title="Actions">
-										<IconButton size="small" onClick={(e) => handleMenuClick(e, order)}>
-											<MoreVertIcon />
-										</IconButton>
-									</Tooltip>
-								</TableCell>
-							</TableRow>
-						))}
+						{orders.map((order) => {
+							const cancelled = isOrderCancelled(order);
+							const isBeingCancelled = isCancelling && menuOrder?.id === order.id;
+							const isBeingRedirected = isRedirecting && menuOrder?.id === order.id;
+
+							return (
+								<TableRow
+									key={order.id}
+									sx={{
+										backgroundColor: cancelled ? 'rgba(0,0,0,0.04)' : 'inherit',
+										'&:hover': {
+											backgroundColor: cancelled ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.02)',
+										},
+									}}
+								>
+									<TableCell>{order.id}</TableCell>
+									<TableCell>{order.service_name}</TableCell>
+									<TableCell>{order.service_rate_id}</TableCell>
+									<TableCell>₹{order.total_amount.toLocaleString()}</TableCell>
+									<TableCell>₹{order.final_amount.toLocaleString()}</TableCell>
+									<TableCell>
+										<Chip
+											label={order.payment_status}
+											color={getStatusColor(order.payment_status) as any}
+											size="small"
+											variant="outlined"
+										/>
+									</TableCell>
+									<TableCell>
+										<Chip
+											label={order.order_status}
+											color={getOrderStatusColor(order.order_status) as any}
+											size="small"
+											variant="outlined"
+										/>
+									</TableCell>
+									<TableCell>
+										<Tooltip title={cancelled ? 'This order cannot be modified' : 'Order actions'}>
+											<span>
+												<IconButton
+													size="small"
+													onClick={(e) => handleMenuClick(e, order)}
+													disabled={cancelled || isBeingCancelled || isBeingRedirected}
+												>
+													<MoreVerticalIcon size={16} />
+												</IconButton>
+											</span>
+										</Tooltip>
+									</TableCell>
+								</TableRow>
+							);
+						})}
 					</TableBody>
 				</Table>
 			</TableContainer>
 
-			{/* Dropdown Menu */}
+			{/* Action Menu */}
 			<Menu
 				anchorEl={anchorEl}
 				open={menuOpen}
@@ -190,175 +294,73 @@ const ServiceOrderPage = () => {
 				anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 				transformOrigin={{ vertical: 'top', horizontal: 'right' }}
 			>
-				<MenuItem onClick={() => handleAction('cancel')}>Cancel</MenuItem>
-				<MenuItem onClick={() => handleAction('redirect')}>Redirect</MenuItem>
-				<MenuItem onClick={() => handleAction('update')}>Update</MenuItem>
-				<MenuItem onClick={() => handleAction('view')}>View</MenuItem>
-				<MenuItem onClick={() => handleAction('print')}>Print</MenuItem>
+				<MenuItem onClick={() => handleAction('cancel')} disabled={isCancelling}>
+					{isCancelling ? 'Cancelling...' : 'Cancel Order'}
+				</MenuItem>
+				<MenuItem onClick={() => handleAction('view')}>View Details</MenuItem>
+				<MenuItem onClick={() => handleAction('update')}>Update Order</MenuItem>
+				<MenuItem onClick={() => handleAction('redirect')} disabled={isRedirecting}>
+					{isRedirecting ? 'Redirecting...' : 'Redirect'}
+				</MenuItem>
+				<MenuItem onClick={() => handleAction('print')}>Print Receipt</MenuItem>
 			</Menu>
 
-			{/* Total count */}
-			<div className="flex items-center justify-center mt-5">
-				<p className="flex items-center space-x-2 font-medium text-slate-700">
-					<span>Total result:</span>
-					<span className={countStyle}>{data.result.count}</span>
-				</p>
-			</div>
+			{/* Pagination & Total count */}
+			<Box display="flex" justifyContent="space-between" alignItems="center" mt={2} p={1}>
+				<Box display="flex" alignItems="center" gap={1}>
+					<Typography variant="body2" color="textSecondary">
+						Total orders:
+					</Typography>
+					<span className={countStyle}>{totalCount}</span>
+				</Box>
+				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />}
+			</Box>
 
-			{/* ===== View Service Order Dialog Inline ===== */}
-			{/* ===== View Service Order Dialog Inline ===== */}
-			<Dialog open={viewOpen && !!selectedOrder} onClose={() => setViewOpen(false)} maxWidth="md" fullWidth>
+			{/* View Service Order Modal */}
+			<Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="md" fullWidth>
 				<DialogTitle>Service Order Details</DialogTitle>
+				<Divider />
 				<DialogContent dividers>
 					{selectedOrder ? (
-						<>
-							<Box display="flex" flexDirection="column" gap={1}>
-								<Typography variant="subtitle1">
-									<strong>Order ID:</strong> {selectedOrder.id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>User ID:</strong> {selectedOrder.user_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Service Name:</strong> {selectedOrder.service_name}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Service ID:</strong> {selectedOrder.service_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Service Rate ID:</strong> {selectedOrder.service_rate_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Address ID:</strong> {selectedOrder.address_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Discount ID:</strong> {selectedOrder.discount_id ?? 'N/A'}
-								</Typography>
-
-								<Box mt={2} mb={2}>
-									<hr />
-								</Box>
-
-								<Typography variant="subtitle1">
-									<strong>Razorpay Order ID:</strong> {selectedOrder.razorpay_order_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Razorpay Payment ID:</strong> {selectedOrder.razorpay_payment_id}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Razorpay Signature:</strong> {selectedOrder.razorpay_signature}
-								</Typography>
-
-								<Box mt={2} mb={2}>
-									<hr />
-								</Box>
-
-								<Typography variant="subtitle1">
-									<strong>Total Amount:</strong> ₹{selectedOrder.total_amount}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Discount Amount:</strong> ₹{selectedOrder.discount_amount}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Final Amount:</strong> ₹{selectedOrder.final_amount}
-								</Typography>
-
-								<Typography variant="subtitle1">
-									<strong>Payment Status:</strong>{' '}
-									<Chip
-										label={selectedOrder.payment_status}
-										color={
-											selectedOrder.payment_status === 'success'
-												? 'success'
-												: selectedOrder.payment_status === 'pending'
-												? 'warning'
-												: 'error'
-										}
-										size="small"
-									/>
-								</Typography>
-
-								<Typography variant="subtitle1">
-									<strong>Order Status:</strong>{' '}
-									<Chip
-										label={selectedOrder.order_status}
-										color={
-											selectedOrder.order_status === 'completed'
-												? 'success'
-												: selectedOrder.order_status === 'pending'
-												? 'warning'
-												: 'info'
-										}
-										size="small"
-									/>
-								</Typography>
-
-								{selectedOrder.payment_failure_reason && (
-									<Typography variant="subtitle1">
-										<strong>Payment Failure Reason:</strong> {selectedOrder.payment_failure_reason}
+						<Grid container spacing={2}>
+							{[
+								['Order ID', selectedOrder.id],
+								['Address ID', selectedOrder.address_id],
+								['User ID', selectedOrder.user_id],
+								['Service ID', selectedOrder.service_id],
+								['Service Name', selectedOrder.service_name],
+								['Service Rate ID', selectedOrder.service_rate_id],
+								['Total Amount', `₹${selectedOrder.total_amount}`],
+								['Final Amount', `₹${selectedOrder.final_amount}`],
+								['Discount Amount', selectedOrder.discount_amount],
+								['Discount ID', selectedOrder.discount_id ?? '—'],
+								['Payment Status', selectedOrder.payment_status],
+								['Payment Failure Reason', selectedOrder.payment_failure_reason ?? '—'],
+								['Razorpay Order ID', selectedOrder.razorpay_order_id ?? '—'],
+								['Razorpay Payment ID', selectedOrder.razorpay_payment_id ?? '—'],
+								['Razorpay Signature', selectedOrder.razorpay_signature ?? '—'],
+								['Order Status', selectedOrder.order_status],
+								['Created On', new Date(selectedOrder.created_on).toLocaleString()],
+								['Updated On', new Date(selectedOrder.updated_on).toLocaleString()],
+							].map(([label, value]) => (
+								<Grid item xs={12} sm={6} key={label as string}>
+									<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+										{label}:
 									</Typography>
-								)}
-
-								<Box mt={2} mb={2}>
-									<hr />
-								</Box>
-
-								<Typography variant="subtitle1">
-									<strong>Created On:</strong> {new Date(selectedOrder.created_on).toLocaleString()}
-								</Typography>
-								<Typography variant="subtitle1">
-									<strong>Updated On:</strong> {selectedOrder.updated_on ? new Date(selectedOrder.updated_on).toLocaleString() : 'N/A'}
-								</Typography>
-							</Box>
-						</>
+									<Typography>{value === null || value === undefined || value === '' ? '—' : String(value)}</Typography>
+								</Grid>
+							))}
+						</Grid>
 					) : (
 						<Typography>No details available.</Typography>
 					)}
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={() => setViewOpen(false)} variant="contained">
+					<Button onClick={() => setViewOpen(false)} variant="contained" color="primary">
 						Close
 					</Button>
 				</DialogActions>
 			</Dialog>
-			{/* <Dialog open={updateOpen && !!selectedOrder} onClose={() => setUpdateOpen(false)} maxWidth="sm" fullWidth>
-				<DialogTitle>Update Order Status</DialogTitle>
-				<DialogContent dividers>
-					<Typography>Select the new status:</Typography>
-					<Box display="flex" flexDirection="column" gap={1} mt={2}>
-						{statusFlow.map((status) => {
-							const currentIndex = statusFlow.indexOf(selectedOrder!.order_status);
-							const statusIndex = statusFlow.indexOf(status);
-							const disabled = statusIndex <= currentIndex; // prevent reverse
-							return (
-								<Button
-									key={status}
-									variant={status === newStatus ? 'contained' : 'outlined'}
-									disabled={disabled}
-									onClick={() => setNewStatus(status)}
-								>
-									{status.charAt(0).toUpperCase() + status.slice(1)}
-								</Button>
-							);
-						})}
-					</Box>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setUpdateOpen(false)}>Cancel</Button>
-					<Button
-						variant="contained"
-						disabled={newStatus === selectedOrder?.order_status}
-						onClick={() => {
-							if (selectedOrder && newStatus) {
-								updateStatus({ orderId: selectedOrder.id, status: newStatus });
-								setUpdateOpen(false);
-							}
-						}}
-					>
-						Update
-					</Button>
-				</DialogActions>
-			</Dialog> */}
 		</div>
 	);
 };

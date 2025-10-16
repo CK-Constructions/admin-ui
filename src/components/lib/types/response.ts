@@ -125,6 +125,24 @@ export type TRentalItem = {
 	insurance_required: number;
 	is_active: number;
 };
+export type TServiceItem = {
+	id: number;
+	seller_id: number;
+	seller_name: string;
+	seller_fullname: string;
+	category: number;
+	category_name: string;
+	name: string;
+	description: string;
+	delivery_fee: number;
+	contact_phone: string;
+	delivery_time: string;
+	created_on: string;
+	rates?: string;
+	images: string;
+
+	is_active: number;
+};
 export type TRentalBanBody = {
 	id?: number;
 	rental_id?: number;
@@ -246,6 +264,7 @@ export interface OrderItem {
 export interface Order {
 	id: number;
 	user_id: number;
+	listing_order_id?: number;
 	total_amount: number;
 	discount_amount: number;
 	final_amount: number;
@@ -297,6 +316,7 @@ export interface RentalOrder {
 	id: number;
 	user_id: number | null;
 	rental_id: number;
+	rental_order_id: number;
 	rental_name: string | null;
 	rental_rate_id: number;
 	address_id: number;

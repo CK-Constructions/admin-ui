@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RentalOrder as RentalOrderType } from '../lib/types/response';
 import { queryConfigs } from '../../query/queryConfig';
-import { useGetQuery } from '../../query/hooks/queryHook';
+import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
 import {
 	Box,
 	Chip,
@@ -18,13 +18,18 @@ import {
 	TableRow,
 	Tooltip,
 	Typography,
+	Pagination,
+	Divider,
+	Button,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
 } from '@mui/material';
 import Loading from '../common/Loader';
 import Header from '../common/Header';
 import { MoreVerticalIcon } from 'lucide-react';
-import ViewRentalOrder from './ViewRentalOrder';
-
-// ✅ Import the reusable modal
+import { showNotification } from '../utils/utils';
 
 export const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
 
@@ -32,71 +37,140 @@ const RentalOrderList: React.FC = () => {
 	const navigate = useNavigate();
 	const limit = 10;
 	const [currentPage, setCurrentPage] = useState(1);
-
-	// dropdown state
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [menuOrder, setMenuOrder] = useState<RentalOrderType | null>(null);
+	const [viewOrder, setViewOrder] = useState<RentalOrderType | null>(null);
+	const [isCancelling, setIsCancelling] = useState(false);
+	const [isRedirecting, setIsRedirecting] = useState(false);
+
 	const menuOpen = Boolean(anchorEl);
 
-	// ✅ Modal state
-	const [viewOpen, setViewOpen] = useState(false);
-	const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+	const { queryFn: rentalOrderFunc, queryKeys: rentalOrderKey } = queryConfigs.useGetAllRentalOrder;
 
-	const { queryFn: rentalorderFunc, queryKeys: rentalorderKey } = queryConfigs.useGetAllRentalOrder;
-
-	const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError } = useGetQuery({
-		func: rentalorderFunc,
-		key: rentalorderKey,
+	// Fetch rental orders
+	const { data, refetch, isLoading, isFetching, isRefetching, isLoadingError, isRefetchError } = useGetQuery({
+		func: rentalOrderFunc,
+		key: rentalOrderKey,
 		params: {
 			limit,
 			offset: (currentPage - 1) * limit,
 		},
 	});
 
-	const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+	// Cancel rental order
+	const { queryFn: cancelRentalFunc } = queryConfigs.useCancelRentalOrder;
+
+	const { mutate: cancelRental } = useMutationQuery({
+		func: cancelRentalFunc,
+		invalidateKey: rentalOrderKey,
+		onSuccess: () => {
+			showNotification('success', `Order ${menuOrder?.rental_order_id} cancelled successfully`);
+			refetch();
+			setIsCancelling(false);
+			handleMenuClose();
+		},
+		onError: () => {
+			showNotification('error', 'Failed to cancel order');
+			setIsCancelling(false);
+			handleMenuClose();
+		},
+	});
+
+	// Redirect rental order
+	const { queryFn: redirectRentalFn } = queryConfigs.useRedirectRentalOrder; // ✅ correct API
+	const { mutate: redirectRental } = useMutationQuery({
+		func: redirectRentalFn,
+		invalidateKey: rentalOrderKey,
+		onSuccess: () => {
+			showNotification('success', `Order ${menuOrder?.rental_order_id} redirected successfully`);
+			refetch();
+			setIsRedirecting(false);
+			handleMenuClose();
+		},
+		onError: () => {
+			showNotification('error', 'Failed to redirect order');
+			setIsRedirecting(false);
+			handleMenuClose();
+		},
+	});
+
+	const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
 		setCurrentPage(value);
 	};
 
-	// --- menu handlers ---
 	const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>, order: RentalOrderType) => {
 		setAnchorEl(event.currentTarget);
 		setMenuOrder(order);
 	};
+
 	const handleMenuClose = () => {
 		setAnchorEl(null);
 		setMenuOrder(null);
 	};
 
-	// ----- actions -----
 	const handleAction = (action: string) => {
 		if (!menuOrder) return;
 
 		switch (action) {
 			case 'cancel':
-				console.log('Cancel', menuOrder.id);
+				setIsCancelling(true);
+				cancelRental({ id: menuOrder.id });
 				break;
 			case 'redirect':
-				navigate(`/orders/${menuOrder.id}`);
+				setIsRedirecting(true);
+				redirectRental({ rental_order_id: menuOrder.id }); // ✅ send rental_order_id
 				break;
 			case 'update':
 				console.log('Update', menuOrder.id);
+				handleMenuClose();
 				break;
 			case 'view':
-				// ✅ Open the modal and set the selected order id
-				setSelectedOrderId(menuOrder.id);
-				setViewOpen(true);
+				setViewOrder(menuOrder);
+				handleMenuClose();
 				break;
 			case 'print':
 				window.print();
+				handleMenuClose();
 				break;
 			default:
+				handleMenuClose();
 				break;
 		}
-
-		handleMenuClose();
 	};
 
-	// --- loading & error states ---
+	const isOrderCancelled = (order: RentalOrderType) => {
+		const status = order.order_status as string;
+		return status === 'cancelled' || status === 'completed';
+	};
+
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case 'success':
+				return 'success';
+			case 'pending':
+				return 'warning';
+			case 'failed':
+				return 'error';
+			default:
+				return 'default';
+		}
+	};
+
+	const getOrderStatusColor = (status: string) => {
+		switch (status) {
+			case 'confirmed':
+				return 'success';
+			case 'pending':
+				return 'warning';
+			case 'completed':
+				return 'info';
+			case 'cancelled':
+				return 'error';
+			default:
+				return 'default';
+		}
+	};
+
 	if (isLoading || isFetching || isRefetching) {
 		return (
 			<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -113,9 +187,9 @@ const RentalOrderList: React.FC = () => {
 		);
 	}
 
-	// --- safely extract orders list ---
 	const orders: RentalOrderType[] = Array.isArray(data?.result?.list) ? data?.result.list : [];
-	const totalCount: number = data?.result?.count ?? orders.length;
+	const totalCount: number = data?.result?.count ?? 0;
+	const totalPages = Math.ceil(totalCount / limit);
 
 	if (orders.length === 0) {
 		return (
@@ -124,7 +198,9 @@ const RentalOrderList: React.FC = () => {
 					<Header onBackClick={() => navigate(-1)} pageName="Rental Orders" />
 				</div>
 				<Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
-					<Typography>No orders found</Typography>
+					<Typography variant="h6" color="textSecondary">
+						No rental orders found
+					</Typography>
 				</Box>
 			</Box>
 		);
@@ -136,54 +212,96 @@ const RentalOrderList: React.FC = () => {
 				<Header onBackClick={() => navigate(-1)} pageName="Rental Orders" />
 			</div>
 
-			<TableContainer sx={{ maxHeight: 540 }} component={Paper}>
+			<TableContainer sx={{ maxHeight: 540, flexGrow: 1 }} component={Paper}>
 				<Table stickyHeader aria-label="rental orders table">
 					<TableHead>
 						<TableRow>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Order ID</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Name</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Rate</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Payment Status</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Order Status</TableCell>
-							<TableCell sx={{ color: 'white', backgroundColor: 'black' }}>Actions</TableCell>
+							{[
+								'Order ID',
+								'Rental Order ID',
+								'Rental Name',
+								'Total Amount',
+								'Final Amount',
+								'Payment Status',
+								'Order Status',
+								'Start Date',
+								'End Date',
+								'Actions',
+							].map((header) => (
+								<TableCell
+									key={header}
+									sx={{
+										color: 'white',
+										backgroundColor: 'black',
+										fontWeight: 'bold',
+									}}
+								>
+									{header}
+								</TableCell>
+							))}
 						</TableRow>
 					</TableHead>
+
 					<TableBody>
-						{orders.map((order) => (
-							<TableRow key={order.id}>
-								<TableCell>{order.id}</TableCell>
-								<TableCell>{order.rental_name ?? '-'}</TableCell>
-								<TableCell>₹{order.rental_rate_id ?? 0}</TableCell>
-								<TableCell>
-									<Chip
-										label={order.payment_status ?? 'N/A'}
-										color={order.payment_status === 'success' ? 'success' : order.payment_status === 'pending' ? 'warning' : 'error'}
-										size="small"
-										variant="outlined"
-									/>
-								</TableCell>
-								<TableCell>
-									<Chip
-										label={order.order_status ?? 'N/A'}
-										color={order.order_status === 'completed' ? 'success' : order.order_status === 'pending' ? 'warning' : 'info'}
-										size="small"
-										variant="outlined"
-									/>
-								</TableCell>
-								<TableCell>
-									<Tooltip title="Actions">
-										<IconButton size="small" onClick={(e) => handleMenuClick(e, order)}>
-											<MoreVerticalIcon />
-										</IconButton>
-									</Tooltip>
-								</TableCell>
-							</TableRow>
-						))}
+						{orders.map((order) => {
+							const cancelled = isOrderCancelled(order);
+							const isBeingCancelled = isCancelling && menuOrder?.id === order.id;
+							const isBeingRedirected = isRedirecting && menuOrder?.id === order.id;
+
+							return (
+								<TableRow
+									key={order.id}
+									sx={{
+										backgroundColor: cancelled ? 'rgba(0,0,0,0.04)' : 'inherit',
+										'&:hover': {
+											backgroundColor: cancelled ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.02)',
+										},
+									}}
+								>
+									<TableCell>{order.id}</TableCell>
+									<TableCell>#{order.rental_order_id}</TableCell>
+									<TableCell>{order.rental_name || '-'}</TableCell>
+									<TableCell>₹{order.total_amount.toLocaleString()}</TableCell>
+									<TableCell>₹{order.final_amount.toLocaleString()}</TableCell>
+									<TableCell>
+										<Chip
+											label={order.payment_status}
+											color={getStatusColor(order.payment_status) as any}
+											size="small"
+											variant="outlined"
+										/>
+									</TableCell>
+									<TableCell>
+										<Chip
+											label={order.order_status}
+											color={getOrderStatusColor(order.order_status) as any}
+											size="small"
+											variant="outlined"
+										/>
+									</TableCell>
+									<TableCell>{new Date(order.rental_start_date).toLocaleDateString()}</TableCell>
+									<TableCell>{new Date(order.rental_end_date).toLocaleDateString()}</TableCell>
+									<TableCell>
+										<Tooltip title={cancelled ? 'This order cannot be modified' : 'Order actions'}>
+											<span>
+												<IconButton
+													size="small"
+													onClick={(e) => handleMenuClick(e, order)}
+													disabled={cancelled || isBeingCancelled || isBeingRedirected}
+												>
+													<MoreVerticalIcon size={16} />
+												</IconButton>
+											</span>
+										</Tooltip>
+									</TableCell>
+								</TableRow>
+							);
+						})}
 					</TableBody>
 				</Table>
 			</TableContainer>
 
-			{/* Dropdown Menu */}
+			{/* Action Menu */}
 			<Menu
 				anchorEl={anchorEl}
 				open={menuOpen}
@@ -191,22 +309,109 @@ const RentalOrderList: React.FC = () => {
 				anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 				transformOrigin={{ vertical: 'top', horizontal: 'right' }}
 			>
-				<MenuItem onClick={() => handleAction('cancel')}>Cancel</MenuItem>
-				<MenuItem onClick={() => handleAction('redirect')}>Redirect</MenuItem>
-				<MenuItem onClick={() => handleAction('update')}>Update</MenuItem>
-				<MenuItem onClick={() => handleAction('view')}>View</MenuItem>
-				<MenuItem onClick={() => handleAction('print')}>Print</MenuItem>
+				<MenuItem onClick={() => handleAction('cancel')} disabled={isCancelling} sx={{ color: 'error.main' }}>
+					{isCancelling ? 'Cancelling...' : 'Cancel Order'}
+				</MenuItem>
+				<MenuItem onClick={() => handleAction('view')}>View Details</MenuItem>
+				<MenuItem onClick={() => handleAction('update')}>Redirect Order</MenuItem>
+				<MenuItem onClick={() => handleAction('redirect')} disabled={isRedirecting}>
+					{isRedirecting ? 'Redirecting...' : 'Go to Order Page'}
+				</MenuItem>
+				<MenuItem onClick={() => handleAction('print')}>Print Receipt</MenuItem>
 			</Menu>
 
-			<div className="flex items-center justify-center mt-5">
-				<p className="flex items-center space-x-2 font-medium text-slate-700">
-					<span>Total result:</span>
+			{/* Pagination and Count */}
+			<Box display="flex" justifyContent="space-between" alignItems="center" mt={2} p={1}>
+				<Box display="flex" alignItems="center" gap={1}>
+					<Typography variant="body2" color="textSecondary">
+						Total orders:
+					</Typography>
 					<span className={countStyle}>{totalCount}</span>
-				</p>
-			</div>
+				</Box>
+				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />}
+			</Box>
 
-			{/* ✅ ViewRentalOrder Modal */}
-			{selectedOrderId && <ViewRentalOrder open={viewOpen} onClose={() => setViewOpen(false)} orderId={selectedOrderId} />}
+			{/* Modal for Order Details */}
+			<Dialog open={!!viewOrder} onClose={() => setViewOrder(null)} maxWidth="sm" fullWidth>
+				<DialogTitle>Rental Order Details</DialogTitle>
+				<DialogContent dividers>
+					{viewOrder && (
+						<Box display="flex" flexDirection="column" gap={1}>
+							<Typography>
+								<b>ID:</b> {viewOrder.id}
+							</Typography>
+							<Typography>
+								<b>Rental Order ID:</b> {viewOrder.rental_order_id}
+							</Typography>
+							<Typography>
+								<b>Rental Name:</b> {viewOrder.rental_name || '-'}
+							</Typography>
+							<Typography>
+								<b>Rental ID:</b> {viewOrder.rental_id}
+							</Typography>
+							<Typography>
+								<b>Rental Rate ID:</b> {viewOrder.rental_rate_id}
+							</Typography>
+							<Typography>
+								<b>Address ID:</b> {viewOrder.address_id}
+							</Typography>
+							<Typography>
+								<b>User ID:</b> {viewOrder.user_id ?? '-'}
+							</Typography>
+							<Typography>
+								<b>Discount ID:</b> {viewOrder.discount_id ?? '-'}
+							</Typography>
+
+							<Divider sx={{ my: 1 }} />
+
+							<Typography>
+								<b>Total Amount:</b> ₹{viewOrder.total_amount}
+							</Typography>
+							<Typography>
+								<b>Final Amount:</b> ₹{viewOrder.final_amount}
+							</Typography>
+							<Typography>
+								<b>Discount Amount:</b> ₹{viewOrder.discount_amount}
+							</Typography>
+
+							<Typography>
+								<b>Payment Status:</b> {viewOrder.payment_status}
+							</Typography>
+							<Typography>
+								<b>Payment Failure Reason:</b> {viewOrder.payment_failure_reason ?? '-'}
+							</Typography>
+							<Typography>
+								<b>Razorpay Order ID:</b> {viewOrder.razorpay_order_id ?? '-'}
+							</Typography>
+							<Typography>
+								<b>Razorpay Payment ID:</b> {viewOrder.razorpay_payment_id ?? '-'}
+							</Typography>
+							<Typography>
+								<b>Razorpay Signature:</b> {viewOrder.razorpay_signature ?? '-'}
+							</Typography>
+
+							<Typography>
+								<b>Order Status:</b> {viewOrder.order_status}
+							</Typography>
+							<Typography>
+								<b>Rental Start Date:</b> {new Date(viewOrder.rental_start_date).toLocaleString()}
+							</Typography>
+							<Typography>
+								<b>Rental End Date:</b> {new Date(viewOrder.rental_end_date).toLocaleString()}
+							</Typography>
+							<Typography>
+								<b>Created On:</b> {viewOrder.created_on ? new Date(viewOrder.created_on).toLocaleString() : '-'}
+							</Typography>
+							<Typography>
+								<b>Updated On:</b> {viewOrder.updated_on ? new Date(viewOrder.updated_on).toLocaleString() : '-'}
+							</Typography>
+						</Box>
+					)}
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setViewOrder(null)}>Close</Button>
+				</DialogActions>
+			</Dialog>
 		</div>
 	);
 };

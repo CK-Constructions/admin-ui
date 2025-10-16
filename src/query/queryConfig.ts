@@ -12,7 +12,9 @@ import {
 	banListing,
 	banUserByID,
 	banVendorByID,
+	cancelListingOrder,
 	cancelRentalOrder,
+	cancelserviceOrder,
 	deleteBrand,
 	deleteBrandImages,
 	deleteSubCategory,
@@ -50,6 +52,7 @@ import {
 	getRentalBanByID,
 	getRentalByID,
 	getRentalOrder,
+	getRentalUnBanByID,
 	getServiceDetails,
 	getServiceOrder,
 	getSubCategoryById,
@@ -60,6 +63,9 @@ import {
 	getVendorByID,
 	getVendors,
 	logoutUser,
+	redirectListingOrder,
+	redirectRentalOrder,
+	redirectServiceOrder,
 	unbanAdminByID,
 	unBanListing,
 	unbanUserByID,
@@ -124,7 +130,7 @@ export const queryConfigs = {
 	useGetRentalById: { queryFn: getRentalByID, queryKeys: [queryKeys.rental] },
 	useGetAllRentalBans: { queryFn: getAllRentalBans, queryKeys: [queryKeys.rentalbans] },
 	useGetRentalBanByID: { queryFn: getRentalBanByID, queryKeys: [queryKeys.rentalban] },
-
+	useGetRentalUnbanByID: { queryFn: getRentalUnBanByID, queryKeys: [queryKeys.rentalban] },
 	//RENTAL APPROVALs
 
 	useUpdateRentalApproval: { queryFn: updateRentalApprovals, queryKeys: [queryKeys.rentalapprovals] },
@@ -189,14 +195,18 @@ export const queryConfigs = {
 
 	useGetAllOrders: { queryFn: getAllOrders, queryKeys: [queryKeys.orders] },
 	useGetOrderById: { queryFn: getOrderByID, queryKey: [queryKeys.order] },
+	useCancelListingOrder: { queryFn: cancelListingOrder, queryKey: [queryKeys.order] },
+	useRedirectListingOrder: { queryFn: redirectListingOrder, queryKeys: [queryKeys.order] },
 
 	//servcieorder
 	useGetAllServiceOrder: { queryFn: getAllServiceOrders, queryKeys: [queryKeys.serviceorders] },
 	useGetServiceOrder: { queryFn: getServiceOrder, queryKeys: [queryKeys.serviceorder] },
-	useCancelServiceOrder: { queryFn: cancelRentalOrder, queryKeys: [queryKeys.serviceorder] },
+	useCancelServiceOrder: { queryFn: cancelserviceOrder, queryKeys: [queryKeys.serviceorder] },
+	useRedirectServiceOrder: { queryFn: redirectServiceOrder, queryKeys: [queryKeys.serviceorder] },
 
 	//rentalorder
 	useGetAllRentalOrder: { queryFn: getAllRentalOrder, queryKeys: [queryKeys.rentalorders] },
 	useGetRentalOrder: { queryFn: getRentalOrder, queryKeys: [queryKeys.rentalorder] },
 	useCancelRentalOrder: { queryFn: cancelRentalOrder, queryKeys: [queryKeys.rentalorder] },
+	useRedirectRentalOrder: { queryFn: redirectRentalOrder, queryKeys: [queryKeys.rentalorder] },
 };
