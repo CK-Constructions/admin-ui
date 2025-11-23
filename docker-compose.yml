@@ -1,0 +1,32 @@
+networks:
+  intranet:
+    external: true
+    name: tomthin-net
+
+services:
+  tomthin-admin:
+    image: tomthin-admin-frontend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: tomthin-admin
+
+    env_file:
+      - .env.local
+
+    environment:
+      - NEXT_TELEMETRY_DISABLED=1
+
+    networks:
+      - intranet
+
+    restart: always
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tomthin-admin.rule=Host(`admin.tomthin.in`) || Host(`www.admin.tomthin.in`) || Host(`admin.tomthin.com`) || Host(`www.admin.tomthin.com`)"
+      - "traefik.http.routers.tomthin-admin.entrypoints=websecure"
+      - "traefik.http.routers.tomthin-admin.tls=true"
+      - "traefik.http.routers.tomthin-admin.tls.certresolver=le"
+      - "traefik.http.services.tomthin-admin.loadbalancer.server.port=80"

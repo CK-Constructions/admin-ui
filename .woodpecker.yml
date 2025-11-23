@@ -1,0 +1,8 @@
+steps:
+  build:
+    image: docker:git
+    commands:
+      - docker compose build
+      - docker compose -p tomthin-admin up -d
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Use host Docker daemon
