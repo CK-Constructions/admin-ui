@@ -13,7 +13,7 @@ services:
     container_name: tomthin-admin
 
     env_file:
-      - .env.local
+      - .env
 
     environment:
       - NEXT_TELEMETRY_DISABLED=1
