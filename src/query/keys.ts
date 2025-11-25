@@ -44,4 +44,5 @@ export const queryKeys = {
 	serviceorder: 'serviceorder',
 	rentalorders: 'rentalorders',
 	rentalorder: 'rentalorder',
+	interiorinquiry: 'interiorinquiry',
 };

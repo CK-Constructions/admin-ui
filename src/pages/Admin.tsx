@@ -36,6 +36,7 @@ import ListingOrders from '../components/listing-orders/ListingOrders';
 import RentalOrder from '../components/rental-order/rentalOrder';
 import ServiceOrder from '../components/service-order/serviceOrder';
 import TestService from '../components/service-order/tetsService';
+import CkInteriorInquiry from '../components/inquiry/interiorinquiry/CkInteriorInquiry';
 
 const App = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -276,6 +277,14 @@ const App = () => {
 						element={
 							<AnimatedRoute>
 								<TomthinInquiry />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/interior-inquiry"
+						element={
+							<AnimatedRoute>
+								<CkInteriorInquiry />
 							</AnimatedRoute>
 						}
 					/>

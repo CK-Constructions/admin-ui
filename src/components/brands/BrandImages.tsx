@@ -238,7 +238,7 @@ const SubCategoryImages = () => {
 							/>
 						)}
 						<img
-							src={`${process.env.REACT_APP_GET_MEDIA}/${item.image}`}
+							src={`${process.env.REACT_APP_BASE_URL}/${item.image}`}
 							alt={`Brand ${item.id}`}
 							className="w-full h-full object-contain"
 							style={{
@@ -267,11 +267,7 @@ const SubCategoryImages = () => {
 					}}
 				>
 					<div className="relative w-full h-full">
-						<img
-							src={`${process.env.REACT_APP_GET_MEDIA}/${selectedImage?.image}`}
-							alt={`Brand ${selectedImage?.id}`}
-							className="w-full h-full object-contain"
-						/>
+						<img src={`${process.env.REACT_APP_BASE_URL}/${selectedImage?.image}`} className="w-full h-full object-contain" />
 						<button
 							onClick={closeFullscreen}
 							className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all"

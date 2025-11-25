@@ -79,6 +79,7 @@ export interface ListingResponse {
 export interface TCategory {
 	id: number;
 	name: string;
+	image: string;
 	created_on: string;
 	is_active: number;
 }
@@ -89,6 +90,7 @@ export interface TBrand {
 	created_on: string;
 	category_name: string;
 	category_id: number;
+	image: string;
 	is_active: number;
 }
 export interface TSubCategory {

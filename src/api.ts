@@ -16,8 +16,10 @@ import {
 } from './components/lib/types/response';
 
 if (process.env.NODE_ENV === 'development') {
-	// axios.defaults.baseURL = 'http://192.168.1.15:8100/api/v1/admin';
+	// axios.defaults.baseURL = 'http://192.168.1.6:8100/api/v1/admin';
 	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
+
+	// axios.defaults.baseURL = 'http://185.199.52.20:8101/api/v1/admin';
 } else {
 	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
 }
@@ -34,15 +36,23 @@ export const clearAuthHeader = () => {
 	axios.defaults.headers['Authorization'] = null;
 	return true;
 };
+// Authentication
 export const loginUser = (body: TLoginBody) => _callApi('/login', 'post', body);
 export const logoutUser = () => _callApi('/logout', 'post', '');
 
+// Profile
 export const getProfile = () => _callApi(`/profile`, 'get');
+
+// Inquiries
 export const getTomthinInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/ck-inquiries?offset=${offset}&limit=${limit}`, 'get');
 export const getCKInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/inquiries?offset=${offset}&limit=${limit}`, 'get');
+export const getCKInteriorInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/ck-interiors-inquiries?offset=${offset}&limit=${limit}`, 'get');
+
+// Approvals
 export const getAllApprovals = () => _callApi(`/approvals`, 'get');
 export const updateApproval = ({ body, id }: { body: TApprovalPayload; id: number }) => _callApi(`/approvals/${id}`, 'put', body);
-//ADMIN USERS
+
+// Admin Users
 export const getAllAdmins = ({ username, mobile, email, offset, limit }: TQueryParams) =>
 	_callApi(`/support?offset=${offset}&limit=${limit}&mobile=${mobile}&email=${email}&username=${username}`, 'get');
 export const getAllAdminById = ({ id }: TQueryParams) => _callApi(`/support/${id}`, 'get');
@@ -50,62 +60,74 @@ export const addAdmin = (body: TUserFormData) => _callApi('/support', 'post', bo
 export const updateAdmin = ({ body, id }: { body: TUserFormData; id: number }) => _callApi(`/support/${id}`, 'put', body);
 export const banAdminByID = ({ id }: TQueryParams) => _callApi(`/support/ban/${id}`, 'put');
 export const unbanAdminByID = ({ id }: TQueryParams) => _callApi(`/support/unban/${id}`, 'put');
+
+// Listings
 export const getListingById = ({ id }: TQueryParams) => _callApi(`/listings/${id}`, 'get');
 export const banListing = ({ id }: TQueryParams) => _callApi(`/listings/ban/${id}`, 'put');
 export const unBanListing = ({ id }: TQueryParams) => _callApi(`/listings/unban/${id}`, 'put');
 export const getListings = ({ id, category, seller, active, offset, limit }: TQueryParams) =>
 	_callApi(`/listings?id=${id || ''}&category=${category || ''}&seller=${seller || ''}&active=${active || ''}&offset=${offset}&limit=${limit}`, 'get');
+
+// Users
 export const getUsers = ({ username, mobile, email, offset, limit }: TQueryParams) =>
 	_callApi(`/users?offset=${offset}&limit=${limit}&mobile=${mobile || ''}&email=${email || ''}&username=${username || ''}`, 'get');
 export const getUserByID = ({ id }: TQueryParams) => _callApi(`/users/${id}`, 'get');
 export const banUserByID = ({ id }: TQueryParams) => _callApi(`/users/ban/${id}`, 'put');
 export const unbanUserByID = ({ id }: TQueryParams) => _callApi(`/users/unban/${id}`, 'put');
+
+// Vendors
 export const getVendors = ({ username, mobile, email, offset, limit }: TQueryParams) =>
 	_callApi(`/vendors?offset=${offset}&limit=${limit}&mobile=${mobile || ''}&email=${email || ''}&username=${username || ''}`, 'get');
 export const getVendorByID = ({ id }: TQueryParams) => _callApi(`/vendors/${id}`, 'get');
 export const banVendorByID = ({ id }: TQueryParams) => _callApi(`/vendors/ban/${id}`, 'put');
 export const unbanVendorByID = ({ id }: TQueryParams) => _callApi(`/vendors/unban/${id}`, 'put');
-//RENTALS
+
+// Rentals
 export const getAllRentals = ({ offset, limit }: TQueryParams) => _callApi(`/rentals?offset=${offset}&limit=${limit}`, 'get');
 export const getRentalByID = ({ id }: TQueryParams) => _callApi(`/rentals/${id}`, 'get');
-
 export const getAllRentalBans = ({ id, seller, offset, limit }: TQueryParams) =>
 	_callApi(`/rentals/bans?offset=${offset}&limit=${limit}&id=${id}&seller=${seller}`, 'get');
 export const getRentalBanByID = ({ id, rental_id, ban_reason }: { id: number; rental_id: number; ban_reason: string }) =>
 	_callApi(`/rentals/ban/${id}`, 'put', { rental_id, ban_reason });
-
 export const getRentalUnBanByID = ({ id, rental_id, lift_reason }: { id: number; rental_id: number; lift_reason: string }) =>
 	_callApi(`/rentals/unban/${id}`, 'put', { rental_id, lift_reason });
 
-//RENTAL APPROVALS
+// Rental Approvals
 export const updateRentalApprovals = ({ body, id }: { body: TRentalapproval; id: number }) => _callApi(`/rental-approval/${id}`, 'put', body);
 export const getActiveRentalApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/rental-approval?offset=${offset}&limit=${limit}`, 'get');
 export const getConfirmedRentalApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/rental-approval/confirmed?offset=${offset}&limit=${limit}`, 'get');
 export const getRejectedRentalApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/rental-approval/rejected?offset=${offset}&limit=${limit}`, 'get');
 
-//Service
+// Services
 export const getAllService = ({ offset, limit }: TQueryParams) => _callApi(`/services?offset=${offset}&limit=${limit}`, 'get');
 export const getServiceDetails = ({ id }: TQueryParams) => _callApi(`/services/${id}`, 'get');
-//Service APPROVALS
+
+// Service Approvals
 export const updateServiceApprovals = ({ body, id }: { body: TServiceapproval; id: number }) => _callApi(`/service-approval/${id}`, 'put', body);
 export const getActiveServiceApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/service-approval?offset=${offset}&limit=${limit}`, 'get');
 export const getConfirmedServiceApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/service-approval/confirmed?offset=${offset}&limit=${limit}`, 'get');
 export const getRejectedServiceApprovals = ({ offset, limit }: TQueryParams) => _callApi(`/service-approval/rejected?offset=${offset}&limit=${limit}`, 'get');
 
-//Rental Categories
+// Rental Categories
 export const getActiveRentalCategories = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/rental-categories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const AddRentalCategory = (body: TCategoryBody) => _callApi(`/rental-categories`, 'post', body);
 export const UpdateActivityRentalCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/rental-categories/${id}`, 'put', body);
 export const UpdateRentalCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/rental-categories/${id}`, 'put', body);
-//Service Categories
+
+// Service Categories
 export const AddServiceCategory = (body: TCategoryBody) => _callApi(`/service-categories`, 'post', body);
 export const UpdateActivityServiceCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/service-categories/${id}`, 'put', body);
 export const UpdateServiceCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/service-categories/${id}`, 'put', body);
 export const getActiveServiceCategories = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/service-categories?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 
-//Sub Categories
+// Listing Categories
+export const getAllCategories = ({ offset, limit }: TQueryParams) => _callApi(`/categories?offset=${offset}&limit=${limit}`, 'get');
+export const addListingCategory = (body: TCategoryBody) => _callApi(`/categories`, 'post', body);
+export const UpdateListingCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/categories/${id}`, 'put', body);
+
+// Subcategories
 export const addSubCategory = (body: TCategoryBody) => _callApi(`/subcategories`, 'post', body);
 export const updateSubCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/subcategories/${id}`, 'put', body);
 export const getAllSubCategories = ({ offset, limit, name, id }: TQueryParams) =>
@@ -113,50 +135,45 @@ export const getAllSubCategories = ({ offset, limit, name, id }: TQueryParams) =
 export const getSubCategoryById = ({ id }: TQueryParams) => _callApi(`/subcategories?id=${id}`, 'get');
 export const deleteSubCategory = (id: number) => _callApi(`/subcategories/${id}`, 'delete');
 
-//SubCategory Images
+// Subcategory Images
 export const getSubCatImage = ({ id }: TQueryParams) => _callApi(`/subcategories/images?id=${id}`, 'get');
 export const addSubCatImage = (body: TSubCatImageBody) => _callApi(`/subcategories/images`, 'post', body);
-// export const updateSubCatImage = ({ id, body }: { id: number; body: TSubCatImageBody }) => _callApi(`/subcategories/images/${id}`, "put", body);
 export const deleteSubCatImage = ({ id, body }: { id: number; body: TDeleteSubCatImageBody }) => _callApi(`/subcategories/images/${id}`, 'put', body);
 
-//Brands
+// Brands
 export const getAllBrands = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/brands?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const getBrandById = ({ id }: TQueryParams) => _callApi(`/brands?id=${id}`, 'get');
 export const deleteBrand = ({ body, id }: { body: TBrand; id: number }) => _callApi(`/brands/delete/${id}`, 'put', body);
 export const addBrand = (body: TBrand) => _callApi(`/brands`, 'post', body);
 export const updateBrand = ({ body, id }: { body: TBrand; id: number }) => _callApi(`/brands/${id}`, 'put', body);
-//listing order
+
+// Brand Images
+export const getBrandImages = ({ id }: TQueryParams) => _callApi(`/brands/images?id=${id}`, 'get');
+export const addBrandImages = (body: TBrandImageBody) => _callApi(`/brands/images`, 'post', body);
+export const deleteBrandImages = ({ id, body }: { id: number; body: TDeleteBrandImageBody }) => _callApi(`/brands/images/${id}`, 'put', body);
+
+// Listing Orders
 export const getAllOrders = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/listings?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const getOrderByID = ({ id }: TQueryParams) => _callApi(`/orders/listings/${id}`, 'get');
 export const cancelListingOrder = ({ id }: { id: number }) => _callApi(`/orders/listings/cancel-order/${id}`, 'put', '');
 export const redirectListingOrder = (body: { listing_order_id: number }) => _callApi(`/orders/listings/generate-listing-order`, 'post', body);
 
-//service order
+// Service Orders
 export const getAllServiceOrders = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/services?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const getServiceOrder = ({ id }: TQueryParams) => _callApi(`/orders/services/${id}`, 'get');
-
 export const cancelserviceOrder = ({ id }: { id: number }) => _callApi(`/orders/services/cancel-order/${id}`, 'put', '');
 export const redirectServiceOrder = (body: { service_order_id: number }) => _callApi('/orders/services/generate-seller-order', 'post', body);
 
-//rental order
+// Rental Orders
 export const getAllRentalOrder = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/rentals?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const getRentalOrder = ({ id }: TQueryParams) => _callApi(`/orders/rentals/${id}`, 'get');
 export const cancelRentalOrder = ({ id }: { id: number }) => _callApi(`/orders/rentals/cancel-order/${id}`, 'put', '');
 export const redirectRentalOrder = (body: { rental_order_id: number }) => _callApi('/orders/rentals/generate-seller-order', 'post', body);
-//Brand Images
-export const getBrandImages = ({ id }: TQueryParams) => _callApi(`/brands/images?id=${id}`, 'get');
-export const addBrandImages = (body: TBrandImageBody) => _callApi(`/brands/images`, 'post', body);
-export const deleteBrandImages = ({ id, body }: { id: number; body: TDeleteBrandImageBody }) => _callApi(`/brands/images/${id}`, 'put', body);
 
-//Listing Categories
-export const getAllCategories = ({ offset, limit }: TQueryParams) => _callApi(`/categories?offset=${offset}&limit=${limit}`, 'get');
-export const addListingCategory = (body: TCategoryBody) => _callApi(`/categories`, 'post', body);
-export const UpdateListingCategory = ({ body, id }: { body: TCategoryBody; id: number }) => _callApi(`/categories/${id}`, 'put', body);
-
-//Banners
+// Banners
 export const getAllBanners = ({ offset, limit }: TQueryParams) => _callApi(`/banners?offset=${offset}&limit=${limit}`, 'get');
 export const addBanner = (body: TBannerBody) => _callApi(`/banners`, 'post', body);
 export const disableBanner = ({ id }: { id: number }) => _callApi(`/banners/disable/${id}`, 'put', '');

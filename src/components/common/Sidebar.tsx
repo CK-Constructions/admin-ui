@@ -111,6 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
 		{ text: 'Vehicle Rental Approvals', icon: <CheckCircle className="w-5 h-5" />, path: '/rental-approvals' },
 		{ text: 'CK Inquiries', icon: <MessageSquare className="w-5 h-5" />, path: '/ck-inquiry' },
 		{ text: 'TT Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/tomthin-inquiry' },
+		{ text: 'CK Interior Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/interior-inquiry' },
 		{ text: 'Orders', icon: <ShoppingCartIcon className="w-5 h-5" />, path: '/listing-orders' },
 		{ text: 'Service-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/service-orders' },
 		{ text: 'Rental-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/rental-orders' },

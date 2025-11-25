@@ -86,7 +86,7 @@ export default function RentalCategory() {
 	// Update category mutation
 	const { mutate: updateRental } = useMutationQuery({
 		invalidateKey: rentalKey,
-		func: ({ id, body }: { id: number; body: { name: string } }) => UpdateActivityRentalCategory({ id, body }),
+		func: ({ id, body }: { id: number; body: { name: string; image: string } }) => UpdateActivityRentalCategory({ id, body }),
 		onSuccess: () => {
 			showNotification('success', 'Rental category updated successfully');
 			handleCloseEditDialog();

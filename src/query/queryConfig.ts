@@ -41,6 +41,7 @@ import {
 	getBrandById,
 	getBrandImages,
 	getCKInquiry,
+	getCKInteriorInquiry,
 	getConfirmedRentalApprovals,
 	getConfirmedServiceApprovals,
 	getListingById,
@@ -124,6 +125,7 @@ export const queryConfigs = {
 	//INQUIRY
 	useGetTomthinInquiry: { queryFn: getTomthinInquiry, queryKey: [queryKeys.ckinquiry] },
 	useGetCKInquiry: { queryFn: getCKInquiry, queryKey: [queryKeys.tomthininquiry] },
+	useGetCKInteriorInquiry: { queryFn: getCKInteriorInquiry, queryKey: [queryKeys.interiorinquiry] },
 
 	//RENTALS AND BANS
 	useGetAllRentals: { queryFn: getAllRentals, queryKeys: [queryKeys.rentals] },
