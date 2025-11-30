@@ -191,9 +191,11 @@ export default function Buyers() {
 				<Table>
 					<TableHead>
 						<TableRow sx={{ backgroundColor: 'black' }}>
+							<TableCell sx={{ color: 'white' }}>ID</TableCell>
 							<TableCell sx={{ color: 'white' }}>Name</TableCell>
 							<TableCell sx={{ color: 'white' }}>Email</TableCell>
 							<TableCell sx={{ color: 'white' }}>Mobile</TableCell>
+							<TableCell sx={{ color: 'white' }}>Address</TableCell>
 							<TableCell sx={{ color: 'white' }}>Status</TableCell>
 							<TableCell sx={{ color: 'white' }}>Actions</TableCell>
 						</TableRow>
@@ -201,9 +203,11 @@ export default function Buyers() {
 					<TableBody>
 						{data?.result.list.map((user: TUser) => (
 							<TableRow key={user.id}>
+								<TableCell>{user.id}</TableCell>
 								<TableCell>{user.fullname}</TableCell>
 								<TableCell>{user.email}</TableCell>
 								<TableCell>{user.mobile}</TableCell>
+								<TableCell>{user.address}</TableCell>
 								<TableCell>
 									<Chip
 										label={user.status === 0 ? 'Active' : 'Disabled'}

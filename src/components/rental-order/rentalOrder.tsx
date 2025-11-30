@@ -125,8 +125,7 @@ const RentalOrderList: React.FC = () => {
 				handleMenuClose();
 				break;
 			case 'view':
-				setViewOrder(menuOrder);
-				handleMenuClose();
+				navigate(`/rental-orders/${menuOrder.id}`);
 				break;
 			case 'print':
 				window.print();
@@ -330,88 +329,6 @@ const RentalOrderList: React.FC = () => {
 				</Box>
 				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />}
 			</Box>
-
-			{/* Modal for Order Details */}
-			<Dialog open={!!viewOrder} onClose={() => setViewOrder(null)} maxWidth="sm" fullWidth>
-				<DialogTitle>Rental Order Details</DialogTitle>
-				<DialogContent dividers>
-					{viewOrder && (
-						<Box display="flex" flexDirection="column" gap={1}>
-							<Typography>
-								<b>ID:</b> {viewOrder.id}
-							</Typography>
-							<Typography>
-								<b>Rental Order ID:</b> {viewOrder.rental_order_id}
-							</Typography>
-							<Typography>
-								<b>Rental Name:</b> {viewOrder.rental_name || '-'}
-							</Typography>
-							<Typography>
-								<b>Rental ID:</b> {viewOrder.rental_id}
-							</Typography>
-							<Typography>
-								<b>Rental Rate ID:</b> {viewOrder.rental_rate_id}
-							</Typography>
-							<Typography>
-								<b>Address ID:</b> {viewOrder.address_id}
-							</Typography>
-							<Typography>
-								<b>User ID:</b> {viewOrder.user_id ?? '-'}
-							</Typography>
-							<Typography>
-								<b>Discount ID:</b> {viewOrder.discount_id ?? '-'}
-							</Typography>
-
-							<Divider sx={{ my: 1 }} />
-
-							<Typography>
-								<b>Total Amount:</b> ₹{viewOrder.total_amount}
-							</Typography>
-							<Typography>
-								<b>Final Amount:</b> ₹{viewOrder.final_amount}
-							</Typography>
-							<Typography>
-								<b>Discount Amount:</b> ₹{viewOrder.discount_amount}
-							</Typography>
-
-							<Typography>
-								<b>Payment Status:</b> {viewOrder.payment_status}
-							</Typography>
-							<Typography>
-								<b>Payment Failure Reason:</b> {viewOrder.payment_failure_reason ?? '-'}
-							</Typography>
-							<Typography>
-								<b>Razorpay Order ID:</b> {viewOrder.razorpay_order_id ?? '-'}
-							</Typography>
-							<Typography>
-								<b>Razorpay Payment ID:</b> {viewOrder.razorpay_payment_id ?? '-'}
-							</Typography>
-							<Typography>
-								<b>Razorpay Signature:</b> {viewOrder.razorpay_signature ?? '-'}
-							</Typography>
-
-							<Typography>
-								<b>Order Status:</b> {viewOrder.order_status}
-							</Typography>
-							<Typography>
-								<b>Rental Start Date:</b> {new Date(viewOrder.rental_start_date).toLocaleString()}
-							</Typography>
-							<Typography>
-								<b>Rental End Date:</b> {new Date(viewOrder.rental_end_date).toLocaleString()}
-							</Typography>
-							<Typography>
-								<b>Created On:</b> {viewOrder.created_on ? new Date(viewOrder.created_on).toLocaleString() : '-'}
-							</Typography>
-							<Typography>
-								<b>Updated On:</b> {viewOrder.updated_on ? new Date(viewOrder.updated_on).toLocaleString() : '-'}
-							</Typography>
-						</Box>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setViewOrder(null)}>Close</Button>
-				</DialogActions>
-			</Dialog>
 		</div>
 	);
 };

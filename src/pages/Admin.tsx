@@ -37,6 +37,8 @@ import RentalOrder from '../components/rental-order/rentalOrder';
 import ServiceOrder from '../components/service-order/serviceOrder';
 import TestService from '../components/service-order/tetsService';
 import CkInteriorInquiry from '../components/inquiry/interiorinquiry/CkInteriorInquiry';
+import ViewRentalOrder from '../components/rental-order/ViewRentalOrder';
+import Address from '../components/address/Address';
 
 const App = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -305,6 +307,14 @@ const App = () => {
 						}
 					/>
 					<Route
+						path="/rental-orders/:id"
+						element={
+							<AnimatedRoute>
+								<ViewRentalOrder />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
 						path="/service-orders"
 						element={
 							<AnimatedRoute>
@@ -317,6 +327,14 @@ const App = () => {
 						element={
 							<AnimatedRoute>
 								<Approval />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/address"
+						element={
+							<AnimatedRoute>
+								<Address />
 							</AnimatedRoute>
 						}
 					/>

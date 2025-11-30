@@ -115,6 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
 		{ text: 'Orders', icon: <ShoppingCartIcon className="w-5 h-5" />, path: '/listing-orders' },
 		{ text: 'Service-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/service-orders' },
 		{ text: 'Rental-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/rental-orders' },
+		{ text: 'Address', icon: <HelpCircle className="w-5 h-5" />, path: '/address' },
 		{ text: 'Settings', icon: <Settings className="w-5 h-5" />, path: '/settings' },
 	];
 

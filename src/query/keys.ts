@@ -45,4 +45,6 @@ export const queryKeys = {
 	rentalorders: 'rentalorders',
 	rentalorder: 'rentalorder',
 	interiorinquiry: 'interiorinquiry',
+	addresses: 'addresses',
+	address: 'address',
 };

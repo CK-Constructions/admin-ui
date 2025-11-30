@@ -1,163 +1,232 @@
+// pages/RentalOrderDetailPage.tsx
 import React from 'react';
-import { Modal, Box, Typography, Divider, IconButton, Paper, Stack, Chip, Button } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import { Box, Typography, Divider, IconButton, Paper, Stack, Chip, Button, Container, Grid } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PrintIcon from '@mui/icons-material/Print';
+import { useNavigate, useParams } from 'react-router-dom';
 import { queryConfigs } from '../../query/queryConfig';
-import { useGetQuery } from '../../query/hooks/queryHook';
-import { RentalOrder } from '../lib/types/response';
+import { useGetSingleQuery } from '../../query/hooks/queryHook';
+import Loading from '../common/Loader';
 
-interface ViewRentalOrderProps {
-	open: boolean;
-	onClose: () => void;
-	orderId: number;
-}
+const RentalOrderDetailPage: React.FC = () => {
+	const { id } = useParams<{ id: string }>();
+	const navigate = useNavigate();
+	const orderId = id ? parseInt(id, 10) : 0;
 
-const ViewRentalOrder: React.FC<ViewRentalOrderProps> = ({ open, onClose, orderId }) => {
 	const { queryFn: rentalorderFunc, queryKeys: rentalorderKey } = queryConfigs.useGetRentalOrder;
 
-	const { data } = useGetQuery({
+	const { data, isLoading, isError } = useGetSingleQuery({
 		func: rentalorderFunc,
-		key: rentalorderKey,
-		params: { id: orderId ?? null },
-		isEnabled: !!orderId,
+		key: [...rentalorderKey, orderId.toString()], // ← Fixed here
+		params: { id: orderId },
+		isEnabled: orderId > 0,
 	});
 
-	const order: RentalOrder | undefined = data?.result;
+	const order = data?.result;
 
 	const handlePrint = () => {
 		window.print();
 	};
 
+	const handleBack = () => {
+		navigate(-1);
+	};
+
+	if (isLoading) {
+		return (
+			<Box display="flex" justifyContent="center" alignItems="center" minHeight="70vh">
+				<Loading />
+			</Box>
+		);
+	}
+
+	if (isError || !order) {
+		return (
+			<Container maxWidth="md" sx={{ py: 4 }}>
+				<Paper sx={{ p: 4, textAlign: 'center' }}>
+					<Typography variant="h6" color="error">
+						Failed to load order details
+					</Typography>
+					<Button variant="contained" onClick={handleBack} sx={{ mt: 2 }}>
+						Go Back
+					</Button>
+				</Paper>
+			</Container>
+		);
+	}
+
+	// Helper to safely convert number | string | undefined → string
+	const toStr = (val: number | string | null | undefined): string => {
+		return val != null ? String(val) : 'N/A';
+	};
+
+	const formatAmount = (amount: number | string | null | undefined): string => {
+		if (amount == null) return '₹0';
+		const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+		return isNaN(num) ? '₹0' : `₹${num.toLocaleString('en-IN')}`;
+	};
+
+	const formatDate = (date: string | null | undefined): string => {
+		if (!date) return 'Not set';
+		try {
+			return new Date(date).toLocaleString('en-IN', {
+				day: '2-digit',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+			});
+		} catch {
+			return 'Invalid date';
+		}
+	};
+
 	return (
-		<Modal open={open} onClose={onClose} aria-labelledby="order-view-modal" aria-describedby="order-details-view">
+		<Box sx={{ bgcolor: '#f9f9f9', minHeight: '100vh' }}>
+			{/* Sticky Header */}
 			<Box
 				sx={{
-					position: 'absolute',
-					top: '50%',
-					left: '50%',
-					transform: 'translate(-50%, -50%)',
-					width: { xs: '95%', sm: 800 },
-					maxHeight: '90vh',
-					overflowY: 'auto',
-					bgcolor: 'background.paper',
-					boxShadow: 24,
-					borderRadius: 2,
-					outline: 'none',
+					position: 'sticky',
+					top: 0,
+					zIndex: 10,
+					bgcolor: 'white',
+					borderBottom: 1,
+					borderColor: 'divider',
+					boxShadow: 1,
 				}}
-				component={Paper}
 			>
-				{/* ---------- Sticky Header with Close & Print ---------- */}
-				<Box
-					sx={{
-						position: 'sticky',
-						top: 0,
-						zIndex: 10,
-						bgcolor: 'background.paper',
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						px: 2,
-						py: 1,
-						borderBottom: 1,
-						borderColor: 'divider',
-					}}
-				>
-					<Typography variant="h5" component="h2">
-						Rental Order Details
-					</Typography>
-
-					<Box>
-						<Button variant="contained" size="small" onClick={handlePrint} sx={{ mr: 1 }}>
-							Print
+				<Container maxWidth="lg">
+					<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
+						<Stack direction="row" alignItems="center" spacing={2}>
+							<IconButton onClick={handleBack}>
+								<ArrowBackIcon />
+							</IconButton>
+							<Typography variant="h5" fontWeight="bold">
+								Rental Order Details
+							</Typography>
+							<Chip label={`#${toStr(order.id)}`} color="primary" size="small" />
+						</Stack>
+						<Button variant="contained" startIcon={<PrintIcon />} onClick={handlePrint}>
+							Print Receipt
 						</Button>
-
-						<IconButton aria-label="close" onClick={onClose} sx={{ color: (theme) => theme.palette.grey[600] }}>
-							<CloseIcon />
-						</IconButton>
-					</Box>
-				</Box>
-
-				{/* ---------- Body ---------- */}
-				<Stack spacing={3} p={4}>
-					{order ? (
-						<>
-							<Stack spacing={2} width="100%">
-								<DetailRow label="Order ID" value={order.id.toString()} />
-								<DetailRow label="User ID" value={order.user_id?.toString() ?? 'N/A'} />
-								<DetailRow label="Rental Name" value={order.rental_name ?? 'N/A'} />
-								<DetailRow label="Rental ID" value={order.rental_id.toString()} />
-								<DetailRow label="Rental Rate ID" value={order.rental_rate_id.toString()} />
-								<DetailRow label="Address ID" value={order.address_id.toString()} />
-								<DetailRow label="Discount ID" value={order.discount_id?.toString() ?? 'N/A'} />
-
-								<Divider />
-
-								<DetailRow label="Razorpay Order ID" value={order.razorpay_order_id ?? 'N/A'} />
-								<DetailRow label="Razorpay Payment ID" value={order.razorpay_payment_id ?? 'N/A'} />
-								<DetailRow label="Razorpay Signature" value={order.razorpay_signature ?? 'N/A'} />
-
-								<Divider />
-
-								<DetailRow label="Total Amount" value={`₹${order.total_amount}`} />
-								<DetailRow label="Discount Amount" value={`₹${order.discount_amount}`} />
-								<DetailRow label="Final Amount" value={`₹${order.final_amount}`} />
-
-								<StatusRow label="Payment Status" status={order.payment_status} success="success" warning="pending" error="failed" />
-
-								<StatusRow label="Order Status" status={order.order_status} success="completed" warning="pending" info="confirmed" />
-
-								{order.payment_failure_reason && <DetailRow label="Payment Failure Reason" value={order.payment_failure_reason} />}
-
-								<Divider />
-
-								<DetailRow label="Rental Start Date" value={new Date(order.rental_start_date).toLocaleString()} />
-								<DetailRow label="Rental End Date" value={new Date(order.rental_end_date).toLocaleString()} />
-
-								<DetailRow label="Created On" value={new Date(order.created_on).toLocaleString()} />
-								<DetailRow label="Updated On" value={order.updated_on ? new Date(order.updated_on).toLocaleString() : 'N/A'} />
-							</Stack>
-						</>
-					) : (
-						<Typography align="center">No order details found.</Typography>
-					)}
-				</Stack>
+					</Stack>
+				</Container>
 			</Box>
-		</Modal>
-	);
-};
 
-// ---------- Helper Components ----------
+			{/* Main Content */}
+			<Container maxWidth="lg" sx={{ py: 4 }}>
+				<Paper elevation={3} sx={{ borderRadius: 2 }}>
+					<Stack spacing={4} p={4}>
+						{/* Order Information */}
+						<Section title="Order Information">
+							<Grid container spacing={3}>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="Order ID" value={toStr(order.id)} bold />
+									<DetailRow label="User ID" value={toStr(order.user_id) || 'Guest'} />
+									<DetailRow label="Rental Name" value={order.rental_name || 'N/A'} />
+									<DetailRow label="Rental ID" value={toStr(order.rental_id)} />
+								</Grid>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="Rental Rate ID" value={toStr(order.rental_rate_id)} />
+									<DetailRow label="Address ID" value={toStr(order.address_id)} />
+									<DetailRow label="Discount ID" value={toStr(order.discount_id) || 'None'} />
+								</Grid>
+							</Grid>
+						</Section>
 
-interface DetailRowProps {
-	label: string;
-	value?: string | null;
-}
-const DetailRow: React.FC<DetailRowProps> = ({ label, value }) => (
-	<Box display="flex" justifyContent="space-between">
-		<Typography variant="body2" color="text.secondary">
-			{label}:
-		</Typography>
-		<Typography variant="body2">{value || 'N/A'}</Typography>
-	</Box>
-);
+						<Divider />
 
-interface StatusRowProps {
-	label: string;
-	status: string;
-	success: string;
-	warning: string;
-	error?: string;
-	info?: string;
-}
-const StatusRow: React.FC<StatusRowProps> = ({ label, status, success, warning, error, info }) => {
-	const color = status === success ? 'success' : status === warning ? 'warning' : status === error ? 'error' : 'info';
-	return (
-		<Box display="flex" justifyContent="space-between">
-			<Typography variant="body2" color="text.secondary">
-				{label}:
-			</Typography>
-			<Chip label={status} color={color as any} size="small" />
+						{/* Payment Details */}
+						<Section title="Payment Details">
+							<Grid container spacing={3}>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="Razorpay Order ID" value={order.razorpay_order_id || 'N/A'} />
+									<DetailRow label="Razorpay Payment ID" value={order.razorpay_payment_id || 'N/A'} />
+									<DetailRow label="Razorpay Signature" value={order.razorpay_signature || 'N/A'} />
+								</Grid>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="Total Amount" value={formatAmount(order.total_amount)} bold />
+									<DetailRow label="Discount Amount" value={formatAmount(order.discount_amount)} />
+									<DetailRow label="Final Amount" value={formatAmount(order.final_amount)} bold color="success.main" />
+								</Grid>
+							</Grid>
+
+							<Box sx={{ mt: 3, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+								<StatusRow label="Payment Status" status={order.payment_status || 'unknown'} />
+								<StatusRow label="Order Status" status={order.order_status || 'unknown'} />
+							</Box>
+
+							{order.payment_failure_reason && <DetailRow label="Failure Reason" value={order.payment_failure_reason} color="error.main" />}
+						</Section>
+
+						<Divider />
+
+						{/* Rental Period */}
+						<Section title="Rental Period">
+							<Grid container spacing={3}>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="Start Date" value={formatDate(order.rental_start_date)} />
+								</Grid>
+								<Grid item xs={12} sm={6}>
+									<DetailRow label="End Date" value={formatDate(order.rental_end_date)} />
+								</Grid>
+							</Grid>
+							<Box sx={{ mt: 2 }}>
+								<DetailRow label="Created On" value={formatDate(order.created_on)} />
+								<DetailRow label="Updated On" value={order.updated_on ? formatDate(order.updated_on) : 'Never'} />
+							</Box>
+						</Section>
+					</Stack>
+				</Paper>
+			</Container>
 		</Box>
 	);
 };
 
-export default ViewRentalOrder;
+// Reusable Components
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+	<Box>
+		<Typography variant="h6" gutterBottom fontWeight="bold" color="primary">
+			{title}
+		</Typography>
+		{children}
+	</Box>
+);
+
+const DetailRow: React.FC<{
+	label: string;
+	value: string;
+	bold?: boolean;
+	color?: string;
+}> = ({ label, value, bold, color }) => (
+	<Box display="flex" justifyContent="space-between" sx={{ py: 0.8 }}>
+		<Typography variant="body1" color="text.secondary" fontWeight={bold ? 'bold' : 'normal'}>
+			{label}:
+		</Typography>
+		<Typography variant="body1" fontWeight={bold ? 'bold' : 'normal'} color={color || 'text.primary'} sx={{ wordBreak: 'break-word' }}>
+			{value}
+		</Typography>
+	</Box>
+);
+
+const StatusRow: React.FC<{ label: string; status: string }> = ({ label, status }) => {
+	const getColor = (): 'success' | 'warning' | 'error' | 'info' | 'default' => {
+		const s = status.toLowerCase();
+		if (s.includes('success') || s === 'completed' || s === 'confirmed') return 'success';
+		if (s.includes('pending')) return 'warning';
+		if (s.includes('fail') || s === 'cancelled') return 'error';
+		if (s.includes('dispatched') || s.includes('delivery')) return 'info';
+		return 'default';
+	};
+
+	return (
+		<Box display="flex" justifyContent="space-between" alignItems="center" sx={{ py: 0.8 }}>
+			<Typography variant="body1" color="text.secondary">
+				{label}:
+			</Typography>
+			<Chip label={status} color={getColor()} size="small" />
+		</Box>
+	);
+};
+
+export default RentalOrderDetailPage;

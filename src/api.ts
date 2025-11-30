@@ -20,6 +20,7 @@ if (process.env.NODE_ENV === 'development') {
 	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
 
 	// axios.defaults.baseURL = 'http://185.199.52.20:8101/api/v1/admin';
+	// axios.defaults.baseURL = 'http://127.0.0.1:8080/v1/admin';
 } else {
 	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
 }
@@ -42,6 +43,9 @@ export const logoutUser = () => _callApi('/logout', 'post', '');
 
 // Profile
 export const getProfile = () => _callApi(`/profile`, 'get');
+
+export const getUserAddresses = () => _callApi(`/addresses`, 'get');
+export const getUserAddress = ({ id }: TQueryParams) => _callApi(`/addresses/${id}`, 'get');
 
 // Inquiries
 export const getTomthinInquiry = ({ offset, limit }: TQueryParams) => _callApi(`/ck-inquiries?offset=${offset}&limit=${limit}`, 'get');
@@ -179,6 +183,7 @@ export const addBanner = (body: TBannerBody) => _callApi(`/banners`, 'post', bod
 export const disableBanner = ({ id }: { id: number }) => _callApi(`/banners/disable/${id}`, 'put', '');
 export const enableBanner = ({ id }: { id: number }) => _callApi(`/banners/enable/${id}`, 'put', '');
 
+export const getAllAddress = ({ offset, limit }: TQueryParams) => _callApi(`/user-address?offset=${offset}&limit=${limit}`, 'get');
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
 
 const _callApi = async (url: string, method: Methods = 'get', body = {}) => {
