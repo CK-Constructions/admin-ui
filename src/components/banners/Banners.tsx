@@ -1,7 +1,7 @@
 import { Box, Button, Checkbox, Chip, Modal, Paper, TextField, Tooltip, Typography } from '@mui/material';
 import React, { useState } from 'react';
 import { TSubCatImageBody } from '../lib/types/response';
-import { uploadMedia } from '../../api';
+import { uploadFileToS3 } from '../../api';
 import { showNotification } from '../utils/utils';
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
@@ -104,10 +104,10 @@ const Banners = () => {
 
 			try {
 				// Upload the image
-				const response = await uploadMedia(file);
+				const response = await uploadFileToS3(file);
 				setBannerData((prev) => ({
 					...prev,
-					image: response.id.toString(),
+					image: response.toString(),
 				}));
 			} catch (error) {
 				console.error(error);
@@ -264,7 +264,7 @@ const Banners = () => {
 							)}
 							<div onClick={() => handleImageClick(item)} className="flex-1 overflow-hidden mb-2">
 								<img
-									src={`${process.env.REACT_APP_BASE_URL}/${item.image}`}
+									src={item.image}
 									alt={`Brand ${item.id}`}
 									className="w-full h-full object-contain"
 									style={{

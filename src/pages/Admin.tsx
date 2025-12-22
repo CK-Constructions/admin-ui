@@ -39,6 +39,7 @@ import TestService from '../components/service-order/tetsService';
 import CkInteriorInquiry from '../components/inquiry/interiorinquiry/CkInteriorInquiry';
 import ViewRentalOrder from '../components/rental-order/ViewRentalOrder';
 import Address from '../components/address/Address';
+import ImageUpload from '../imgaeUpload';
 
 const App = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -335,6 +336,14 @@ const App = () => {
 						element={
 							<AnimatedRoute>
 								<Address />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/image"
+						element={
+							<AnimatedRoute>
+								<ImageUpload />
 							</AnimatedRoute>
 						}
 					/>

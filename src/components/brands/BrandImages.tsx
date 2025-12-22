@@ -8,7 +8,7 @@ import { Modal, Box, Typography, Paper, Checkbox } from '@mui/material';
 import Header from '../common/Header';
 import Loading from '../common/Loader';
 import { showNotification } from '../utils/utils';
-import { uploadMedia } from '../../api';
+import { uploadFileToS3 } from '../../api';
 const tileSize = 200;
 const SubCategoryImages = () => {
 	const params = useParams();
@@ -95,7 +95,7 @@ const SubCategoryImages = () => {
 			);
 			setPreviews((prev) => [...prev, ...newPreviews]);
 			try {
-				const uploadPromises = files.map((file) => uploadMedia(file));
+				const uploadPromises = files.map((file) => uploadFileToS3(file));
 				const responses = await Promise.all(uploadPromises);
 				const newImages = responses.map((response) => ({
 					image: response.id.toString(),

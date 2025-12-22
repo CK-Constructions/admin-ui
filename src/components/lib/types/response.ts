@@ -330,7 +330,7 @@ export interface RentalOrder {
 	discount_amount: number;
 	final_amount: number;
 	payment_status: 'success' | 'pending' | 'failed'; // observed values
-	order_status: 'confirmed' | 'pending' | 'completed'; // observed values
+	order_status: 'pending' | 'booked' | 'completed' | 'cancelled'; // observed values
 	payment_failure_reason: string | null;
 	rental_start_date: string; // ISO date string
 	rental_end_date: string; // ISO date string

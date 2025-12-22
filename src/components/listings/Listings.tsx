@@ -201,7 +201,6 @@ const Listings = () => {
 	return (
 		<Box sx={{ p: 1 }}>
 			<Header onReloadClick={refetch} pageName="Listings" />
-
 			{/* Filter Controls */}
 			<Box sx={{ mb: 3, p: 2, borderRadius: 1, boxShadow: 1 }}>
 				<Grid container spacing={2}>
@@ -244,25 +243,7 @@ const Listings = () => {
 					</Grid>
 				</Grid>
 			</Box>
-
 			{/* Results count and pagination */}
-			<div className="flex items-center justify-end my-5">
-				<div className="flex items-center justify-end space-x-3">
-					{totalCount > 0 && (
-						<Pagination
-							count={Math.ceil(sanitizeValue(listings?.result?.count) / limit)}
-							size="medium"
-							page={currentPage}
-							onChange={handlePageChange}
-						/>
-					)}
-					<p className="flex items-center space-x-2 font-medium text-slate-700">
-						<span>Total result:</span>
-						<span className={countStyle}>{totalCount}</span>
-					</p>
-				</div>
-			</div>
-
 			{/* Listings grid */}
 			<Grid container spacing={3}>
 				{listings?.result.list.map((listing: TListing) => (
@@ -282,7 +263,7 @@ const Listings = () => {
 							<Box sx={{ position: 'relative', pt: '56.25%', bgcolor: theme.palette.grey[100] }}>
 								<CardMedia
 									component="img"
-									src={`${process.env.REACT_APP_GET_MEDIA}/${listing.image}`}
+									src={`${listing.image}`}
 									alt={listing.title}
 									sx={{
 										position: 'absolute',
@@ -354,7 +335,7 @@ const Listings = () => {
 					</Grid>
 				))}
 			</Grid>
-
+			-
 			<BanListing
 				open={openBanDialog && !!selectedUser}
 				onClose={() => setOpenBanDialog(false)}

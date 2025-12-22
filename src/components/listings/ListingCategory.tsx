@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { queryConfigs } from '../../query/queryConfig';
 import { MdOutlineAddToPhotos } from 'react-icons/md';
-import { uploadMedia } from '../../api';
+import { uploadFileToS3 } from '../../api';
 import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
 import { TQueryParams } from '../lib/types/common';
 import { TCategory } from '../lib/types/response';
@@ -66,7 +66,7 @@ export default function ListingCategory() {
 
 			try {
 				// Upload image
-				const response = await uploadMedia(file);
+				const response = await uploadFileToS3(file);
 				setUploadedImageId(response.id.toString());
 				showNotification('success', 'Image uploaded successfully');
 			} catch (error) {

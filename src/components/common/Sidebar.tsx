@@ -94,28 +94,29 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
 	const sidebarItems: SidebarItem[] = [
 		{ text: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" />, path: '/' },
 		{ text: 'Users', icon: <Users className="w-5 h-5" />, path: '/users' },
-		{ text: 'Banners', icon: <ImageIcon className="w-5 h-5" />, path: '/banners' },
 		{ text: 'Profile', icon: <User className="w-5 h-5" />, path: '/profile' },
-		{ text: 'Listings', icon: <Package className="w-5 h-5" />, path: '/listings' },
+		{ text: 'Banners', icon: <ImageIcon className="w-5 h-5" />, path: '/banners' },
 		{ text: 'Brands', icon: <Tag className="w-5 h-5" />, path: '/brands' },
+		{ text: 'Buyers', icon: <ShoppingCart className="w-5 h-5" />, path: '/buyers' },
+		{ text: 'Vendors', icon: <Store className="w-5 h-5" />, path: '/vendors' },
 		{ text: 'Listing Categories', icon: <Layers className="w-5 h-5" />, path: '/listing-categories' },
 		{ text: 'Sub Listing Category', icon: <FolderTree className="w-5 h-5" />, path: '/sub-category' },
 		{ text: 'Rental Categories', icon: <Car className="w-5 h-5" />, path: '/rental-categories' },
 		{ text: 'Service Categories', icon: <Wrench className="w-5 h-5" />, path: '/service-categories' },
-		{ text: 'Buyers', icon: <ShoppingCart className="w-5 h-5" />, path: '/buyers' },
-		{ text: 'Vendors', icon: <Store className="w-5 h-5" />, path: '/vendors' },
-		{ text: 'Vehicle Rentals', icon: <Car className="w-5 h-5" />, path: '/rentals' },
+		{ text: 'Listings', icon: <Package className="w-5 h-5" />, path: '/listings' },
 		{ text: 'Services', icon: <Wrench className="w-5 h-5" />, path: '/services' },
+		{ text: 'Vehicle Rentals', icon: <Car className="w-5 h-5" />, path: '/rentals' },
 		{ text: 'Listing Approvals', icon: <CheckCircle className="w-5 h-5" />, path: '/listing-approvals' },
-		{ text: 'Service Approvals', icon: <ClipboardCheck className="w-5 h-5" />, path: '/service-approvals' },
-		{ text: 'Vehicle Rental Approvals', icon: <CheckCircle className="w-5 h-5" />, path: '/rental-approvals' },
-		{ text: 'CK Inquiries', icon: <MessageSquare className="w-5 h-5" />, path: '/ck-inquiry' },
-		{ text: 'TT Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/tomthin-inquiry' },
-		{ text: 'CK Interior Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/interior-inquiry' },
+		// { text: 'Service Approvals', icon: <ClipboardCheck className="w-5 h-5" />, path: '/service-approvals' },
+		// { text: 'Vehicle Rental Approvals', icon: <CheckCircle className="w-5 h-5" />, path: '/rental-approvals' },
 		{ text: 'Orders', icon: <ShoppingCartIcon className="w-5 h-5" />, path: '/listing-orders' },
 		{ text: 'Service-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/service-orders' },
 		{ text: 'Rental-Orders', icon: <HelpCircle className="w-5 h-5" />, path: '/rental-orders' },
 		{ text: 'Address', icon: <HelpCircle className="w-5 h-5" />, path: '/address' },
+		{ text: 'Image Upload', icon: <Settings className="w-5 h-5" />, path: '/image' },
+		{ text: 'CK Inquiries', icon: <MessageSquare className="w-5 h-5" />, path: '/ck-inquiry' },
+		{ text: 'TT Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/tomthin-inquiry' },
+		{ text: 'CK Interior Inquiries', icon: <HelpCircle className="w-5 h-5" />, path: '/interior-inquiry' },
 		{ text: 'Settings', icon: <Settings className="w-5 h-5" />, path: '/settings' },
 	];
 
@@ -153,7 +154,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onToggle }) => {
 
 					{open && (
 						<img
-							src="/logo.png"
+							src="/tomthinLogo.png"
 							alt="Logo"
 							style={{
 								height: '80px',

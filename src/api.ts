@@ -17,10 +17,10 @@ import {
 
 if (process.env.NODE_ENV === 'development') {
 	// axios.defaults.baseURL = 'http://192.168.1.6:8100/api/v1/admin';
-	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
+	// axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
 
 	// axios.defaults.baseURL = 'http://185.199.52.20:8101/api/v1/admin';
-	// axios.defaults.baseURL = 'http://127.0.0.1:8080/v1/admin';
+	axios.defaults.baseURL = 'http://127.0.0.1:8080/v1/admin';
 } else {
 	axios.defaults.baseURL = 'https://tomthin.in/api/v1/admin';
 }
@@ -183,6 +183,14 @@ export const addBanner = (body: TBannerBody) => _callApi(`/banners`, 'post', bod
 export const disableBanner = ({ id }: { id: number }) => _callApi(`/banners/disable/${id}`, 'put', '');
 export const enableBanner = ({ id }: { id: number }) => _callApi(`/banners/enable/${id}`, 'put', '');
 
+// Add this with your other rental order APIs
+
+export const updateRentalOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
+	_callApi(
+		`/orders/rentals/update-order/${id}`,
+		'put',
+		{ new_status, reason: reason || '' } // sends empty string if no reason
+	);
 export const getAllAddress = ({ offset, limit }: TQueryParams) => _callApi(`/user-address?offset=${offset}&limit=${limit}`, 'get');
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
 
@@ -207,20 +215,47 @@ const _callApi = async (url: string, method: Methods = 'get', body = {}) => {
 		return err.response?.data || { success: false, message: 'Network Error' };
 	}
 };
-export const uploadMedia = async (file: File) => {
-	const formData = new FormData();
-	formData.append('file', file);
-	const config = {
-		headers: {
-			'Content-Type': 'multipart/form-data',
-			Authorization: `${process.env.REACT_APP_TOKEN}`,
-		},
-	};
+// =====================
+// Media Upload (S3 Presigned URL)
+// =====================
+
+export const uploadFileToS3 = async (file: File): Promise<string> => {
+	if (!file) {
+		throw new Error('No file provided');
+	}
+
 	try {
-		const response = await axios.post(`${process.env.REACT_APP_ADD_MEDIA}`, formData, config);
-		return response.data;
-	} catch (error) {
-		console.error(error);
-		throw error;
+		// 1️⃣ Get presigned URL from backend
+		const res = await axios.get('/uploads/presign', {
+			params: {
+				filename: file.name, // ❌ DO NOT encode
+				type: file.type || 'application/octet-stream',
+			},
+		});
+
+		const { uploadUrl, publicUrl } = res.data;
+
+		if (!uploadUrl || !publicUrl) {
+			throw new Error('Invalid presigned URL response');
+		}
+
+		// 2️⃣ Upload directly to S3
+		const uploadRes = await fetch(uploadUrl, {
+			method: 'PUT',
+			body: file,
+			headers: {
+				'Content-Type': file.type || 'application/octet-stream',
+			},
+		});
+
+		if (!uploadRes.ok) {
+			throw new Error('S3 upload failed');
+		}
+
+		// 3️⃣ Return public URL
+		return publicUrl;
+	} catch (error: any) {
+		console.error('S3 upload error:', error);
+		throw new Error(error?.response?.data?.error || error?.message || 'File upload failed');
 	}
 };

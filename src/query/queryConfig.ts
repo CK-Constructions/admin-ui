@@ -82,6 +82,7 @@ import {
 	UpdateListingCategory,
 	updateRentalApprovals,
 	UpdateRentalCategory,
+	updateRentalOrderStatus,
 	updateServiceApprovals,
 	UpdateServiceCategory,
 	updateSubCategory,
@@ -212,6 +213,7 @@ export const queryConfigs = {
 	//rentalorder
 	useGetAllRentalOrder: { queryFn: getAllRentalOrder, queryKeys: [queryKeys.rentalorders] },
 	useGetRentalOrder: { queryFn: getRentalOrder, queryKeys: [queryKeys.rentalorder] },
+	useUpdateRentalOrder: { queryFn: updateRentalOrderStatus, queryKeys: [queryKeys.rentalorder] },
 	useCancelRentalOrder: { queryFn: cancelRentalOrder, queryKeys: [queryKeys.rentalorder] },
 	useRedirectRentalOrder: { queryFn: redirectRentalOrder, queryKeys: [queryKeys.rentalorder] },
 	useGetUserAddresses: { queryFn: getUserAddresses, queryKey: [queryKeys.addresses] },

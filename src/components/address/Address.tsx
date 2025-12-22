@@ -52,7 +52,7 @@ const Address = () => {
 		params: { limit, offset: (currentPage - 1) * limit },
 	});
 
-	const addresses: AddressType[] = Array.isArray(data?.result?.list) ? data.result.list : Array.isArray(data) ? data : [];
+	const addresses: AddressType[] = Array.isArray(data?.result?.list) ? data?.result.list : Array.isArray(data) ? data : [];
 
 	const totalCount = data?.result?.count ?? addresses.length;
 	const totalPages = Math.ceil(totalCount / limit);

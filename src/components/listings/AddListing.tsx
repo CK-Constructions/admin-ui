@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Autocomplete, Box, Button, Grid, TextField, Typography } from '@mui/material';
-import { uploadMedia } from '../../api';
+import { uploadFileToS3 } from '../../api';
 import { showNotification } from '../utils/utils';
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetQuery } from '../../query/hooks/queryHook';
@@ -70,7 +70,7 @@ const AddListing = () => {
 		// Upload in background
 		(async () => {
 			try {
-				const response = await uploadMedia(file);
+				const response = await uploadFileToS3(file);
 				if (response.success) {
 					setFormData((prev) => ({
 						...prev,
