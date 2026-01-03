@@ -317,7 +317,7 @@ export interface ServiceOrder {
 export interface RentalOrder {
 	id: number;
 	user_id: number | null;
-	rental_id: number;
+	admin_rental_id: number;
 	rental_order_id: number;
 	rental_name: string | null;
 	rental_rate_id: number;

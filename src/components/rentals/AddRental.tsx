@@ -1,401 +1,558 @@
-// import React, { useState, useEffect, useCallback } from 'react';
-// import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { useToaster } from 'react-hot-toast';
-// import { queryConfigs } from '../../query/queryConfig';
-// // Adjust path
+import React, { useEffect, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { TCategory } from '../lib/types/response';
+import { uploadFileToS3 } from '../../api';
+import axios from 'axios';
+import { queryConfigs } from '../../query/queryConfig';
+import { useGetQuery } from '../../query/hooks/queryHook';
 
-// interface RentalSpec {
-// 	label: string;
-// 	value: string;
-// }
+interface RentalSpec {
+	label: string;
+	value: string;
+}
 
-// interface RentalRate {
-// 	period: 'per trip' | 'per hour';
-// 	rate: number;
-// }
+interface RentalRate {
+	period: 'PerHour' | 'PerTrip';
+	rate: number;
+}
 
-// interface PendingImage {
-// 	id: string;
-// 	uri: string;
-// 	file: File;
-// 	isPrimary: boolean;
-// }
+interface PendingImage {
+	uri: string;
+	file: File;
+	isPrimary: boolean;
+}
 
-// const RentalAddScreen: React.FC = () => {
-// 	const [rental, setRental] = useState({
-// 		category: 0,
-// 		name: '',
-// 		description: '',
-// 		contact_phone: '',
-// 		delivery_time: '',
-// 		is_active: 1,
-// 		insurance_required: 1,
-// 		specifications: [] as RentalSpec[],
-// 		rates: [] as RentalRate[],
-// 		delivery_fee: 0.0,
-// 	});
+interface RentalFormData {
+	category: number;
+	name: string;
+	description: string;
+	contact_phone: string;
+	delivery_time: string;
+	is_active: number;
+	insurance_required: number;
+	specifications: RentalSpec[];
+	rates: RentalRate[];
+	delivery_fee: number;
+}
 
-// 	const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
-// 	const [uploadingImages, setUploadingImages] = useState(false);
-// 	const [newSpec, setNewSpec] = useState({ label: '', value: '' });
-// 	const [newRate, setNewRate] = useState({ period: 'Daily' as const, rate: '' });
-
-// 	const queryClient = useQueryClient();
-// 	const { toasts } = useToaster();
-
-// 	const { data: categories, isLoading: loadingCategories } = useQuery({
-// 		queryKey: ['rentalCategories'],
-// 		queryFn: () => queryConfigs.useGetRentalCategories.queryFn({ limit: 1000, offset: 0 }),
-// 	});
-
-// 	const addRentalMutation = useMutation({
-// 		mutationFn: queryConfigs.useAddRentals.queryFn,
-// 		onSuccess: () => {
-// 			console.log('Rental created successfully', 'success');
-// 			queryClient.invalidateQueries({ queryKey: ['rentals'] });
-// 			window.history.back();
-// 		},
-// 		onError: () => console.log('Failed to create rental', 'error'),
-// 	});
-
-// 	const categoryItems = categories?.data?.result?.list || [];
-
-// 	const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-// 		const files = e.target.files;
-// 		if (!files) return;
-
-// 		Array.from(files).forEach((file) => {
-// 			if (!file.type.startsWith('image/')) return;
-
-// 			const uri = URL.createObjectURL(file);
-// 			const newImage: PendingImage = {
-// 				id: Math.random().toString(36),
-// 				uri,
-// 				file,
-// 				isPrimary: pendingImages.length === 0,
-// 			};
-// 			setPendingImages((prev) => [...prev, newImage]);
-// 		});
-
-// 		e.target.value = ''; // Reset input
-// 	};
-
-// 	const removeImage = (id: string) => {
-// 		setPendingImages((prev) => {
-// 			const filtered = prev.filter((img) => img.id !== id);
-// 			if (filtered.length > 0 && !filtered.some((i) => i.isPrimary)) {
-// 				filtered[0].isPrimary = true;
-// 			}
-// 			return filtered;
-// 		});
-// 	};
-
-// 	const setPrimaryImage = (id: string) => {
-// 		setPendingImages((prev) => prev.map((img) => ({ ...img, isPrimary: img.id === id })));
-// 	};
-
-// 	const addSpecification = () => {
-// 		if (!newSpec.label.trim() || !newSpec.value.trim()) {
-// 			showToast('Both label and value are required', 'error');
-// 			return;
-// 		}
-// 		setRental((prev) => ({
-// 			...prev,
-// 			specifications: [...prev.specifications, { ...newSpec }],
-// 		}));
-// 		setNewSpec({ label: '', value: '' });
-// 	};
-
-// 	const addRate = () => {
-// 		const rateNum = parseFloat(newRate.rate);
-// 		if (!newRate.rate || isNaN(rateNum) || rateNum <= 0) {
-// 			showToast('Enter a valid rate amount', 'error');
-// 			return;
-// 		}
-// 		setRental((prev) => ({
-// 			...prev,
-// 			rates: [...prev.rates, { period: newRate.period, rate: rateNum }],
-// 		}));
-// 		setNewRate({ period: 'Daily', rate: '' });
-// 	};
-
-// 	const handleSubmit = async () => {
-// 		if (!rental.name || !rental.category || pendingImages.length === 0) {
-// 			showToast('Title, category, and at least one image are required', 'error');
-// 			return;
-// 		}
-
-// 		try {
-// 			setUploadingImages(true);
-// 			const uploadedImages = [];
-
-// 			for (const img of pendingImages) {
-// 				const formData = new FormData();
-// 				formData.append('file', img.file);
-// 				formData.append('width', '800');
-// 				formData.append('height', '600');
-
-// 				try {
-// 					const res = await uploadFileToS3(formData);
-// 					uploadedImages.push({
-// 						image: res.id,
-// 						is_primary: img.isPrimary ? 1 : 0,
-// 					});
-// 				} catch (err) {
-// 					showToast('Failed to upload one or more images', 'error');
-// 					return;
-// 				}
-// 			}
-
-// 			await addRentalMutation.mutateAsync({
-// 				...rental,
-// 				images: uploadedImages,
-// 			});
-// 		} catch (err) {
-// 			console.error(err);
-// 		} finally {
-// 			setUploadingImages(false);
-// 		}
-// 	};
-
-// 	const isSubmitting = addRentalMutation.isPending || uploadingImages;
-
-// 	return (
-// 		<div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
-// 			<div className="max-w-4xl mx-auto px-6">
-// 				<h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Add New Rental</h1>
-
-// 				{/* Images Section */}
-// 				<section className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
-// 					<h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Images</h2>
-// 					<div className="flex gap-4 mb-6">
-// 						<label className="flex-1 cursor-pointer">
-// 							<input type="file" accept="image/*" multiple onChange={handleImageSelect} className="hidden" disabled={isSubmitting} />
-// 							<div className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition">
-// 								<PhotoIcon className="w-5 h-5" />
-// 								<span>Choose from Gallery</span>
-// 							</div>
-// 						</label>
-// 						<label className="flex-1 cursor-pointer">
-// 							<input type="file" accept="image/*" capture="environment" onChange={handleImageSelect} className="hidden" />
-// 							<div className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg transition">
-// 								<CameraIcon className="w-5 h-5" />
-// 								<span>Take Photo</span>
-// 							</div>
-// 						</label>
-// 					</div>
-
-// 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-// 						{pendingImages.map((img) => (
-// 							<div key={img.id} className="relative group rounded-lg overflow-hidden bg-gray-100">
-// 								<img src={img.uri} alt="preview" className="w-full h-48 object-cover" />
-// 								<div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition flex items-center justify-center opacity-0 group-hover:opacity-100">
-// 									<button
-// 										onClick={() => setPrimaryImage(img.id)}
-// 										className={`px-3 py-1 rounded text-xs text-white mr-2 ${img.isPrimary ? 'bg-green-600' : 'bg-blue-600'}`}
-// 									>
-// 										{img.isPrimary ? 'Primary' : 'Set Primary'}
-// 									</button>
-// 									<button onClick={() => removeImage(img.id)} className="p-2 bg-red-600 rounded-full">
-// 										<XMarkIcon className="w-5 h-5 text-white" />
-// 									</button>
-// 								</div>
-// 								{img.isPrimary && <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded">Primary</div>}
-// 								<div className="absolute bottom-0 left-0 right-0 bg-yellow-500 text-white text-center py-1 text-xs">Pending Upload</div>
-// 							</div>
-// 						))}
-// 					</div>
-// 				</section>
-
-// 				<div className="grid md:grid-cols-2 gap-8">
-// 					{/* Left Column */}
-// 					<div className="space-y-6">
-// 						<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
-// 							<select
-// 								value={rental.category}
-// 								onChange={(e) => setRental({ ...rental, category: Number(e.target.value) })}
-// 								className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 								disabled={loadingCategories}
-// 							>
-// 								<option value={0}>Select Category</option>
-// 								{categoryItems.map((cat: any) => (
-// 									<option key={cat.id} value={cat.id} disabled={!cat.is_active}>
-// 										{cat.name} {cat.is_active ? '' : '(Inactive)'}
-// 									</option>
-// 								))}
-// 							</select>
-// 						</div>
-
-// 						<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
-// 							<input
-// 								type="text"
-// 								value={rental.name}
-// 								onChange={(e) => setRental({ ...rental, name: e.target.value })}
-// 								placeholder="Rental Title"
-// 								className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 							/>
-// 						</div>
-
-// 						<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Insurance Required</label>
-// 							<select
-// 								value={rental.insurance_required}
-// 								onChange={(e) => setRental({ ...rental, insurance_required: Number(e.target.value) })}
-// 								className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 							>
-// 								<option value={1}>Required</option>
-// 								<option value={0}>Not Required</option>
-// 							</select>
-// 						</div>
-
-// 						<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Contact Phone</label>
-// 							<input
-// 								type="tel"
-// 								value={rental.contact_phone}
-// 								onChange={(e) => setRental({ ...rental, contact_phone: e.target.value })}
-// 								placeholder="Contact Phone"
-// 								className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 							/>
-// 						</div>
-// 					</div>
-
-// 					{/* Right Column */}
-// 					<div className="space-y-6">
-// 						<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 							<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
-// 							<textarea
-// 								rows={5}
-// 								value={rental.description}
-// 								onChange={(e) => setRental({ ...rental, description: e.target.value })}
-// 								placeholder="Describe your rental..."
-// 								className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 							/>
-// 						</div>
-
-// 						<div className="grid grid-cols-2 gap-4">
-// 							<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Time</label>
-// 								<input
-// 									type="text"
-// 									value={rental.delivery_time}
-// 									onChange={(e) => setRental({ ...rental, delivery_time: e.target.value })}
-// 									placeholder="e.g. 2-3 hours"
-// 									className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 								/>
-// 							</div>
-// 							<div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-// 								<label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Fee ($)</label>
-// 								<input
-// 									type="number"
-// 									step="0.01"
-// 									value={rental.delivery_fee}
-// 									onChange={(e) => setRental({ ...rental, delivery_fee: parseFloat(e.target.value) || 0 })}
-// 									placeholder="0.00"
-// 									className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-// 								/>
-// 							</div>
-// 						</div>
-// 					</div>
-// 				</div>
-
-// 				{/* Specifications */}
-// 				<section className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-// 					<h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Specifications</h2>
-// 					<div className="flex gap-3 mb-4">
-// 						<input
-// 							placeholder="Label (e.g. Brand)"
-// 							value={newSpec.label}
-// 							onChange={(e) => setNewSpec({ ...newSpec, label: e.target.value })}
-// 							className="flex-1 px-4 py-3 border rounded-lg dark:bg-gray-700"
-// 						/>
-// 						<input
-// 							placeholder="Value (e.g. Canon)"
-// 							value={newSpec.value}
-// 							onChange={(e) => setNewSpec({ ...newSpec, value: e.target.value })}
-// 							className="flex-1 px-4 py-3 border rounded-lg dark:bg-gray-700"
-// 						/>
-// 						<button onClick={addSpecification} className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-// 							<PlusIcon className="w-6 h-6" />
-// 						</button>
-// 					</div>
-// 					<div className="space-y-2">
-// 						{rental.specifications.map((spec, i) => (
-// 							<div key={i} className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded">
-// 								<div>
-// 									<strong>{spec.label}:</strong> {spec.value}
-// 								</div>
-// 								<button onClick={() => setRental({ ...rental, specifications: rental.specifications.filter((_, idx) => idx !== i) })}>
-// 									<XMarkIcon className="w-5 h-5 text-red-600" />
-// 								</button>
-// 							</div>
-// 						))}
-// 					</div>
-// 				</section>
-
-// 				{/* Rates */}
-// 				<section className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-// 					<h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Rental Rates</h2>
-// 					<div className="flex gap-3 mb-4">
-// 						<select
-// 							value={newRate.period}
-// 							onChange={(e) => setNewRate({ ...newRate, period: e.target.value as any })}
-// 							className="px-4 py-3 border rounded-lg dark:bg-gray-700"
-// 						>
-// 							<option>Daily</option>
-// 							<option>Weekly</option>
-// 							<option>Monthly</option>
-// 						</select>
-// 						<input
-// 							type="number"
-// 							placeholder="Rate Amount"
-// 							value={newRate.rate}
-// 							onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })}
-// 							className="flex-1 px-4 py-3 border rounded-lg dark:bg-gray-700"
-// 						/>
-// 						<button onClick={addRate} className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-// 							<PlusIcon className="w-6 h-6" />
-// 						</button>
-// 					</div>
-// 					<div className="space-y-2">
-// 						{rental.rates.map((rate, i) => (
-// 							<div key={i} className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded">
-// 								<div>
-// 									<strong>{rate.period} Rate:</strong> ${rate.rate.toFixed(2)}
-// 								</div>
-// 								<button onClick={() => setRental({ ...rental, rates: rental.rates.filter((_, idx) => idx !== i) })}>
-// 									<XMarkIcon className="w-5 h-5 text-red-600" />
-// 								</button>
-// 							</div>
-// 						))}
-// 					</div>
-// 				</section>
-
-// 				{/* Submit Buttons */}
-// 				<div className="mt-10 flex justify-center gap-6">
-// 					<button
-// 						onClick={handleSubmit}
-// 						disabled={isSubmitting}
-// 						className="px-8 py-4 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-// 					>
-// 						{isSubmitting ? 'Creating & Uploading...' : `Create Rental ${pendingImages.length > 0 ? `(${pendingImages.length} images)` : ''}`}
-// 					</button>
-// 					<button onClick={() => window.history.back()} className="px-8 py-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700">
-// 						Cancel
-// 					</button>
-// 				</div>
-// 			</div>
-// 		</div>
-// 	);
-// };
-
-// export default RentalAddScreen;
-import React from 'react';
-
-const AddRental = () => {
-	return <div>AddRental</div>;
+const createRental = async (rentalData: any) => {
+	const response = await axios.post('/rentals', rentalData);
+	return response.data;
 };
 
-export default AddRental;
+const RentalAddPage: React.FC = () => {
+	const [categoryValue, setCategoryValue] = useState<number | null>(null);
+	const [insuranceValue, setInsuranceValue] = useState<number>(1);
+
+	const [rental, setRental] = useState<RentalFormData>({
+		category: 0,
+		name: '',
+		description: '',
+		contact_phone: '',
+		delivery_time: '',
+		is_active: 0,
+		insurance_required: 1,
+		specifications: [],
+		rates: [],
+		delivery_fee: 0.0,
+	});
+
+	const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+	const [uploadingImages, setUploadingImages] = useState(false);
+
+	const [newSpec, setNewSpec] = useState({ label: '', value: '' });
+	const [newRate, setNewRate] = useState<{
+		period: 'PerHour' | 'PerTrip';
+		rate: string;
+	}>({ period: 'PerHour', rate: '' });
+
+	const queryClient = useQueryClient();
+
+	// Fetch categories
+	const { queryFn: getRentalFunc, queryKeys: rentalKey } = queryConfigs.useGetRentalCategories;
+
+	const { data, isLoading, isError } = useGetQuery({
+		func: getRentalFunc,
+		key: rentalKey,
+		params: {
+			offset: 0,
+			limit: 100, // get all for dropdown
+		},
+	});
+
+	// Type assertion based on your known API response shape
+
+	const { mutate: addRental, isPending } = useMutation({
+		mutationFn: createRental,
+		onSuccess: () => {
+			alert('Rental created successfully');
+			queryClient.invalidateQueries({ queryKey: ['rentals'] });
+			window.history.back();
+		},
+		onError: (error) => {
+			console.error('Error creating rental:', error);
+			alert('Failed to create rental');
+		},
+	});
+
+	// Sync insurance value
+	useEffect(() => {
+		setRental((prev) => ({ ...prev, insurance_required: insuranceValue }));
+	}, [insuranceValue]);
+
+	// Image handling
+	const handleImageSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const files = e.target.files;
+		if (!files) return;
+
+		const newImages: PendingImage[] = [];
+
+		Array.from(files).forEach((file) => {
+			if (!file.type.startsWith('image/')) return;
+
+			const previewUrl = URL.createObjectURL(file);
+			const isFirst = pendingImages.length === 0 && newImages.length === 0;
+
+			newImages.push({
+				uri: previewUrl,
+				file,
+				isPrimary: isFirst,
+			});
+		});
+
+		setPendingImages((prev) => [...prev, ...newImages]);
+	};
+
+	const removePendingImage = (index: number) => {
+		setPendingImages((prev) => {
+			const updated = prev.filter((_, i) => i !== index);
+			URL.revokeObjectURL(prev[index].uri);
+
+			if (prev[index].isPrimary && updated.length > 0) {
+				updated[0].isPrimary = true;
+			}
+			return updated;
+		});
+	};
+
+	const setPendingPrimaryImage = (index: number) => {
+		setPendingImages((prev) =>
+			prev.map((img, i) => ({
+				...img,
+				isPrimary: i === index,
+			}))
+		);
+	};
+
+	// Specifications
+	const addSpecification = () => {
+		if (newSpec.label.trim() && newSpec.value.trim()) {
+			setRental((prev) => ({
+				...prev,
+				specifications: [...prev.specifications, { ...newSpec }],
+			}));
+			setNewSpec({ label: '', value: '' });
+		} else {
+			alert('Please enter both label and value');
+		}
+	};
+
+	const removeSpecification = (index: number) => {
+		setRental((prev) => ({
+			...prev,
+			specifications: prev.specifications.filter((_, i) => i !== index),
+		}));
+	};
+
+	// Rates
+	const addRate = () => {
+		const rateValue = parseFloat(newRate.rate);
+		if (isNaN(rateValue) || rateValue <= 0) {
+			alert('Please enter a valid positive rate amount');
+			return;
+		}
+		setRental((prev) => ({
+			...prev,
+			rates: [...prev.rates, { period: newRate.period, rate: rateValue }],
+		}));
+		setNewRate({ period: 'PerHour', rate: '' });
+	};
+
+	const removeRate = (index: number) => {
+		setRental((prev) => ({
+			...prev,
+			rates: prev.rates.filter((_, i) => i !== index),
+		}));
+	};
+
+	// Submit
+	const handleAddRental = async () => {
+		if (pendingImages.length === 0) {
+			alert('Please add at least one image');
+			return;
+		}
+		if (!categoryValue) {
+			alert('Please select a category');
+			return;
+		}
+		if (!rental.name.trim()) {
+			alert('Please enter a title');
+			return;
+		}
+		if (!rental.contact_phone.trim()) {
+			alert('Please enter a contact phone');
+			return;
+		}
+
+		try {
+			setUploadingImages(true);
+			const uploadedImages: { image: string; is_primary: number }[] = [];
+
+			for (const img of pendingImages) {
+				const publicUrl = await uploadFileToS3(img.file);
+				uploadedImages.push({
+					image: publicUrl,
+					is_primary: img.isPrimary ? 1 : 0,
+				});
+			}
+
+			const requestData = {
+				...rental,
+				category: categoryValue,
+				images: uploadedImages,
+			};
+
+			await addRental(requestData);
+		} catch (error) {
+			console.error('Error creating rental:', error);
+			alert('Failed to create rental');
+		} finally {
+			setUploadingImages(false);
+		}
+	};
+
+	// Loading state
+	if (isLoading) {
+		return (
+			<div className="flex h-screen items-center justify-center">
+				<div className="text-xl">Loading categories...</div>
+			</div>
+		);
+	}
+
+	// Error state
+	// if (isError || !Array.isArray(categories)) {
+	// 	return (
+	// 		<div className="flex h-screen items-center justify-center">
+	// 			<div className="text-xl text-red-600">Failed to load categories</div>
+	// 		</div>
+	// 	);
+	// }
+
+	return (
+		<div className="min-h-screen bg-gray-50 text-gray-900">
+			<div className="mx-auto max-w-7xl p-4 md:p-6">
+				<div className="mb-6 md:mb-8">
+					<h1 className="text-2xl md:text-3xl font-bold">Add New Rental</h1>
+					<p className="mt-2 text-gray-500">Fill in the details below to create a new rental listing</p>
+				</div>
+
+				{/* Loading Overlay */}
+				{(isPending || uploadingImages) && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+						<div className="rounded-xl bg-white p-6 text-center">
+							<div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
+							<p className="text-lg font-medium">{uploadingImages ? 'Uploading images...' : 'Creating rental...'}</p>
+							<p className="mt-2 text-sm text-gray-600">Please don't close this page</p>
+						</div>
+					</div>
+				)}
+
+				<div className="grid gap-6 lg:grid-cols-3">
+					{/* Images Section */}
+					<div className="lg:col-span-1">
+						<div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+							<h2 className="mb-4 text-lg md:text-xl font-semibold">Images</h2>
+
+							<div className="mb-4">
+								<label className="mb-2 block text-sm font-medium">Upload Images *</label>
+								<input
+									type="file"
+									accept="image/*"
+									multiple
+									onChange={handleImageSelection}
+									className="block w-full cursor-pointer rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm file:mr-4 file:rounded file:border-0 file:bg-blue-500 file:px-4 file:py-2 file:text-white"
+								/>
+								<p className="mt-2 text-sm text-gray-500">At least one image required. First image becomes primary by default.</p>
+							</div>
+
+							<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+								{pendingImages.map((image, index) => (
+									<div key={index} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-300 bg-gray-100">
+										<img src={image.uri} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" />
+										<div className="absolute inset-0 bg-black/0 transition-all group-hover:bg-black/40">
+											<div className="absolute bottom-0 left-0 right-0 flex translate-y-full justify-between bg-black/60 p-2 transition-transform group-hover:translate-y-0">
+												<button
+													onClick={() => setPendingPrimaryImage(index)}
+													className={`rounded px-2 py-1 text-xs font-medium ${
+														image.isPrimary ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-700'
+													}`}
+												>
+													{image.isPrimary ? 'Primary' : 'Set Primary'}
+												</button>
+												<button
+													onClick={() => removePendingImage(index)}
+													className="rounded bg-red-500 p-1 text-white hover:bg-red-600"
+												>
+													<svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+													</svg>
+												</button>
+											</div>
+										</div>
+										{image.isPrimary && (
+											<div className="absolute top-2 left-2 rounded bg-blue-500 px-2 py-1 text-xs font-medium text-white">Primary</div>
+										)}
+									</div>
+								))}
+							</div>
+
+							{pendingImages.length > 0 && (
+								<div className="mt-4 rounded-lg bg-gray-100 p-3">
+									<p className="text-sm font-medium">
+										{pendingImages.length} image{pendingImages.length !== 1 ? 's' : ''} selected
+									</p>
+								</div>
+							)}
+						</div>
+					</div>
+
+					{/* Form Section */}
+					<div className="lg:col-span-2 space-y-6">
+						{/* Basic Info */}
+						<div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+							<h2 className="mb-4 text-lg md:text-xl font-semibold">Basic Information</h2>
+							<div className="grid gap-4 md:grid-cols-2">
+								<div>
+									<label className="mb-2 block text-sm font-medium">Category *</label>
+									<select
+										value={categoryValue ?? ''}
+										onChange={(e) => {
+											const val = e.target.value ? Number(e.target.value) : null;
+											setCategoryValue(val);
+											setRental((prev) => ({ ...prev, category: val ?? 0 }));
+										}}
+										className="w-full rounded-lg border border-gray-300 px-4 py-3"
+									>
+										<option value="">-- Select Category --</option>
+
+										{data?.result.list.map((category: TCategory) => (
+											<option key={category.id} value={category.id} disabled={category.is_active === 1}>
+												{category.name}
+												{category.is_active === 1 && ' (Disabled)'}
+											</option>
+										))}
+									</select>
+								</div>
+
+								<div>
+									<label className="mb-2 block text-sm font-medium">Insurance Required</label>
+									<select
+										value={insuranceValue}
+										onChange={(e) => setInsuranceValue(Number(e.target.value))}
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									>
+										<option value={1}>Required</option>
+										<option value={0}>Not Required</option>
+									</select>
+								</div>
+
+								<div className="md:col-span-2">
+									<label className="mb-2 block text-sm font-medium">Title *</label>
+									<input
+										type="text"
+										value={rental.name}
+										onChange={(e) => setRental((prev) => ({ ...prev, name: e.target.value }))}
+										placeholder="e.g., Professional DSLR Camera"
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									/>
+								</div>
+
+								<div className="md:col-span-2">
+									<label className="mb-2 block text-sm font-medium">Description</label>
+									<textarea
+										rows={4}
+										value={rental.description}
+										onChange={(e) => setRental((prev) => ({ ...prev, description: e.target.value }))}
+										placeholder="Describe your rental item..."
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									/>
+								</div>
+
+								<div>
+									<label className="mb-2 block text-sm font-medium">Contact Phone *</label>
+									<input
+										type="tel"
+										value={rental.contact_phone}
+										onChange={(e) => setRental((prev) => ({ ...prev, contact_phone: e.target.value }))}
+										placeholder="+1234567890"
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									/>
+								</div>
+
+								<div>
+									<label className="mb-2 block text-sm font-medium">Delivery Time</label>
+									<input
+										type="text"
+										value={rental.delivery_time}
+										onChange={(e) => setRental((prev) => ({ ...prev, delivery_time: e.target.value }))}
+										placeholder="e.g., 2-3 business days"
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									/>
+								</div>
+
+								<div>
+									<label className="mb-2 block text-sm font-medium">Delivery Fee ($)</label>
+									<input
+										type="number"
+										min="0"
+										step="0.01"
+										value={rental.delivery_fee}
+										onChange={(e) => setRental((prev) => ({ ...prev, delivery_fee: parseFloat(e.target.value) || 0 }))}
+										placeholder="0.00"
+										className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Specifications */}
+						<div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+							<h2 className="mb-4 text-lg md:text-xl font-semibold">Specifications</h2>
+							<div className="mb-4 grid gap-3 sm:grid-cols-3">
+								<input
+									type="text"
+									value={newSpec.label}
+									onChange={(e) => setNewSpec((prev) => ({ ...prev, label: e.target.value }))}
+									placeholder="Label (e.g., Brand)"
+									className="rounded-lg border border-gray-300 px-4 py-3"
+								/>
+								<input
+									type="text"
+									value={newSpec.value}
+									onChange={(e) => setNewSpec((prev) => ({ ...prev, value: e.target.value }))}
+									placeholder="Value (e.g., Canon)"
+									className="rounded-lg border border-gray-300 px-4 py-3"
+								/>
+								<button
+									onClick={addSpecification}
+									className="flex items-center justify-center rounded-lg bg-blue-500 px-4 py-3 font-medium text-white hover:bg-blue-600"
+								>
+									<svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+									</svg>
+									Add
+								</button>
+							</div>
+
+							<div className="space-y-3">
+								{rental.specifications.length === 0 ? (
+									<p className="rounded-lg bg-gray-100 p-4 text-center text-gray-600">No specifications added yet</p>
+								) : (
+									rental.specifications.map((spec, i) => (
+										<div key={i} className="flex items-center justify-between rounded-lg bg-gray-100 p-4">
+											<div>
+												<span className="font-medium">{spec.label}:</span>
+												<span className="ml-2 text-gray-700">{spec.value}</span>
+											</div>
+											<button onClick={() => removeSpecification(i)} className="text-red-600 hover:text-red-800">
+												Remove
+											</button>
+										</div>
+									))
+								)}
+							</div>
+						</div>
+
+						{/* Rates */}
+						<div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+							<h2 className="mb-4 text-lg md:text-xl font-semibold">Rental Rates</h2>
+							<div className="mb-4 grid gap-3 sm:grid-cols-3">
+								<select
+									value={newRate.period}
+									onChange={(e) => setNewRate((prev) => ({ ...prev, period: e.target.value as any }))}
+									className="rounded-lg border border-gray-300 px-4 py-3"
+								>
+									<option value="PerHour">Per Hour</option>
+									<option value="PerTrip">Per Trip</option>
+								</select>
+								<input
+									type="number"
+									min="0"
+									step="0.01"
+									value={newRate.rate}
+									onChange={(e) => setNewRate((prev) => ({ ...prev, rate: e.target.value }))}
+									placeholder="Rate Amount"
+									className="rounded-lg border border-gray-300 px-4 py-3"
+								/>
+								<button
+									onClick={addRate}
+									className="flex items-center justify-center rounded-lg bg-blue-500 px-4 py-3 font-medium text-white hover:bg-blue-600"
+								>
+									<svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+									</svg>
+									Add Rate
+								</button>
+							</div>
+
+							<div className="space-y-3">
+								{rental.rates.length === 0 ? (
+									<p className="rounded-lg bg-gray-100 p-4 text-center text-gray-600">No rates added yet</p>
+								) : (
+									rental.rates.map((rate, i) => (
+										<div key={i} className="flex items-center justify-between rounded-lg bg-gray-100 p-4">
+											<div>
+												<span className="font-medium">{rate.period === 'PerHour' ? 'Hourly' : 'Per Trip'} Rate:</span>
+												<span className="ml-2 text-lg font-semibold text-blue-600">${rate.rate.toFixed(2)}</span>
+											</div>
+											<button onClick={() => removeRate(i)} className="text-red-600 hover:text-red-800">
+												Remove
+											</button>
+										</div>
+									))
+								)}
+							</div>
+						</div>
+
+						{/* Actions */}
+						<div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
+							<button
+								onClick={() => window.history.back()}
+								className="rounded-lg border border-gray-300 px-6 py-3 font-medium text-gray-700 hover:bg-gray-50"
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleAddRental}
+								disabled={
+									isPending ||
+									uploadingImages ||
+									pendingImages.length === 0 ||
+									!categoryValue ||
+									!rental.name.trim() ||
+									!rental.contact_phone.trim()
+								}
+								className="rounded-lg bg-blue-600 px-8 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								Create Rental
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default RentalAddPage;

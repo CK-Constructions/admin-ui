@@ -16,13 +16,6 @@ import {
 	Tooltip,
 	Typography,
 	Pagination,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	Button,
-	Divider,
-	Grid,
 } from '@mui/material';
 import { MoreVerticalIcon } from 'lucide-react';
 import Header from '../common/Header';
@@ -42,10 +35,6 @@ const ServiceOrderPage: React.FC = () => {
 	const [menuOrder, setMenuOrder] = useState<ServiceOrder | null>(null);
 	const [isCancelling, setIsCancelling] = useState(false);
 	const [isRedirecting, setIsRedirecting] = useState(false);
-
-	// modal state
-	const [viewOpen, setViewOpen] = useState(false);
-	const [selectedOrder, setSelectedOrder] = useState<ServiceOrder | null>(null);
 
 	const menuOpen = Boolean(anchorEl);
 
@@ -120,15 +109,15 @@ const ServiceOrderPage: React.FC = () => {
 				break;
 			case 'redirect':
 				setIsRedirecting(true);
-				redirectService({ service_order_id: menuOrder.id }); // ✅ send service_order_id
+				redirectService({ service_order_id: menuOrder.id });
 				break;
 			case 'update':
 				console.log('Update', menuOrder.id);
 				handleMenuClose();
 				break;
 			case 'view':
-				setSelectedOrder(menuOrder);
-				setViewOpen(true);
+				// Navigate to detailed page instead of opening modal
+				navigate(`/service-orders/${menuOrder.id}`);
 				handleMenuClose();
 				break;
 			case 'print':
@@ -315,52 +304,6 @@ const ServiceOrderPage: React.FC = () => {
 				</Box>
 				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />}
 			</Box>
-
-			{/* View Service Order Modal */}
-			<Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="md" fullWidth>
-				<DialogTitle>Service Order Details</DialogTitle>
-				<Divider />
-				<DialogContent dividers>
-					{selectedOrder ? (
-						<Grid container spacing={2}>
-							{[
-								['Order ID', selectedOrder.id],
-								['Address ID', selectedOrder.address_id],
-								['User ID', selectedOrder.user_id],
-								['Service ID', selectedOrder.service_id],
-								['Service Name', selectedOrder.service_name],
-								['Service Rate ID', selectedOrder.service_rate_id],
-								['Total Amount', `₹${selectedOrder.total_amount}`],
-								['Final Amount', `₹${selectedOrder.final_amount}`],
-								['Discount Amount', selectedOrder.discount_amount],
-								['Discount ID', selectedOrder.discount_id ?? '—'],
-								['Payment Status', selectedOrder.payment_status],
-								['Payment Failure Reason', selectedOrder.payment_failure_reason ?? '—'],
-								['Razorpay Order ID', selectedOrder.razorpay_order_id ?? '—'],
-								['Razorpay Payment ID', selectedOrder.razorpay_payment_id ?? '—'],
-								['Razorpay Signature', selectedOrder.razorpay_signature ?? '—'],
-								['Order Status', selectedOrder.order_status],
-								['Created On', new Date(selectedOrder.created_on).toLocaleString()],
-								['Updated On', new Date(selectedOrder.updated_on).toLocaleString()],
-							].map(([label, value]) => (
-								<Grid item xs={12} sm={6} key={label as string}>
-									<Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-										{label}:
-									</Typography>
-									<Typography>{value === null || value === undefined || value === '' ? '—' : String(value)}</Typography>
-								</Grid>
-							))}
-						</Grid>
-					) : (
-						<Typography>No details available.</Typography>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setViewOpen(false)} variant="contained" color="primary">
-						Close
-					</Button>
-				</DialogActions>
-			</Dialog>
 		</div>
 	);
 };

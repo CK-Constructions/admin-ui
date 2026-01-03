@@ -4,7 +4,9 @@ import {
 	addBrand,
 	addBrandImages,
 	addListingCategory,
+	AddRental,
 	AddRentalCategory,
+	AddService,
 	AddServiceCategory,
 	addSubCategory,
 	addSubCatImage,
@@ -80,9 +82,11 @@ import {
 	updateApproval,
 	updateBrand,
 	UpdateListingCategory,
+	UpdateRental,
 	updateRentalApprovals,
 	UpdateRentalCategory,
 	updateRentalOrderStatus,
+	UpdateService,
 	updateServiceApprovals,
 	UpdateServiceCategory,
 	updateSubCategory,
@@ -137,6 +141,8 @@ export const queryConfigs = {
 	useGetAllRentalBans: { queryFn: getAllRentalBans, queryKeys: [queryKeys.rentalbans] },
 	useGetRentalBanByID: { queryFn: getRentalBanByID, queryKeys: [queryKeys.rentalban] },
 	useGetRentalUnbanByID: { queryFn: getRentalUnBanByID, queryKeys: [queryKeys.rentalban] },
+	useAddRental: { queryFn: AddRental, queryKeys: [queryKeys.rentals] },
+	useUpdateRental: { queryFn: UpdateRental, queryKeys: [queryKeys.rental] },
 	//RENTAL APPROVALs
 
 	useUpdateRentalApproval: { queryFn: updateRentalApprovals, queryKeys: [queryKeys.rentalapprovals] },
@@ -145,13 +151,15 @@ export const queryConfigs = {
 	useRejectedGetRental: { queryFn: getRejectedRentalApprovals, queryKeys: [queryKeys.rejected_rentalapprovals] },
 
 	//Service approval
-	useUpdateService: { queryFn: updateServiceApprovals, queryKeys: [queryKeys.serviceapprovals] },
+	useUpdateServiceApproval: { queryFn: updateServiceApprovals, queryKeys: [queryKeys.serviceapprovals] },
 	useActiveGetService: { queryFn: getActiveServiceApprovals, queryKeys: [queryKeys.serviceapprovals] },
 	useConfirmedGetService: { queryFn: getConfirmedServiceApprovals, queryKeys: [queryKeys.confirmed_serviceapprovals] },
 	useRejectedGetService: { queryFn: getRejectedServiceApprovals, queryKeys: [queryKeys.rejected_serviceapprovals] },
 
 	useGetAllService: { queryFn: getAllService, queryKeys: [queryKeys.services] },
 	useGetServiceDetails: { queryFn: getServiceDetails, queryKeys: [queryKeys.service] },
+	useAddService: { queryFn: AddService, queryKeys: [queryKeys.services] },
+	useUpdateService: { queryFn: UpdateService, queryKeys: [queryKeys.service] },
 
 	//Service Categories
 	useGetServiceCategories: { queryFn: getActiveServiceCategories, queryKeys: [queryKeys.service_categories] },

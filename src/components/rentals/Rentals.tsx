@@ -21,7 +21,7 @@ import {
 } from '@mui/material';
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { TRentalItem } from '../lib/types/response';
 import { TQueryParams } from '../lib/types/common';
 import { sanitizeValue } from '../utils/utils';
@@ -180,6 +180,7 @@ export default function Rentals() {
 		<>
 			<div className="pb-4">
 				<Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={false} pageName="Vehicle Rentals" />
+				<Link to="/addrental">Add rental</Link>
 			</div>
 
 			<div className="flex flex-col h-full p-6">
@@ -234,6 +235,12 @@ export default function Rentals() {
 											<Tooltip title="View">
 												<button onClick={() => handleNavToView(rental.id)} className="action-button">
 													<FaEye size={14} />
+												</button>
+											</Tooltip>
+
+											<Tooltip title="Edit">
+												<button onClick={() => navigate(`/rental/${rental.id}`)} className="blue-action-button">
+													✎
 												</button>
 											</Tooltip>
 

@@ -198,7 +198,7 @@ const RentalOrderList: React.FC = () => {
 									}}
 								>
 									<TableCell>#{order.id}</TableCell>
-									<TableCell>#{order.rental_id}</TableCell>
+									<TableCell>#{order.admin_rental_id}</TableCell>
 									<TableCell>#{order.user_id}</TableCell>
 									<TableCell>{order.rental_name || '-'}</TableCell>
 									<TableCell>

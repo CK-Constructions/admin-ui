@@ -40,6 +40,12 @@ import CkInteriorInquiry from '../components/inquiry/interiorinquiry/CkInteriorI
 import ViewRentalOrder from '../components/rental-order/ViewRentalOrder';
 import Address from '../components/address/Address';
 import ImageUpload from '../imgaeUpload';
+import AddRental from '../components/rentals/AddRental';
+import AdminServiceAddPage from '../components/services/AddService';
+import ServiceAddPage from '../components/services/AddService';
+import AdminServiceUpdatePage from '../components/services/UpdateService';
+import RentalUpdatePage from '../components/rentals/UpdateRentals';
+import ServiceOrderView from '../components/service-order/ServiceOrderView';
 
 const App = () => {
 	const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -204,10 +210,42 @@ const App = () => {
 						}
 					/>
 					<Route
+						path="/addrental"
+						element={
+							<AnimatedRoute>
+								<AddRental />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/addservice"
+						element={
+							<AnimatedRoute>
+								<ServiceAddPage />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/service/:id"
+						element={
+							<AnimatedRoute>
+								<AdminServiceUpdatePage />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
 						path="/rentals/:id"
 						element={
 							<AnimatedRoute>
 								<RentalView />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/rental/:id"
+						element={
+							<AnimatedRoute>
+								<RentalUpdatePage />
 							</AnimatedRoute>
 						}
 					/>
@@ -303,7 +341,7 @@ const App = () => {
 						path="/rental-orders"
 						element={
 							<AnimatedRoute>
-								<RentalOrder />
+								<ServiceOrderView />
 							</AnimatedRoute>
 						}
 					/>
@@ -320,6 +358,14 @@ const App = () => {
 						element={
 							<AnimatedRoute>
 								<ServiceOrder />
+							</AnimatedRoute>
+						}
+					/>
+					<Route
+						path="/service-orders/:id"
+						element={
+							<AnimatedRoute>
+								<ServiceOrderView />
 							</AnimatedRoute>
 						}
 					/>
