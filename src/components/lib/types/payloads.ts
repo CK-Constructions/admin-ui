@@ -11,7 +11,7 @@ export type TUserFormData = {
 	status?: number;
 	email: string;
 	password?: string;
-	image?: string | File | null;
+	image?: string;
 };
 export type TApprovalPayload = {
 	listing_id: string;
