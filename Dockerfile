@@ -6,11 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
-
-# ARG VITE_RAZORPAY_KEY
-# ENV VITE_RAZORPAY_KEY=$VITE_RAZORPAY_KEY
-
-RUN npm run build   # creates /app/dist
+RUN npm run build   # creates /app/build
 
 # -------- Production Stage --------
 FROM node:20-alpine
@@ -18,7 +14,7 @@ WORKDIR /app
 
 RUN npm install -g serve
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/build ./build
 
 EXPOSE 8060
-CMD ["serve", "-s", "dist", "-l", "8060"]
+CMD ["serve", "-s", "build", "-l", "8060"]
