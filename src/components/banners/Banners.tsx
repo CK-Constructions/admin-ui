@@ -1,484 +1,496 @@
-import { Box, Button, Checkbox, Chip, Modal, Paper, TextField, Tooltip, Typography } from '@mui/material';
-import React, { useState } from 'react';
-import { TSubCatImageBody } from '../lib/types/response';
-import { uploadFileToS3 } from '../../api';
-import { showNotification } from '../utils/utils';
-import { queryConfigs } from '../../query/queryConfig';
-import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
-import Header from '../common/Header';
-import { useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { Box, Button, Checkbox, Chip, Modal, Paper, Stack, TextField, Tooltip, Typography } from '@mui/material';
 import { FaBan, FaCheck, FaSearchMinus, FaSearchPlus, FaTimes, FaTrash } from 'react-icons/fa';
-import { TBanner, TBannerBody } from '../lib/types/common';
 import { MdOutlineAddToPhotos } from 'react-icons/md';
 import { BsUniversalAccessCircle } from 'react-icons/bs';
+
+import Header from '../common/Header';
 import { BannerStatusModal } from '../buyers/ActiveBannerModal';
 
+import { useNavigate } from 'react-router-dom';
+import { uploadFileToS3 } from '../../api';
+import { showNotification } from '../utils/utils';
+import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
+import { queryConfigs } from '../../query/queryConfig';
+
+import type { TBanner, TBannerBody } from '../lib/types/common';
+
+const LIMIT = 10;
+const DEFAULT_SCALE = 1;
+
 const Banners = () => {
-	const LIMIT = 10;
-	const tileSize = 200;
-	const [currentPage, setCurrentPage] = useState(1);
-	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [selectedBanner, setSelectedBanner] = useState<TBanner | null>(null);
-	const [isBannerActive, setIsBannerActive] = useState(false);
+	const navigate = useNavigate();
 
-	const handleOpenDeactivateModal = (banner: TBanner) => {
-		setSelectedBanner(banner);
-		setIsBannerActive(true); // true means the banner is currently active
-		setIsModalOpen(true);
-	};
+	// Pagination & Data
+	const [page, setPage] = useState(1);
 
-	const handleOpenActivateModal = (banner: TBanner) => {
-		setSelectedBanner(banner);
-		setIsBannerActive(false); // false means the banner is currently inactive
-		setIsModalOpen(true);
-	};
+	const { queryFn: getAllBanners, queryKeys: bannersKey } = queryConfigs.useGetAllBanners;
 
-	const [selectMode, setSelectMode] = useState(false);
-	const [selectedImages, setSelectedImages] = useState<number[]>([]);
-	const { queryFn: getAllBannersFunc, queryKeys: bannerKey } = queryConfigs.useGetAllBanners;
-
-	const { queryFn: enableBanner } = queryConfigs.useEnableBanner;
-	const { queryFn: disableBanner } = queryConfigs.useDisableBanner;
-
-	const { queryFn: addBannerFunc } = queryConfigs.useAddBanner;
-	const { data, refetch, isLoading, isRefetching, isError } = useGetQuery({
-		func: getAllBannersFunc,
-		key: bannerKey,
+	const {
+		data,
+		refetch,
+		isLoading: isLoadingBanners,
+		isRefetching,
+	} = useGetQuery({
+		func: getAllBanners,
+		key: bannersKey,
 		params: {
-			offset: (currentPage - 1) * LIMIT,
+			offset: (page - 1) * LIMIT,
 			limit: LIMIT,
 		},
 	});
-	const { mutate: addBanner } = useMutationQuery({
-		invalidateKey: bannerKey,
-		func: addBannerFunc,
-		onSuccess: () => {
-			showNotification('success', 'Banner added successfully');
-			handleCloseAddImages();
-			setImages([]);
-			setPreviews([]);
-		},
-	});
-	const { mutate: enable } = useMutationQuery({
-		invalidateKey: bannerKey,
-		func: enableBanner,
-		onSuccess: () => {
-			showNotification('success', 'Banner enabled successfully');
-			handleCloseAddImages();
-			setImages([]);
-			setPreviews([]);
-		},
-	});
-	const { mutate: disable } = useMutationQuery({
-		invalidateKey: bannerKey,
-		func: disableBanner,
-		onSuccess: () => {
-			showNotification('success', 'Banner added successfully');
-			handleCloseAddImages();
-			setImages([]);
-			setPreviews([]);
-		},
-	});
-	const [images, setImages] = useState<Partial<TBanner>[]>([]);
-	const [previews, setPreviews] = useState<string[]>([]);
-	const [bannerData, setBannerData] = useState<TBannerBody>({
+
+	// Add Banner Modal
+	const [openAddModal, setOpenAddModal] = useState(false);
+	const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+	const [bannerForm, setBannerForm] = useState<TBannerBody>({
 		image: undefined,
+		title: '',
 		description: '',
 		path: '',
-		title: '',
 	});
 
-	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files.length > 0) {
-			// Only take the first file if multiple are selected
-			const file = e.target.files[0];
+	// Status Change Modal
+	const [statusModal, setStatusModal] = useState<{
+		open: boolean;
+		banner: TBanner | null;
+		willActivate: boolean;
+	}>({
+		open: false,
+		banner: null,
+		willActivate: false,
+	});
 
-			// Create preview
-			const preview = await new Promise<string>((resolve) => {
-				const reader = new FileReader();
-				reader.onloadend = () => resolve(reader.result as string);
-				reader.readAsDataURL(file);
-			});
+	// Fullscreen Viewer
+	const [viewer, setViewer] = useState<{
+		open: boolean;
+		banner: TBanner | null;
+		scale: number;
+	}>({
+		open: false,
+		banner: null,
+		scale: DEFAULT_SCALE,
+	});
 
-			setPreviews([preview]); // Only keep one preview
+	// Multi-select mode
+	const [selectMode, setSelectMode] = useState(false);
+	const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-			try {
-				// Upload the image
-				const response = await uploadFileToS3(file);
-				setBannerData((prev) => ({
-					...prev,
-					image: response.toString(),
-				}));
-			} catch (error) {
-				console.error(error);
-				showNotification('error', 'Failed to upload image');
-			}
+	// Mutations
+	const { mutate: addBanner, isPending: isAdding } = useMutationQuery({
+		invalidateKey: bannersKey,
+		func: queryConfigs.useAddBanner.queryFn,
+		onSuccess: () => {
+			showNotification('success', 'Banner created successfully');
+			handleCloseAddModal();
+		},
+	});
+
+	const { mutate: enableBanner } = useMutationQuery({
+		invalidateKey: bannersKey,
+		func: queryConfigs.useEnableBanner.queryFn,
+		onSuccess: () => showNotification('success', 'Banner activated'),
+	});
+
+	const { mutate: disableBanner } = useMutationQuery({
+		invalidateKey: bannersKey,
+		func: queryConfigs.useDisableBanner.queryFn,
+		onSuccess: () => showNotification('success', 'Banner deactivated'),
+	});
+
+	// Handlers
+	const handleImageChange = async (file?: File) => {
+		if (!file) return;
+
+		const objectUrl = URL.createObjectURL(file);
+		setPreviewUrl(objectUrl);
+
+		try {
+			const publicUrl = await uploadFileToS3(file);
+			setBannerForm((prev) => ({ ...prev, image: publicUrl }));
+		} catch (err) {
+			showNotification('error', 'Failed to upload image');
+			setPreviewUrl(null);
 		}
 	};
+
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		const { name, value } = e.target;
-		setBannerData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
+		setBannerForm((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleSubmit = async () => {
-		try {
-			await addBanner(bannerData);
-			showNotification('success', 'Banner added successfully');
-			handleCloseAddImages();
-			setBannerData({
-				image: undefined,
-				description: '',
-				path: '',
-				title: '',
-			});
-			setPreviews([]);
-		} catch (error) {
-			console.error(error);
-			showNotification('error', 'Failed to add banner');
+	const handleSubmitBanner = () => {
+		if (!bannerForm.image) {
+			showNotification('warning', 'Please upload an image first');
+			return;
 		}
-	};
-	const removeImage = (index: number) => {
-		setImages((prev) => prev.filter((_, i) => i !== index));
-		setPreviews((prev) => prev.filter((_, i) => i !== index));
-	};
-	const toggleSelectMode = () => {
-		setSelectMode(!selectMode);
-		if (selectMode) {
-			setSelectedImages([]);
+		if (!bannerForm.title?.trim()) {
+			showNotification('warning', 'Title is required');
+			return;
 		}
+
+		addBanner(bannerForm);
 	};
 
-	const [openAddModal, setOpenAddModal] = useState(false);
-	const handleOpenModal = () => {
-		setOpenAddModal(true);
-	};
-	const handleCloseAddImages = () => {
+	const handleCloseAddModal = () => {
 		setOpenAddModal(false);
-	};
-	const [scale, setScale] = useState(1);
-
-	const [selectedImage, setSelectedImage] = useState<TBanner | null>(null);
-	const [isFullscreen, setIsFullscreen] = useState(false);
-	const handleScaleUp = () => {
-		setScale((prev) => Math.min(prev + 0.1, 2));
-	};
-	const handleScaleDown = () => {
-		setScale((prev) => Math.max(prev - 0.1, 0.5));
-	};
-	const toggleImageSelection = (imageId: number) => {
-		setSelectedImages((prev) => (prev.includes(imageId) ? prev.filter((id) => id !== imageId) : [...prev, imageId]));
+		setPreviewUrl(null);
+		setBannerForm({
+			image: undefined,
+			title: '',
+			description: '',
+			path: '',
+		});
 	};
 
-	const handleImageClick = (image: TBanner) => {
+	useEffect(() => {
+		return () => {
+			if (previewUrl) URL.revokeObjectURL(previewUrl);
+		};
+	}, [previewUrl]);
+
+	const openStatusModal = (banner: TBanner, willActivate: boolean) => {
+		setStatusModal({ open: true, banner, willActivate });
+	};
+
+	const handleImageClick = (banner: TBanner) => {
 		if (selectMode) {
-			toggleImageSelection(image?.id || 0);
+			setSelectedIds((prev) => (prev.includes(banner.id) ? prev.filter((id) => id !== banner.id) : [...prev, banner.id]));
 		} else {
-			setSelectedImage(image);
-			setIsFullscreen(true);
+			setViewer({ open: true, banner, scale: DEFAULT_SCALE });
 		}
 	};
-	const closeFullscreen = () => {
-		setIsFullscreen(false);
-		setSelectedImage(null);
-	};
-	const [selectedUser, setSelectedUser] = useState<TBanner | null>(null);
-	const [openBanDialog, setOpenBanDialog] = useState(false);
-	const handleOpenBanDialog = (image: TBanner) => {
-		setSelectedUser(image);
-		setOpenBanDialog(true);
-	};
-	const navigate = useNavigate();
+
+	const zoomIn = () => setViewer((p) => ({ ...p, scale: Math.min(p.scale + 0.15, 2.5) }));
+	const zoomOut = () => setViewer((p) => ({ ...p, scale: Math.max(p.scale - 0.15, 0.4) }));
+
+	const isActive = (banner: TBanner) => banner.is_active === 0;
+
 	return (
-		<>
-			<div className="p-4">
-				<div className="pb-4">
-					<Header
-						onBackClick={() => navigate(-1)}
-						onReloadClick={refetch}
-						showButton={true}
-						buttonTitle="Add Images"
-						pageName="Banner Image"
-						buttonFunc={handleOpenModal}
-					/>
-				</div>
-				<div className="flex items-center gap-4 mb-4 flex-wrap">
-					<div className="flex items-center gap-4">
-						<button onClick={handleScaleDown} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center gap-2">
-							<FaSearchMinus /> Zoom Out
-						</button>
-						<span className="text-sm">Scale: {Math.round(scale * 100)}%</span>
-						<button onClick={handleScaleUp} className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 flex items-center gap-2">
-							<FaSearchPlus /> Zoom In
-						</button>
-					</div>
+		<div className="p-5 max-w-[1800px] mx-auto">
+			<Header
+				onBackClick={() => navigate(-1)}
+				onReloadClick={refetch}
+				showButton
+				buttonTitle="Add New Banner"
+				pageName="Banner Management"
+				buttonFunc={() => setOpenAddModal(true)}
+			/>
 
-					<div className="flex items-center gap-4 ml-auto">
-						{/* {selectMode && (
-            <button
-              onClick={handleDeleteSelected}
-              disabled={selectedImages.length === 0}
-              className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 flex items-center gap-2 disabled:bg-gray-400"
-            >
-              <FaTrash /> Delete Selected ({selectedImages.length})
-            </button>
-          )} */}
-						<button
-							onClick={toggleSelectMode}
-							className={`px-3 py-1 rounded flex items-center gap-2 ${
-								selectMode ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-200 hover:bg-gray-300'
-							}`}
-						>
-							{selectMode ? <FaCheck /> : <FaTrash />}
-							{selectMode ? 'Cancel Selection' : 'Select Images'}
-						</button>
-					</div>
+			{/* Controls */}
+			<div className="flex flex-wrap items-center justify-between gap-4 my-6">
+				<div className="flex items-center gap-4">
+					<Button variant="outlined" size="small" startIcon={<FaSearchMinus />} onClick={zoomOut} disabled={viewer.open}>
+						Zoom Out
+					</Button>
+					<span className="text-sm text-gray-600 min-w-[90px]">Grid zoom: {Math.round(viewer.scale * 100)}%</span>
+					<Button variant="outlined" size="small" startIcon={<FaSearchPlus />} onClick={zoomIn} disabled={viewer.open}>
+						Zoom In
+					</Button>
 				</div>
 
-				<div className="flex flex-wrap gap-4">
-					{data?.result?.list.map((item: TBanner) => (
-						<div
-							key={item.id}
-							className="relative rounded-lg shadow-md border border-gray-200 cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
-							style={{
-								width: '390px',
-								height: '430px',
-								padding: '8px',
-							}}
-						>
-							{selectMode && (
-								<Checkbox
-									checked={selectedImages.includes(item?.id || 0)}
-									onChange={() => toggleImageSelection(item?.id || 0)}
-									onClick={(e) => e.stopPropagation()}
-									style={{
-										position: 'absolute',
-										top: 5,
-										left: 5,
-										zIndex: 10,
-										backgroundColor: 'rgba(255, 255, 255, 0.7)',
-									}}
-								/>
-							)}
-							<div onClick={() => handleImageClick(item)} className="flex-1 overflow-hidden mb-2">
-								<img
-									src={item.image}
-									alt={`Brand ${item.id}`}
-									className="w-full h-full object-contain"
-									style={{
-										opacity: selectMode && selectedImages.includes(item.id || 0) ? 0.7 : 1,
-									}}
-								/>
-							</div>
-							<div className="flex items-center pl-4">
-								<span>
-									<Chip
-										label={item.is_active === 0 ? 'Active' : 'Disabled'}
-										color={item.is_active === 0 ? 'success' : 'error'}
-										size="small"
-										variant="outlined"
-										sx={{
-											fontWeight: 500,
-											borderWidth: 1.5,
-											'& .MuiChip-label': {
-												px: 0.75,
-											},
-										}}
-									/>
-								</span>
-							</div>
-							<div className="p-2 text-sm space-y-1">
-								<div className="flex items-center">
-									<span className="font-semibold mr-1">Title:</span>
-									<span className="truncate">{item.title}</span>
-								</div>
+				<Button
+					variant={selectMode ? 'contained' : 'outlined'}
+					color={selectMode ? 'success' : 'inherit'}
+					startIcon={selectMode ? <FaCheck /> : <FaTrash />}
+					onClick={() => {
+						setSelectMode(!selectMode);
+						if (selectMode) setSelectedIds([]);
+					}}
+				>
+					{selectMode ? 'Exit Selection' : 'Select Mode'}
+				</Button>
+			</div>
 
-								<div className="flex items-center">
-									<span>Path:</span>
-									<span className="">{item.path}</span>
-								</div>
-								<div className="flex items-center">
-									<span>Description:</span>
-									<span className="truncate">{item.description}</span>
-								</div>
-								<div className="flex items-center">
-									<span className="font-semibold mr-1">Created:</span>
-									<span>{new Date(item.created_on).toLocaleDateString()}</span>
-								</div>
-							</div>
-							<div className="border-1 border-gray-600 px-5"></div>
-							<div>
-								{item.is_active === 0 && (
-									<Tooltip title="Disable Banner">
-										<button onClick={() => handleOpenActivateModal(item)} className="red-action-button">
-											<FaBan size={14} />
-										</button>
-									</Tooltip>
-								)}
-								{item.is_active === 1 && (
-									<Tooltip title="Enable Banner">
-										<button onClick={() => handleOpenDeactivateModal(item)} className="green-action-button">
-											<BsUniversalAccessCircle size={14} />
-										</button>
-									</Tooltip>
-								)}
-							</div>
-						</div>
-					))}
-				</div>
-				<Modal open={isFullscreen} onClose={closeFullscreen} aria-labelledby="image-modal" aria-describedby="image-modal-description">
-					<Box
-						sx={{
-							position: 'absolute',
-							top: '50%',
-							left: '50%',
-							transform: 'translate(-50%, -50%)',
-							width: 900,
-							height: 600,
-							bgcolor: 'background.paper',
-							boxShadow: 24,
-							p: 2,
-							outline: 'none',
-							display: 'flex',
-							justifyContent: 'center',
-							alignItems: 'center',
-							aspectRatio: '16 / 9',
-						}}
+			{/* Banner Grid */}
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+				{data?.result?.list?.map((banner: TBanner) => (
+					<div
+						key={banner.id}
+						className={`
+              relative rounded-xl overflow-hidden border shadow-sm transition-all duration-200
+              ${selectMode ? 'hover:ring-2 hover:ring-blue-400' : 'hover:shadow-xl cursor-pointer'}
+              ${selectMode && selectedIds.includes(banner.id) ? 'ring-2 ring-green-500 bg-green-50/30' : ''}
+            `}
+						style={{ aspectRatio: '390 / 480' }}
+						onClick={() => handleImageClick(banner)}
 					>
-						<div className="relative w-full h-full">
-							<img
-								src={`${process.env.REACT_APP_BASE_URL}/${selectedImage?.image}`}
-								alt={`Brand ${selectedImage?.id}`}
-								className="w-full h-full object-contain"
+						{selectMode && (
+							<Checkbox
+								checked={selectedIds.includes(banner.id)}
+								onChange={() => {}}
+								onClick={(e) => e.stopPropagation()}
+								sx={{
+									position: 'absolute',
+									top: 12,
+									left: 12,
+									bgcolor: 'white',
+									zIndex: 10,
+									'&.Mui-checked': { color: '#22c55e' },
+								}}
 							/>
-							<button
-								onClick={closeFullscreen}
-								className="absolute top-2 right-2 bg-white bg-opacity-30 hover:bg-opacity-50 text-gray-800 rounded-full p-2 transition-all"
-								aria-label="Close"
-							>
-								<FaTimes className="h-6 w-6" />
-							</button>
-						</div>
-					</Box>
-				</Modal>
-				<Modal open={openAddModal} onClose={handleCloseAddImages} aria-labelledby="add-images-modal" aria-describedby="add-images-to-brand">
-					<Box
-						sx={{
-							position: 'absolute',
-							top: '50%',
-							left: '50%',
-							transform: 'translate(-50%, -50%)',
-							width: { xs: '90%', sm: 600 },
-							bgcolor: 'background.paper',
-							boxShadow: 24,
-							borderRadius: 2,
-							p: 4,
-							minHeight: 320,
-							maxHeight: '80vh',
-							outline: 'none',
-							overflowY: 'auto',
-						}}
-						component={Paper}
-					>
-						<Typography variant="h5" component="h2" gutterBottom>
-							Add Banner
-						</Typography>
+						)}
 
-						{/* Drag and drop area */}
-						<Box
-							sx={{
-								border: '2px dashed',
-								borderColor: 'grey.400',
-								borderRadius: 2,
-								p: 4,
-								textAlign: 'center',
-								mb: 3,
-								cursor: 'pointer',
-								'&:hover': {
-									borderColor: 'primary.main',
-									backgroundColor: 'action.hover',
-								},
-							}}
-							onClick={() => document.getElementById('banner-upload')?.click()}
-							onDrop={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-								if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-									handleImageChange({
-										target: { files: e.dataTransfer.files },
-									} as React.ChangeEvent<HTMLInputElement>);
-								}
-							}}
-							onDragOver={(e) => {
-								e.preventDefault();
-								e.stopPropagation();
-							}}
-						>
-							<input id="banner-upload" type="file" onChange={handleImageChange} accept="image/*" style={{ display: 'none' }} />
-							{previews.length > 0 ? (
+						<img
+							src={banner.image}
+							alt={banner.title || 'Banner'}
+							className="w-full h-[260px] object-cover"
+							style={{ opacity: selectMode && selectedIds.includes(banner.id) ? 0.75 : 1 }}
+						/>
+
+						<div className="p-4 space-y-2.5 bg-white">
+							<Chip
+								label={isActive(banner) ? 'Active' : 'Inactive'}
+								color={isActive(banner) ? 'success' : 'error'}
+								size="small"
+								variant="outlined"
+							/>
+
+							<div>
+								<Typography variant="subtitle2" noWrap>
+									{banner.title || '—'}
+								</Typography>
+								<Typography variant="caption" color="text.secondary" noWrap>
+									{banner.path || '—'}
+								</Typography>
+							</div>
+
+							<Typography variant="caption" color="text.secondary" className="line-clamp-2 min-h-[2.5em]">
+								{banner.description || 'No description'}
+							</Typography>
+
+							<Typography variant="caption" color="text.disabled">
+								Created: {new Date(banner.created_on).toLocaleDateString()}
+							</Typography>
+
+							<div className="pt-3 flex gap-2">
+								{isActive(banner) ? (
+									<Tooltip title="Deactivate this banner">
+										<Button
+											size="small"
+											color="error"
+											variant="outlined"
+											startIcon={<FaBan />}
+											onClick={(e) => {
+												e.stopPropagation();
+												openStatusModal(banner, false);
+											}}
+										>
+											Disable
+										</Button>
+									</Tooltip>
+								) : (
+									<Tooltip title="Activate this banner">
+										<Button
+											size="small"
+											color="success"
+											variant="outlined"
+											startIcon={<BsUniversalAccessCircle />}
+											onClick={(e) => {
+												e.stopPropagation();
+												openStatusModal(banner, true);
+											}}
+										>
+											Activate
+										</Button>
+									</Tooltip>
+								)}
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+
+			{/* Fullscreen Viewer Modal */}
+			<Modal open={viewer.open} onClose={() => setViewer({ open: false, banner: null, scale: DEFAULT_SCALE })}>
+				<Box
+					sx={{
+						position: 'absolute',
+						inset: 0,
+						bgcolor: 'rgba(0,0,0,0.92)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						p: 2,
+					}}
+				>
+					<div className="relative max-w-[95vw] max-h-[95vh]">
+						{viewer.banner && (
+							<img
+								src={viewer.banner.image}
+								alt={viewer.banner.title}
+								style={{
+									transform: `scale(${viewer.scale})`,
+									transition: 'transform 0.18s ease',
+									maxWidth: '100%',
+									maxHeight: '90vh',
+									objectFit: 'contain',
+								}}
+							/>
+						)}
+
+						<div className="absolute top-4 right-4 flex gap-3">
+							<Button variant="contained" size="small" onClick={zoomOut} sx={{ minWidth: 42, bgcolor: 'rgba(255,255,255,0.25)' }}>
+								<FaSearchMinus />
+							</Button>
+							<Button variant="contained" size="small" onClick={zoomIn} sx={{ minWidth: 42, bgcolor: 'rgba(255,255,255,0.25)' }}>
+								<FaSearchPlus />
+							</Button>
+							<Button
+								variant="contained"
+								color="error"
+								size="small"
+								onClick={() => setViewer({ open: false, banner: null, scale: DEFAULT_SCALE })}
+								sx={{ minWidth: 42 }}
+							>
+								<FaTimes />
+							</Button>
+						</div>
+					</div>
+				</Box>
+			</Modal>
+
+			{/* Add Banner Modal */}
+			<Modal open={openAddModal} onClose={handleCloseAddModal}>
+				<Paper
+					sx={{
+						position: 'absolute',
+						top: '50%',
+						left: '50%',
+						transform: 'translate(-50%, -50%)',
+						width: { xs: '92%', sm: 620 },
+						maxHeight: '94vh',
+						overflowY: 'auto',
+						p: 4,
+						borderRadius: 2,
+					}}
+				>
+					<Typography variant="h5" gutterBottom>
+						Create New Banner
+					</Typography>
+
+					{/* Upload Zone */}
+					<Box
+						onClick={() => document.getElementById('banner-file-input')?.click()}
+						onDrop={(e) => {
+							e.preventDefault();
+							handleImageChange(e.dataTransfer.files?.[0]);
+						}}
+						onDragOver={(e) => e.preventDefault()}
+						sx={{
+							border: '2px dashed',
+							borderColor: previewUrl ? 'primary.main' : 'grey.400',
+							borderRadius: 2,
+							p: 5,
+							textAlign: 'center',
+							mb: 4,
+							cursor: 'pointer',
+							transition: 'all 0.2s',
+							'&:hover': { borderColor: 'primary.main', bgcolor: 'action.hover' },
+						}}
+					>
+						<input
+							id="banner-file-input"
+							type="file"
+							accept="image/*"
+							onChange={(e) => handleImageChange(e.target.files?.[0])}
+							style={{ display: 'none' }}
+						/>
+
+						{previewUrl ? (
+							<Box sx={{ position: 'relative', mx: 'auto', maxWidth: '100%' }}>
 								<img
-									src={previews[0]}
+									src={previewUrl}
 									alt="Preview"
 									style={{
+										maxHeight: 280,
 										maxWidth: '100%',
-										maxHeight: '200px',
 										objectFit: 'contain',
+										borderRadius: 8,
 									}}
 								/>
-							) : (
-								<>
-									<div>
-										<div className="flex items-center justify-center">
-											<MdOutlineAddToPhotos
-												style={{
-													fontSize: 48,
-													color: 'gray',
-													marginBottom: 1,
-												}}
-												className="text-center"
-											/>
-										</div>
-										<Typography variant="body1" color="text.secondary">
-											Click to browse or drag & drop your image here
-										</Typography>
-										<Typography variant="caption" color="text.secondary">
-											(Only one image allowed)
-										</Typography>
-									</div>
-								</>
-							)}
-						</Box>
-
-						{/* Form fields */}
-						<Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-							<TextField fullWidth label="Title" name="title" value={bannerData.title} onChange={handleInputChange} variant="outlined" />
-
-							<TextField
-								fullWidth
-								label="Description"
-								name="description"
-								value={bannerData.description}
-								onChange={handleInputChange}
-								variant="outlined"
-								multiline
-								rows={3}
-							/>
-
-							<TextField fullWidth label="Path (URL)" name="path" value={bannerData.path} onChange={handleInputChange} variant="outlined" />
-						</Box>
-
-						<Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-							<Button variant="contained" onClick={handleSubmit} disabled={!bannerData.image} sx={{ px: 4 }}>
-								Submit Banner
-							</Button>
-						</Box>
+								<Button
+									size="small"
+									color="error"
+									variant="outlined"
+									sx={{ position: 'absolute', top: 12, right: 12 }}
+									onClick={(e) => {
+										e.stopPropagation();
+										setPreviewUrl(null);
+										setBannerForm((p) => ({ ...p, image: undefined }));
+									}}
+								>
+									Remove
+								</Button>
+							</Box>
+						) : (
+							<Stack alignItems="center" spacing={2} py={8}>
+								<MdOutlineAddToPhotos size={64} color="#9ca3af" />
+								<Typography variant="body1" color="text.secondary">
+									Click or drag & drop banner image here
+								</Typography>
+								<Typography variant="caption" color="text.disabled">
+									Recommended: 1920×600 or similar wide aspect ratio
+								</Typography>
+							</Stack>
+						)}
 					</Box>
-				</Modal>
-			</div>
-			{selectedBanner && <BannerStatusModal open={isModalOpen} onClose={() => setIsModalOpen(false)} user={selectedBanner} isActive={isBannerActive} />}
-		</>
+
+					<Stack spacing={3}>
+						<TextField
+							required
+							fullWidth
+							label="Banner Title"
+							name="title"
+							value={bannerForm.title}
+							onChange={handleInputChange}
+							variant="outlined"
+						/>
+
+						<TextField
+							fullWidth
+							multiline
+							rows={3}
+							label="Description (optional)"
+							name="description"
+							value={bannerForm.description}
+							onChange={handleInputChange}
+							variant="outlined"
+						/>
+
+						<TextField
+							fullWidth
+							label="Redirect Path / URL (optional)"
+							name="path"
+							value={bannerForm.path}
+							onChange={handleInputChange}
+							placeholder="/sale/special-offer"
+							variant="outlined"
+						/>
+					</Stack>
+
+					<Stack direction="row" justifyContent="flex-end" spacing={2} mt={5}>
+						<Button variant="outlined" onClick={handleCloseAddModal}>
+							Cancel
+						</Button>
+						<Button variant="contained" onClick={handleSubmitBanner} disabled={isAdding || !bannerForm.image || !bannerForm.title?.trim()}>
+							{isAdding ? 'Creating...' : 'Create Banner'}
+						</Button>
+					</Stack>
+				</Paper>
+			</Modal>
+
+			{/* Status Confirmation Modal */}
+			{statusModal.banner && (
+				<BannerStatusModal
+					open={statusModal.open}
+					onClose={() => setStatusModal((p) => ({ ...p, open: false }))}
+					user={statusModal.banner}
+					isActive={statusModal.willActivate}
+					onConfirm={() => (statusModal.willActivate ? enableBanner(statusModal.banner.id) : disableBanner(statusModal.banner.id))}
+				/>
+			)}
+		</div>
 	);
 };
 

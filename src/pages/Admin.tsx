@@ -10,7 +10,7 @@ import PageNotFound from './PageNotFound';
 import Buyers from '../components/buyers/Buyers';
 import Users from '../components/users/Users';
 import ListingDetailPage from '../components/listings/ListingDetailPage';
-import AddListing from '../components/listings/AddListing';
+// import AddListing from '../components/listings/AddListing';
 import Approval from '../components/approval/Approval';
 import Settings from '../components/settings/Settings';
 import ThemedDashboard from '../components/Dashboard';
@@ -265,14 +265,7 @@ const App = () => {
 							</AnimatedRoute>
 						}
 					/>
-					<Route
-						path="/add-listing"
-						element={
-							<AnimatedRoute>
-								<AddListing />
-							</AnimatedRoute>
-						}
-					/>
+
 					<Route
 						path="/listings/:id"
 						element={
