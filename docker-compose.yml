@@ -4,7 +4,7 @@ networks:
         name: tomthin-net
 
 services:
-    tomthin-store:
+    tomthin-admin:
         image: tomthin-admin-frontend:latest
         build:
             context: .
