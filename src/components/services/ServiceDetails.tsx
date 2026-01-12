@@ -122,7 +122,7 @@ export default function ServiceDetails() {
 
 	const calculateTotal = () => {
 		if (!selectedPeriod || !serviceData?.rates_list) return 0;
-		const selectedRate = serviceData.rates_list.find((rate) => rate.period === selectedPeriod);
+		const selectedRate = serviceData.rates_list.find((rate: any) => rate.period === selectedPeriod);
 		return selectedRate ? selectedRate.rate * bookingQuantity : 0;
 	};
 
@@ -253,7 +253,7 @@ export default function ServiceDetails() {
 
 									{/* Image Indicators */}
 									<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
-										{serviceData.images_list.map((_, index) => (
+										{serviceData.images_list.map((_: any, index: any) => (
 											<button
 												key={index}
 												className={`w-3 h-3 rounded-full transition-all ${
