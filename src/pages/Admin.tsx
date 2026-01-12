@@ -29,8 +29,8 @@ import ListingCategory from '../components/listings/ListingCategory';
 import ProfilePage from '../components/profile/ProfilePage';
 import Brands from '../components/brands/Brands';
 import SubCategory from '../components/subCategory/SubCategory';
-import BrandImages from '../components/brands/BrandImages';
-import SubCategoryImages from '../components/subCategory/SubCategoryImages';
+
+// import SubCategoryImages from '../components/subCategory/SubCategoryImages';
 import Banners from '../components/banners/Banners';
 import ListingOrders from '../components/listing-orders/ListingOrders';
 import RentalOrder from '../components/rental-order/rentalOrder';
@@ -105,14 +105,14 @@ const App = () => {
 							</AnimatedRoute>
 						}
 					/>
-					<Route
+					{/* <Route
 						path="/sub-category/images/:id"
 						element={
 							<AnimatedRoute>
 								<SubCategoryImages />
 							</AnimatedRoute>
 						}
-					/>
+					/> */}
 					<Route
 						path="/brands"
 						element={
@@ -129,14 +129,14 @@ const App = () => {
 							</AnimatedRoute>
 						}
 					/>
-					<Route
+					{/* <Route
 						path="/brands/images/:id"
 						element={
 							<AnimatedRoute>
 								<BrandImages />
 							</AnimatedRoute>
 						}
-					/>
+					/> */}
 					<Route
 						path="/listing-categories"
 						element={

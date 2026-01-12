@@ -15,8 +15,6 @@
 // 	const { queryFn: getBrandsFunc, queryKeys: brandKey } = queryConfigs.useGetAllBrandImages;
 // 	const { queryFn: addBrandImgFunc, queryKeys: bImgKey } = queryConfigs.useAddBrandImages;
 
-import SubCategory from '../subCategory/SubCategory';
-
 // 	const { queryFn: deleteSubCatImagesFunc, queryKeys: deleteKey } = queryConfigs.useDeleteBrandImages;
 
 // 	const [selectMode, setSelectMode] = useState(false);
@@ -317,4 +315,3 @@ import SubCategory from '../subCategory/SubCategory';
 // 	);
 // };
 // export default SubCategoryImages;
-export default SubCategory;
