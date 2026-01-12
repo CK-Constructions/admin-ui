@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Box, Typography, Avatar, Divider, IconButton, Paper, Stack, TextField, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
 import { showNotification } from '../utils/utils';
@@ -19,32 +20,32 @@ interface FormErrors {
 	email?: string;
 	phone?: string;
 	address?: string;
-	status?: string;
 }
 
-const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
-	const { queryFn: UserFunc, queryKey: userKey } = queryConfigs.useGetAdminById;
-	const { mutationFn: updateUserFunc, invalidateKey: updateKey } = queryConfigs.useUpdateAdmin;
+const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid, onSuccess }) => {
+	const { queryFn: getUserById, queryKey } = queryConfigs.useGetAdminById;
+	const { mutationFn: updateUser, invalidateKey } = queryConfigs.useUpdateAdmin;
 
+	/* ---------------------- Fetch User ---------------------- */
 	const { data } = useGetQuery({
-		func: UserFunc,
-		key: userKey,
-		params: {
-			id: userid ?? null,
-		},
-		isEnabled: userid ? true : false,
+		func: getUserById,
+		key: queryKey,
+		params: { id: userid },
+		isEnabled: Boolean(userid),
 	});
 
-	const { mutate } = useMutationQuery({
-		func: updateUserFunc,
-		invalidateKey: updateKey,
-
+	/* ---------------------- Update User --------------------- */
+	const { mutate, isPending } = useMutationQuery({
+		func: updateUser,
+		invalidateKey,
 		onSuccess() {
-			showNotification('success', 'Support User Added Successfully');
+			showNotification('success', 'Support user updated successfully');
+			onSuccess?.();
 			onClose();
 		},
 	});
 
+	/* ---------------------- State --------------------------- */
 	const [values, setValues] = useState<TUserFormData>({
 		fullname: '',
 		username: '',
@@ -57,26 +58,27 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
 	const [errors, setErrors] = useState<FormErrors>({});
 	const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+	/* ---------------------- Populate Data ------------------- */
 	useEffect(() => {
-		if (data?.result) {
-			setValues({
-				fullname: data.result.fullname || '',
-				username: data.result.username || '',
-				email: data.result.email || '',
-				phone: data.result.phone || '',
-				address: data.result.address || '',
-				image: data.result.image || '',
-			});
-			setPreviewImage(`${process.env.REACT_APP_GET_MEDIA}/${data.result.image}`);
-		}
+		if (!data?.result) return;
+
+		setValues({
+			fullname: data.result.fullname ?? '',
+			username: data.result.username ?? '',
+			email: data.result.email ?? '',
+			phone: data.result.phone ?? '',
+			address: data.result.address ?? '',
+			image: data.result.image ?? '',
+		});
+
+		setPreviewImage(data.result.image ?? null);
 	}, [data]);
 
+	/* ---------------------- Validation ---------------------- */
 	const validate = (): boolean => {
 		const newErrors: FormErrors = {};
 
-		if (!values.fullname.trim()) {
-			newErrors.fullname = 'Full name is required';
-		}
+		if (!values.fullname.trim()) newErrors.fullname = 'Full name is required';
 
 		if (!values.email.trim()) {
 			newErrors.email = 'Email is required';
@@ -85,175 +87,137 @@ const EditSupport: React.FC<EditSupportProps> = ({ open, onClose, userid }) => {
 		}
 
 		if (!values.phone.trim()) {
-			newErrors.phone = 'Phone is required';
+			newErrors.phone = 'Phone number is required';
 		} else if (!/^[0-9]+$/.test(values.phone)) {
-			newErrors.phone = 'Must contain only digits';
+			newErrors.phone = 'Only digits allowed';
 		}
 
-		if (!values.address.trim()) {
-			newErrors.address = 'Address is required';
-		}
+		if (!values.address.trim()) newErrors.address = 'Address is required';
 
 		setErrors(newErrors);
 		return Object.keys(newErrors).length === 0;
 	};
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | { name?: string; value: unknown }>) => {
+	/* ---------------------- Handlers ------------------------ */
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		const { name, value } = e.target;
-		if (name) {
-			setValues((prev) => ({
-				...prev,
-				[name]: value,
-			}));
-		}
+		setValues((prev) => ({ ...prev, [name]: value }));
 	};
 
 	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (e.target.files && e.target.files[0]) {
+		if (!e.target.files?.[0]) return;
+
+		try {
 			const file = e.target.files[0];
-			try {
-				const response = await uploadFileToS3(file);
+			const publicUrl = await uploadFileToS3(file);
 
-				const mediaId = response.data.id;
-				setValues((prev) => ({
-					...prev,
-					image: mediaId,
-				}));
-
-				// Create preview
-				const reader = new FileReader();
-				reader.onloadend = () => {
-					setPreviewImage(reader.result as string);
-				};
-				reader.readAsDataURL(file);
-			} catch (error) {
-				console.error(error);
-				showNotification('error', 'Failed to upload image');
-			}
+			setValues((prev) => ({ ...prev, image: publicUrl }));
+			setPreviewImage(publicUrl);
+		} catch (error) {
+			console.error(error);
+			showNotification('error', 'Image upload failed');
 		}
 	};
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!validate()) return;
 
-		if (validate()) {
-			mutate({
-				id: userid,
-				body: values,
-			});
-		}
+		mutate({
+			id: userid,
+			body: values,
+		});
 	};
 
+	/* ---------------------- UI ------------------------------ */
 	return (
-		<Modal open={open} onClose={onClose} aria-labelledby="user-edit-modal" aria-describedby="user-details-edit">
+		<Modal open={open} onClose={onClose}>
 			<Box
+				component={Paper}
 				sx={{
 					position: 'absolute',
 					top: '50%',
 					left: '50%',
 					transform: 'translate(-50%, -50%)',
 					width: { xs: '90%', sm: 600 },
-					bgcolor: 'background.paper',
-					boxShadow: 24,
-					borderRadius: 2,
 					p: 4,
+					borderRadius: 2,
 					outline: 'none',
 				}}
-				component={Paper}
 			>
-				<IconButton
-					aria-label="close"
-					onClick={onClose}
-					sx={{
-						position: 'absolute',
-						right: 8,
-						top: 8,
-						color: (theme) => theme.palette.grey[500],
-					}}
-				>
+				<IconButton onClick={onClose} sx={{ position: 'absolute', top: 8, right: 8 }}>
 					<CloseIcon />
 				</IconButton>
 
 				<form onSubmit={handleSubmit}>
 					<Stack spacing={3} alignItems="center">
-						<Avatar
-							src={previewImage || `${process.env.REACT_APP_GET_MEDIA}/${data?.result?.image}`}
-							sx={{
-								width: 120,
-								height: 120,
-								fontSize: 48,
-								bgcolor: 'primary.main',
-								mb: 2,
-							}}
-						>
-							{!data?.result?.image && data?.result?.username.charAt(0).toUpperCase()}
+						<Avatar src={previewImage || undefined} sx={{ width: 120, height: 120, fontSize: 48 }}>
+							{!previewImage && values.username?.charAt(0).toUpperCase()}
 						</Avatar>
 
-						<input type="file" id="image" name="image" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+						<input type="file" id="image" hidden accept="image/*" onChange={handleImageChange} />
+
 						<label htmlFor="image">
-							<Button variant="outlined" component="span">
+							<Button component="span" variant="outlined">
 								Upload Image
 							</Button>
 						</label>
 
-						<Typography variant="h5" component="h2" sx={{ mb: 2 }}>
-							Edit User Details
-						</Typography>
+						<Typography variant="h5">Edit User Details</Typography>
 
 						<Divider flexItem />
 
 						<Stack spacing={2} width="100%">
 							<TextField
-								fullWidth
 								name="fullname"
 								label="Full Name"
 								value={values.fullname}
 								onChange={handleChange}
 								error={!!errors.fullname}
 								helperText={errors.fullname}
+								fullWidth
 							/>
 
-							<TextField fullWidth name="username" label="Username" value={values.username} onChange={handleChange} disabled />
+							<TextField name="username" label="Username" value={values.username} disabled fullWidth />
 
 							<TextField
-								fullWidth
 								name="email"
 								label="Email"
-								type="email"
 								value={values.email}
 								onChange={handleChange}
 								error={!!errors.email}
 								helperText={errors.email}
+								fullWidth
 							/>
 
 							<TextField
-								fullWidth
 								name="phone"
-								label="Phone Number"
+								label="Phone"
 								value={values.phone}
 								onChange={handleChange}
 								error={!!errors.phone}
 								helperText={errors.phone}
+								fullWidth
 							/>
 
 							<TextField
-								fullWidth
 								name="address"
 								label="Address"
-								multiline
-								rows={3}
 								value={values.address}
 								onChange={handleChange}
 								error={!!errors.address}
 								helperText={errors.address}
+								multiline
+								rows={3}
+								fullWidth
 							/>
 						</Stack>
 
-						<Box display="flex" justifyContent="flex-end" width="100%" gap={2} mt={3}>
+						<Box display="flex" justifyContent="flex-end" width="100%" gap={2}>
 							<Button variant="outlined" onClick={onClose}>
 								Cancel
 							</Button>
-							<Button type="submit" variant="contained" color="primary">
+							<Button type="submit" variant="contained" disabled={isPending}>
 								Save Changes
 							</Button>
 						</Box>
