@@ -1,0 +1,33 @@
+networks:
+    intranet:
+        external: true
+        name: tomthin-net
+
+services:
+    tomthin-store:
+        image: tomthin-admin-frontend:latest
+        build:
+            context: .
+            dockerfile: Dockerfile
+            # args:
+            #     VITE_RAZORPAY_KEY: ${VITE_RAZORPAY_KEY}
+
+        container_name: tomthin-admin
+
+        # environment:
+        #     - NEXT_TELEMETRY_DISABLED=1
+        #     # runtime env not required for Vite, but ok to keep
+        #     - VITE_RAZORPAY_KEY=${VITE_RAZORPAY_KEY}
+
+        networks:
+            - intranet
+
+        restart: always
+
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.tomthin-admin.rule=Host(`www.admin.tomthin.in`) || Host(`admin.tomthin.in`) || Host(`www.admin.tomthin.com`) || Host(`admin.tomthin.com`)'
+            - 'traefik.http.routers.tomthin-admin.entrypoints=websecure'
+            - 'traefik.http.routers.tomthin-admin.tls=true'
+            - 'traefik.http.routers.tomthin-admin.tls.certresolver=le'
+            - 'traefik.http.services.tomthin-admin.loadbalancer.server.port=8060'

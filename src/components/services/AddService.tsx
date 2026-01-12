@@ -5,6 +5,8 @@ import { useGetQuery } from '../../query/hooks/queryHook';
 import { queryConfigs } from '../../query/queryConfig';
 import { TCategory } from '../lib/types/response';
 import { ServiceBody } from '../lib/types/payloads';
+import { ArrowBack } from '@mui/icons-material';
+import { Navigate, useNavigate } from 'react-router';
 
 /* -------------------- Types -------------------- */
 
@@ -187,9 +189,11 @@ const ServiceAddPage: React.FC = () => {
 	if (isLoading) return <div className="p-10">Loading...</div>;
 
 	/* -------------------- UI -------------------- */
-
+	
 	return (
 		<div className="max-w-5xl mx-auto p-6 space-y-6">
+			
+
 			<h1 className="text-2xl font-bold">Add Admin Service</h1>
 
 			{/* Category */}

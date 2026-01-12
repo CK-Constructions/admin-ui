@@ -91,6 +91,7 @@ export default function Services() {
 	return (
 		<>
 			<Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={false} buttonTitle="Add Service" pageName="Services" />
+			<Link to="/addservice">Add Services</Link>
 
 			<div className="flex flex-col h-full p-6">
 				{/* Search */}

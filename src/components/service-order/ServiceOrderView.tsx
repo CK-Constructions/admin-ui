@@ -129,12 +129,7 @@ const ServiceOrderView = () => {
 					Service Order #{order.id}
 				</Typography>
 				<Stack direction="row" spacing={2} alignItems="center">
-					<Chip
-						label={order.order_status}
-						color={getStatusColor(order.order_status) as any}
-						status={getStatusIcon(order.order_status)}
-						size="small"
-					/>
+					<Chip label={order.order_status} color={getStatusColor(order.order_status) as any} icon={getStatusIcon(order.order_status)} size="small" />
 					<Chip label={order.payment_status} color={getStatusColor(order.payment_status) as any} variant="outlined" size="small" />
 					<Typography variant="body2" color="textSecondary">
 						Created: {new Date(order.created_on).toLocaleDateString()} at {new Date(order.created_on).toLocaleTimeString()}

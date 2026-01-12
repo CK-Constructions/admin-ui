@@ -1,0 +1,18 @@
+steps:
+    deploy:
+        image: docker:git
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+
+        # environment:
+        # VITE_RAZORPAY_KEY:
+        #     from_secret: VITE_RAZORPAY_KEY
+
+        commands:
+            - docker compose -p tomthin-admin down
+            - docker compose -p tomthin-admin build
+            - docker compose -p tomthin-admin up -d
+
+        when:
+            event: push
+            branch: secondphase
