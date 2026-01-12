@@ -487,7 +487,7 @@ const Banners = () => {
 					onClose={() => setStatusModal((p) => ({ ...p, open: false }))}
 					user={statusModal.banner}
 					isActive={statusModal.willActivate}
-					onConfirm={() => (statusModal.willActivate ? enableBanner(statusModal.banner.id) : disableBanner(statusModal.banner.id))}
+					onConfirm={() => (statusModal.willActivate ? enableBanner(statusModal.banner?.id) : disableBanner(statusModal.banner?.id))}
 				/>
 			)}
 		</div>

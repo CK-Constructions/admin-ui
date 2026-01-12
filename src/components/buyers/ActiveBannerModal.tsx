@@ -15,9 +15,9 @@ type BannerStatusModalProps = {
 	onClose: () => void;
 	user: TBanner;
 	isActive: boolean;
-	onConfirm: boolean;
+	onConfirm: () => void;
 };
-export function BannerStatusModal({ open, onClose, user, isActive, onConfirm }: BannerStatusModalProps) {
+export function BannerStatusModal({ open, onClose, user, isActive }: BannerStatusModalProps) {
 	const { queryFn: activateBanner, queryKeys: bannerKey } = queryConfigs.useEnableBanner;
 	const { queryFn: deactivateBanner } = queryConfigs.useDisableBanner;
 	const handleConfirmDeactivate = () => {
