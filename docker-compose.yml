@@ -27,7 +27,7 @@ services:
         labels:
             - 'traefik.enable=true'
             - 'traefik.http.routers.tomthin-admin.rule=Host(`www.admin.tomthin.in`) || Host(`admin.tomthin.in`) || Host(`www.admin.tomthin.com`) || Host(`admin.tomthin.com`)'
-            - 'traefik.http.routers.tomthin-admin.entrypoints=websecure'
-            - 'traefik.http.routers.tomthin-admin.tls=true'
+            - 'traefik.http.routers.tomthin-admin.entrypoints=web'
+            - 'traefik.http.routers.tomthin-admin.tls=false'
             - 'traefik.http.routers.tomthin-admin.tls.certresolver=le'
             - 'traefik.http.services.tomthin-admin.loadbalancer.server.port=8060'
