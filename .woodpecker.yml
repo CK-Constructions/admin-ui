@@ -1,6 +1,9 @@
 when:
-    event: [push, cron]
-    branch: secondphase
+    event:
+        - push
+        - cron
+    branch:
+        - secondphase
 
 steps:
     deploy:
