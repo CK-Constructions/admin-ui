@@ -334,7 +334,7 @@ const App = () => {
 						path="/rental-orders"
 						element={
 							<AnimatedRoute>
-								<ServiceOrderView />
+								<RentalOrder />
 							</AnimatedRoute>
 						}
 					/>
