@@ -72,7 +72,7 @@ const RentalOrderList: React.FC = () => {
 	/* ------------------------- Update Status ------------------------- */
 	const { queryFn: updateStatusFn } = queryConfigs.useUpdateRentalOrder;
 
-	const { mutate: updateOrderStatus, isLoading: isUpdating } = useMutationQuery({
+	const { mutate: updateOrderStatus, isPending: isUpdating } = useMutationQuery({
 		func: updateStatusFn,
 		invalidateKey: queryKeys,
 		onSuccess: () => {
