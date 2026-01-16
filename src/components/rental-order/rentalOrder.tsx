@@ -1,94 +1,101 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RentalOrder as RentalOrderType } from '../lib/types/response';
-import { queryConfigs } from '../../query/queryConfig';
-import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
 import {
 	Box,
+	Button,
 	Chip,
+	CircularProgress,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
+	FormControl,
 	IconButton,
+	InputLabel,
 	Menu,
 	MenuItem,
+	Pagination,
 	Paper,
+	Select,
 	Table,
 	TableBody,
 	TableCell,
+	TableContainer,
 	TableHead,
 	TableRow,
-	TableContainer,
-	Tooltip,
-	Typography,
-	Pagination,
-	Button,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	DialogContentText,
 	TextField,
-	FormControl,
-	InputLabel,
-	Select,
-	MenuItem as MuiMenuItem,
-	CircularProgress,
+	Typography,
 } from '@mui/material';
-import Loading from '../common/Loader';
-import Header from '../common/Header';
 import { MoreVerticalIcon } from 'lucide-react';
+
+import { RentalOrder as RentalOrderType } from '../lib/types/response';
+import { queryConfigs } from '../../query/queryConfig';
+import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
+import Header from '../common/Header';
+import Loading from '../common/Loader';
 import { showNotification } from '../utils/utils';
 
-const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
+const LIMIT = 10;
 
 const RentalOrderList: React.FC = () => {
 	const navigate = useNavigate();
-	const limit = 10;
-	const [currentPage, setCurrentPage] = useState(1);
 
-	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	/* ------------------------- Pagination ------------------------- */
+	const [page, setPage] = useState(1);
+
+	/* ------------------------- Menu ------------------------- */
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [menuOrder, setMenuOrder] = useState<RentalOrderType | null>(null);
+
+	/* ------------------------- Status Dialog ------------------------- */
 	const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+	const [selectedOrder, setSelectedOrder] = useState<RentalOrderType | null>(null);
 	const [newStatus, setNewStatus] = useState('');
 	const [reason, setReason] = useState('');
-	const [updatingStatus, setUpdatingStatus] = useState(false);
+
+	/* ------------------------- Cancel ------------------------- */
 	const [isCancelling, setIsCancelling] = useState(false);
 
-	const menuOpen = Boolean(anchorEl);
+	/* ------------------------- Queries ------------------------- */
+	const { queryFn, queryKeys } = queryConfigs.useGetAllRentalOrder;
 
-	const { queryFn: rentalOrderFunc, queryKeys: rentalOrderKey } = queryConfigs.useGetAllRentalOrder;
-
-	const { data, refetch, isLoading, isFetching, isRefetching, isLoadingError, isRefetchError } = useGetQuery({
-		func: rentalOrderFunc,
-		key: rentalOrderKey,
-		params: { limit, offset: (currentPage - 1) * limit },
+	const { data, isLoading, isFetching, refetch, isLoadingError } = useGetQuery({
+		func: queryFn,
+		key: queryKeys,
+		params: {
+			limit: LIMIT,
+			offset: (page - 1) * LIMIT,
+		},
 	});
 
-	// CORRECT: Use the right config key
+	/* ------------------------- Update Status ------------------------- */
 	const { queryFn: updateStatusFn } = queryConfigs.useUpdateRentalOrder;
 
-	const { mutate: updateOrderStatus } = useMutationQuery({
+	const { mutate: updateOrderStatus, isLoading: isUpdating } = useMutationQuery({
 		func: updateStatusFn,
-		invalidateKey: rentalOrderKey,
+		invalidateKey: queryKeys,
 		onSuccess: () => {
-			showNotification('success', `Status updated to ${getStatusLabel(newStatus)}`);
+			showNotification('success', 'Order status updated successfully');
+			closeStatusDialog();
 			refetch();
-			handleCloseDialog();
 		},
-		// onError: (err: any) => {
-		// 	showNotification('error', err?.response?.data?.message || 'Failed to update status');
-		// 	setUpdatingStatus(false);
-		// },
+		onError: (err: any) => {
+			showNotification('error', err?.response?.data?.message || 'Failed to update order status');
+		},
 	});
 
-	// Cancel order (existing working endpoint)
-	const { queryFn: cancelRentalFunc } = queryConfigs.useCancelRentalOrder;
-	const { mutate: cancelRental } = useMutationQuery({
-		func: cancelRentalFunc,
-		invalidateKey: rentalOrderKey,
+	/* ------------------------- Cancel Order ------------------------- */
+	const { queryFn: cancelFn } = queryConfigs.useCancelRentalOrder;
+
+	const { mutate: cancelOrder } = useMutationQuery({
+		func: cancelFn,
+		invalidateKey: queryKeys,
 		onSuccess: () => {
 			showNotification('success', `Order #${menuOrder?.id} cancelled`);
-			refetch();
 			setIsCancelling(false);
 			handleMenuClose();
+			refetch();
 		},
 		onError: () => {
 			showNotification('error', 'Failed to cancel order');
@@ -96,7 +103,26 @@ const RentalOrderList: React.FC = () => {
 		},
 	});
 
-	const handleMenuClick = (e: React.MouseEvent<HTMLButtonElement>, order: RentalOrderType) => {
+	/* ------------------------- Helpers ------------------------- */
+	const isTerminal = (status: string) => status === 'completed' || status === 'cancelled';
+
+	const statusColor = (status: string) => {
+		switch (status) {
+			case 'pending':
+				return 'warning';
+			case 'booked':
+				return 'success';
+			case 'completed':
+				return 'info';
+			case 'cancelled':
+				return 'error';
+			default:
+				return 'default';
+		}
+	};
+
+	/* ------------------------- Menu Handlers ------------------------- */
+	const handleMenuOpen = (e: React.MouseEvent<HTMLButtonElement>, order: RentalOrderType) => {
 		setAnchorEl(e.currentTarget);
 		setMenuOrder(order);
 	};
@@ -106,150 +132,120 @@ const RentalOrderList: React.FC = () => {
 		setMenuOrder(null);
 	};
 
-	const handleOpenStatusDialog = () => {
+	/* ------------------------- Status Dialog ------------------------- */
+	const openStatusDialog = (order: RentalOrderType) => {
+		setSelectedOrder(order);
 		setNewStatus('');
 		setReason('');
 		setStatusDialogOpen(true);
 		handleMenuClose();
 	};
 
-	const handleCloseDialog = () => {
+	const closeStatusDialog = () => {
 		setStatusDialogOpen(false);
-		setUpdatingStatus(false);
+		setSelectedOrder(null);
 		setNewStatus('');
 		setReason('');
 	};
 
-	const handleUpdateStatus = () => {
-		if (!menuOrder || !newStatus) return;
+	const submitStatusUpdate = () => {
+		if (!selectedOrder || !newStatus) return;
 
-		setUpdatingStatus(true);
-
-		// FIXED: Send correct field name → `id`, not `order_id`
 		updateOrderStatus({
-			id: menuOrder.id,
+			id: selectedOrder.id,
 			new_status: newStatus,
 			reason: newStatus === 'cancelled' ? reason : undefined,
 		});
 	};
 
+	/* ------------------------- Cancel Handler ------------------------- */
 	const handleCancelOrder = () => {
 		if (!menuOrder) return;
 		setIsCancelling(true);
-		cancelRental({ id: menuOrder.id });
+		cancelOrder({ id: menuOrder.id });
 	};
 
-	const isTerminal = (status: string) => status === 'completed' || status === 'cancelled';
+	/* ------------------------- Render Guards ------------------------- */
+	if (isLoading || isFetching) return <Loading />;
+	if (isLoadingError) return <Typography color="error">Failed to load orders</Typography>;
 
-	const getStatusColor = (status: string) => {
-		const map: Record<string, any> = {
-			pending: 'warning',
-			booked: 'success',
-			completed: 'info',
-			cancelled: 'error',
-		};
-		return map[status] || 'default';
-	};
+	const orders: RentalOrderType[] = data?.result?.list || [];
+	const total = data?.result?.count || 0;
+	const pages = Math.ceil(total / LIMIT);
 
-	const getStatusLabel = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
-	if (isLoading || isFetching || isRefetching) return <Loading />;
-	if (isLoadingError || isRefetchError) return <Typography color="error">Error loading orders</Typography>;
-
-	const orders = (data?.result?.list as RentalOrderType[]) || [];
-	const totalCount = data?.result?.count ?? 0;
-	const totalPages = Math.ceil(totalCount / limit);
-
-	if (orders.length === 0) {
-		return (
-			<Box sx={{ p: 4, textAlign: 'center' }}>
-				<Header onBackClick={() => navigate(-1)} pageName="Rental Orders" />
-				<Typography variant="h6" color="textSecondary" mt={4}>
-					No rental orders found
-				</Typography>
-			</Box>
-		);
-	}
-
+	/* ------------------------- Render ------------------------- */
 	return (
 		<div className="flex flex-col h-full">
 			<Header onBackClick={() => navigate(-1)} pageName="Rental Orders" />
 
-			<TableContainer component={Paper} sx={{ flexGrow: 1, maxHeight: 'calc(100vh - 200px)', mt: 2 }}>
+			<TableContainer component={Paper} sx={{ mt: 2, flexGrow: 1 }}>
 				<Table stickyHeader>
 					<TableHead>
 						<TableRow>
 							{['Order ID', 'Rental ID', 'User', 'Name', 'Payment', 'Status', 'Actions'].map((h) => (
-								<TableCell key={h} sx={{ bgcolor: 'black', color: 'white', fontWeight: 'bold' }}>
+								<TableCell key={h} sx={{ backgroundColor: 'black', color: 'white', fontWeight: 600 }}>
 									{h}
 								</TableCell>
 							))}
 						</TableRow>
 					</TableHead>
+
 					<TableBody>
-						{orders.map((order) => {
-							const terminal = isTerminal(order.order_status);
-							return (
-								<TableRow
-									key={order.id}
-									sx={{
-										opacity: terminal ? 0.6 : 1,
-										bgcolor: order.order_status === 'cancelled' ? '#ffebee' : 'inherit',
-									}}
-								>
-									<TableCell>#{order.id}</TableCell>
-									<TableCell>#{order.admin_rental_id}</TableCell>
-									<TableCell>#{order.user_id}</TableCell>
-									<TableCell>{order.rental_name || '-'}</TableCell>
-									<TableCell>
-										<Chip label={order.payment_status} size="small" />
-									</TableCell>
-									<TableCell>
-										<Chip label={getStatusLabel(order.order_status)} color={getStatusColor(order.order_status)} size="small" />
-									</TableCell>
-									<TableCell>
-										<IconButton size="small" onClick={(e) => handleMenuClick(e, order)} disabled={terminal}>
-											<MoreVerticalIcon size={18} />
-										</IconButton>
-									</TableCell>
-								</TableRow>
-							);
-						})}
+						{orders.map((order) => (
+							<TableRow
+								key={order.id}
+								sx={{
+									opacity: isTerminal(order.order_status) ? 0.6 : 1,
+									backgroundColor: order.order_status === 'cancelled' ? '#ffebee' : 'inherit',
+								}}
+							>
+								<TableCell>#{order.id}</TableCell>
+								<TableCell>#{order.admin_rental_id}</TableCell>
+								<TableCell>#{order.user_id}</TableCell>
+								<TableCell>{order.rental_name || '-'}</TableCell>
+								<TableCell>
+									<Chip size="small" label={order.payment_status} />
+								</TableCell>
+								<TableCell>
+									<Chip size="small" label={order.order_status} color={statusColor(order.order_status)} />
+								</TableCell>
+								<TableCell>
+									<IconButton size="small" onClick={(e) => handleMenuOpen(e, order)} disabled={isTerminal(order.order_status)}>
+										<MoreVerticalIcon size={18} />
+									</IconButton>
+								</TableCell>
+							</TableRow>
+						))}
 					</TableBody>
 				</Table>
 			</TableContainer>
 
-			{/* Actions Menu */}
-			<Menu anchorEl={anchorEl} open={menuOpen} onClose={handleMenuClose}>
+			{/* ------------------------- Menu ------------------------- */}
+			<Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
 				<MenuItem onClick={() => navigate(`/rental-orders/${menuOrder?.id}`)}>View Details</MenuItem>
-				<MenuItem onClick={handleOpenStatusDialog} disabled={isTerminal(menuOrder?.order_status || '')}>
+				<MenuItem onClick={() => openStatusDialog(menuOrder!)} disabled={isTerminal(menuOrder?.order_status || '')}>
 					Update Status
 				</MenuItem>
 				<MenuItem onClick={handleCancelOrder} disabled={isCancelling || isTerminal(menuOrder?.order_status || '')} sx={{ color: 'error.main' }}>
-					{isCancelling ? 'Cancelling...' : 'Cancel Order'}
+					{isCancelling ? 'Cancelling…' : 'Cancel Order'}
 				</MenuItem>
-				<MenuItem onClick={() => window.print()}>Print Receipt</MenuItem>
 			</Menu>
 
-			{/* Status Update Dialog */}
-			<Dialog open={statusDialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+			{/* ------------------------- Status Dialog ------------------------- */}
+			<Dialog open={statusDialogOpen} onClose={closeStatusDialog} fullWidth maxWidth="sm">
 				<DialogTitle>Update Order Status</DialogTitle>
+
 				<DialogContent>
-					<DialogContentText mb={2}>
-						Order: <strong>#{menuOrder?.rental_order_id}</strong> | Current:{' '}
-						<Chip label={getStatusLabel(menuOrder?.order_status || '')} size="small" />
+					<DialogContentText sx={{ mb: 2 }}>
+						Order <strong>#{selectedOrder?.id}</strong> — Current: <Chip size="small" label={selectedOrder?.order_status} />
 					</DialogContentText>
 
-					<FormControl fullWidth margin="normal">
+					<FormControl fullWidth>
 						<InputLabel>New Status</InputLabel>
 						<Select value={newStatus} label="New Status" onChange={(e) => setNewStatus(e.target.value)}>
-							{!isTerminal(menuOrder?.order_status || '') && (
-								<>
-									{menuOrder?.order_status !== 'booked' && <MuiMenuItem value="booked">Booked</MuiMenuItem>}
-									{menuOrder?.order_status !== 'completed' && <MuiMenuItem value="completed">Completed</MuiMenuItem>}
-									<MuiMenuItem value="cancelled">Cancelled</MuiMenuItem>
-								</>
-							)}
+							<MenuItem value="booked">Booked</MenuItem>
+							<MenuItem value="completed">Completed</MenuItem>
+							<MenuItem value="cancelled">Cancelled</MenuItem>
 						</Select>
 					</FormControl>
 
@@ -267,26 +263,26 @@ const RentalOrderList: React.FC = () => {
 				</DialogContent>
 
 				<DialogActions>
-					<Button onClick={handleCloseDialog} disabled={updatingStatus}>
+					<Button onClick={closeStatusDialog} disabled={isUpdating}>
 						Cancel
 					</Button>
 					<Button
-						onClick={handleUpdateStatus}
 						variant="contained"
 						color={newStatus === 'cancelled' ? 'error' : 'primary'}
-						disabled={!newStatus || updatingStatus}
+						onClick={submitStatusUpdate}
+						disabled={!newStatus || isUpdating}
 					>
-						{updatingStatus ? <CircularProgress size={20} /> : 'Update'}
+						{isUpdating ? <CircularProgress size={20} /> : 'Update'}
 					</Button>
 				</DialogActions>
 			</Dialog>
 
-			{/* Pagination */}
-			<Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+			{/* ------------------------- Pagination ------------------------- */}
+			<Box sx={{ display: 'flex', justifyContent: 'space-between', p: 2 }}>
 				<Typography variant="body2">
-					Total: <strong>{totalCount}</strong>
+					Total: <strong>{total}</strong>
 				</Typography>
-				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={(_, v) => setCurrentPage(v)} />}
+				{pages > 1 && <Pagination count={pages} page={page} onChange={(_, v) => setPage(v)} />}
 			</Box>
 		</div>
 	);

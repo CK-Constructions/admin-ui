@@ -175,6 +175,7 @@ export const redirectServiceOrder = (body: { service_order_id: number }) => _cal
 export const getAllRentalOrder = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/orders/rentals?offset=${offset}&limit=${limit}`, 'get');
 export const getRentalOrder = ({ id }: TQueryParams) => _callApi(`/orders/rentals/${id}`, 'get');
 export const cancelRentalOrder = ({ id }: { id: number }) => _callApi(`/orders/rentals/cancel-order/${id}`, 'put', '');
+export const updateRentalOrder = ({ id }: { id: number }) => _callApi(`/orders/rentals/update-order/${id}`, 'put', '');
 export const redirectRentalOrder = (body: { rental_order_id: number }) => _callApi('/orders/rentals/generate-seller-order', 'post', body);
 
 // Banners
@@ -187,9 +188,9 @@ export const enableBanner = ({ id }: { id: number }) => _callApi(`/banners/enabl
 
 export const updateRentalOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
 	_callApi(
-		`/orders/rentals/update-order/${id}`,
+		`/orders/rentals/update-order/${id}`, // ← This is the CORRECT path!
 		'put',
-		{ new_status, reason: reason || '' } // sends empty string if no reason
+		{ id, new_status, reason: reason || '' }
 	);
 export const getAllAddress = ({ offset, limit }: TQueryParams) => _callApi(`/user-address?offset=${offset}&limit=${limit}`, 'get');
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
