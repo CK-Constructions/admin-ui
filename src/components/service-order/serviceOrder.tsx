@@ -16,8 +16,15 @@ import {
 	Tooltip,
 	Typography,
 	Pagination,
+	Dialog,
+	DialogTitle,
+	DialogContent,
+	DialogActions,
+	Button,
+	Select,
 } from '@mui/material';
 import { MoreVerticalIcon } from 'lucide-react';
+
 import Header from '../common/Header';
 import Loading from '../common/Loader';
 import { ServiceOrder } from '../lib/types/response';
@@ -27,117 +34,136 @@ import { showNotification } from '../utils/utils';
 
 export const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
 
+/* ---------------- STATUS FLOW ---------------- */
+const SERVICE_ORDER_STATUS_FLOW: Record<string, string[]> = {
+	created: ['confirmed', 'cancelled'],
+	confirmed: ['completed', 'cancelled'],
+	completed: [],
+	cancelled: [],
+};
+
 const ServiceOrderPage: React.FC = () => {
 	const navigate = useNavigate();
 	const limit = 10;
+
+	/* ---------------- STATE ---------------- */
 	const [currentPage, setCurrentPage] = useState(1);
-	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [menuOrder, setMenuOrder] = useState<ServiceOrder | null>(null);
-	const [isCancelling, setIsCancelling] = useState(false);
-	const [isRedirecting, setIsRedirecting] = useState(false);
+
+	const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+	const [selectedStatus, setSelectedStatus] = useState('');
 
 	const menuOpen = Boolean(anchorEl);
 
-	const { queryFn: serviceOrderFunc, queryKeys: serviceOrderKey } = queryConfigs.useGetAllServiceOrder;
+	/* ---------------- FETCH ORDERS ---------------- */
+	const { queryFn, queryKeys } = queryConfigs.useGetAllServiceOrder;
 
-	// Fetch service orders
-	const { data, refetch, isLoading, isFetching, isRefetching, isLoadingError, isRefetchError } = useGetQuery({
-		func: serviceOrderFunc,
-		key: serviceOrderKey,
+	const { data, isLoading, isFetching, isRefetching, isLoadingError } = useGetQuery({
+		func: queryFn,
+		key: queryKeys,
 		params: {
 			limit,
 			offset: (currentPage - 1) * limit,
 		},
 	});
 
-	// Cancel service order
-	const { queryFn: cancelServiceFunc } = queryConfigs.useCancelServiceOrder;
-	const { mutate: cancelService } = useMutationQuery({
-		func: cancelServiceFunc,
-		invalidateKey: serviceOrderKey,
+	/* ---------------- CANCEL ORDER ---------------- */
+	const { queryFn: cancelFn } = queryConfigs.useCancelServiceOrder;
+
+	const { mutate: cancelOrder, isPending: isCancelling } = useMutationQuery({
+		func: cancelFn,
+		invalidateKey: queryKeys,
 		onSuccess: () => {
-			showNotification('success', `Order ${menuOrder?.id} cancelled successfully`);
-			refetch();
-			setIsCancelling(false);
-			handleMenuClose();
+			showNotification('success', 'Order cancelled successfully');
+			resetMenu();
 		},
-		onError: () => {
-			showNotification('error', 'Failed to cancel order');
-			setIsCancelling(false);
-			handleMenuClose();
-		},
+		onError: () => showNotification('error', 'Failed to cancel order'),
 	});
 
-	// Redirect service order
-	const { queryFn: redirectServiceFn } = queryConfigs.useRedirectServiceOrder;
-	const { mutate: redirectService } = useMutationQuery({
-		func: redirectServiceFn,
-		invalidateKey: serviceOrderKey,
+	/* ---------------- REDIRECT ORDER ---------------- */
+	const { queryFn: redirectFn } = queryConfigs.useRedirectServiceOrder;
+
+	const { mutate: redirectOrder, isPending: isRedirecting } = useMutationQuery({
+		func: redirectFn,
+		invalidateKey: queryKeys,
 		onSuccess: () => {
-			showNotification('success', `Order ${menuOrder?.id} redirected successfully`);
-			refetch();
-			setIsRedirecting(false);
-			handleMenuClose();
+			showNotification('success', 'Order redirected successfully');
+			resetMenu();
 		},
-		onError: () => {
-			showNotification('error', 'Failed to redirect order');
-			setIsRedirecting(false);
-			handleMenuClose();
-		},
+		onError: () => showNotification('error', 'Failed to redirect order'),
 	});
 
-	const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-		setCurrentPage(value);
-	};
+	/* ---------------- UPDATE STATUS ---------------- */
+	const { queryFn: updateStatusFn } = queryConfigs.useUpdateServiceOrder;
 
+	const { mutate: updateStatus, isPending: isUpdatingStatus } = useMutationQuery({
+		func: updateStatusFn,
+		invalidateKey: queryKeys,
+		onSuccess: () => {
+			showNotification('success', 'Order status updated');
+			setStatusDialogOpen(false);
+			setMenuOrder(null);
+		},
+		onError: () => showNotification('error', 'Failed to update status'),
+	});
+
+	/* ---------------- MENU HANDLERS ---------------- */
 	const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>, order: ServiceOrder) => {
 		setAnchorEl(event.currentTarget);
 		setMenuOrder(order);
 	};
 
-	const handleMenuClose = () => {
+	const closeMenuOnly = () => {
+		setAnchorEl(null);
+	};
+
+	const resetMenu = () => {
 		setAnchorEl(null);
 		setMenuOrder(null);
 	};
 
 	const handleAction = (action: string) => {
 		if (!menuOrder) return;
+
 		switch (action) {
-			case 'cancel':
-				setIsCancelling(true);
-				cancelService({ id: menuOrder.id });
-				break;
-			case 'redirect':
-				setIsRedirecting(true);
-				redirectService({ service_order_id: menuOrder.id });
-				break;
 			case 'update':
-				console.log('Update', menuOrder.id);
-				handleMenuClose();
+				setSelectedStatus('');
+				setStatusDialogOpen(true);
+				closeMenuOnly(); // IMPORTANT: keep menuOrder
 				break;
+
+			case 'cancel':
+				cancelOrder({ id: menuOrder.id });
+				break;
+
+			case 'redirect':
+				redirectOrder({ service_order_id: menuOrder.id });
+				break;
+
 			case 'view':
-				// Navigate to detailed page instead of opening modal
 				navigate(`/service-orders/${menuOrder.id}`);
-				handleMenuClose();
+				resetMenu();
 				break;
-			case 'print':
-				window.print();
-				handleMenuClose();
-				break;
+
 			default:
-				handleMenuClose();
-				break;
+				resetMenu();
 		}
 	};
 
-	const isOrderCancelled = (order: ServiceOrder) => {
-		const status = order.order_status as string;
-		return status === 'cancelled' || status === 'completed';
+	const handleStatusUpdate = () => {
+		if (!menuOrder || !selectedStatus) return;
+
+		updateStatus({
+			id: menuOrder.id,
+			new_status: selectedStatus,
+		});
 	};
 
-	const getStatusColor = (status: string) => {
+	/* ---------------- HELPERS ---------------- */
+	const getPaymentColor = (status: string) => {
 		switch (status) {
-			case 'success':
+			case 'paid':
 				return 'success';
 			case 'pending':
 				return 'warning';
@@ -148,121 +174,79 @@ const ServiceOrderPage: React.FC = () => {
 		}
 	};
 
-	const getOrderStatusColor = (status: string) => {
+	const getOrderColor = (status: string) => {
 		switch (status) {
 			case 'confirmed':
 				return 'success';
-			case 'pending':
-				return 'warning';
 			case 'completed':
 				return 'info';
 			case 'cancelled':
 				return 'error';
 			default:
-				return 'default';
+				return 'warning';
 		}
 	};
 
+	/* ---------------- DATA ---------------- */
+	const orders: ServiceOrder[] = data?.result?.list ?? [];
+	const totalCount = data?.result?.count ?? 0;
+	const totalPages = Math.ceil(totalCount / limit);
+
+	/* ---------------- LOADING & ERROR ---------------- */
 	if (isLoading || isFetching || isRefetching) {
 		return (
-			<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+			<Box display="flex" justifyContent="center" minHeight={200}>
 				<Loading />
 			</Box>
 		);
 	}
 
-	if (isLoadingError || isRefetchError) {
+	if (isLoadingError) {
 		return (
-			<Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-				<Typography color="error">Error loading service orders. Please try again.</Typography>
-			</Box>
+			<Typography align="center" color="error">
+				Failed to load service orders
+			</Typography>
 		);
 	}
 
-	const orders: ServiceOrder[] = Array.isArray(data?.result?.list) ? data?.result.list : [];
-	const totalCount: number = data?.result?.count ?? 0;
-	const totalPages = Math.ceil(totalCount / limit);
-
-	if (orders.length === 0) {
-		return (
-			<Box display="flex" flexDirection="column" height="100%">
-				<div className="pb-4">
-					<Header onBackClick={() => navigate(-1)} pageName="Service Orders" />
-				</div>
-				<Box display="flex" justifyContent="center" alignItems="center" flexGrow={1}>
-					<Typography variant="h6" color="textSecondary">
-						No service orders found
-					</Typography>
-				</Box>
-			</Box>
-		);
-	}
-
+	/* ---------------- UI ---------------- */
 	return (
 		<div className="flex flex-col h-full">
-			<div className="pb-4">
-				<Header onBackClick={() => navigate(-1)} pageName="Service Orders" />
-			</div>
+			<Header onBackClick={() => navigate(-1)} pageName="Service Orders" />
 
-			<TableContainer sx={{ maxHeight: 540, flexGrow: 1 }} component={Paper}>
-				<Table stickyHeader aria-label="service orders table">
+			<TableContainer component={Paper} sx={{ flexGrow: 1 }}>
+				<Table stickyHeader>
 					<TableHead>
 						<TableRow>
-							{['Order ID', 'Service Name', 'Service Rate ID', 'Total Amount', 'Final Amount', 'Payment Status', 'Order Status', 'Actions'].map(
-								(header) => (
-									<TableCell key={header} sx={{ color: 'white', backgroundColor: 'black', fontWeight: 'bold' }}>
-										{header}
-									</TableCell>
-								)
-							)}
+							{['ID', 'Service', 'Rate ID', 'Total', 'Final', 'Payment', 'Status', 'Actions'].map((h) => (
+								<TableCell key={h} sx={{ backgroundColor: 'black', color: 'white', fontWeight: 'bold' }}>
+									{h}
+								</TableCell>
+							))}
 						</TableRow>
 					</TableHead>
 
 					<TableBody>
 						{orders.map((order) => {
-							const cancelled = isOrderCancelled(order);
-							const isBeingCancelled = isCancelling && menuOrder?.id === order.id;
-							const isBeingRedirected = isRedirecting && menuOrder?.id === order.id;
+							const disabled = order.order_status === 'completed' || order.order_status === 'cancelled';
 
 							return (
-								<TableRow
-									key={order.id}
-									sx={{
-										backgroundColor: cancelled ? 'rgba(0,0,0,0.04)' : 'inherit',
-										'&:hover': {
-											backgroundColor: cancelled ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.02)',
-										},
-									}}
-								>
+								<TableRow key={order.id}>
 									<TableCell>{order.id}</TableCell>
 									<TableCell>{order.service_name}</TableCell>
 									<TableCell>{order.service_rate_id}</TableCell>
-									<TableCell>₹{order.total_amount.toLocaleString()}</TableCell>
-									<TableCell>₹{order.final_amount.toLocaleString()}</TableCell>
+									<TableCell>₹{order.total_amount}</TableCell>
+									<TableCell>₹{order.final_amount}</TableCell>
 									<TableCell>
-										<Chip
-											label={order.payment_status}
-											color={getStatusColor(order.payment_status) as any}
-											size="small"
-											variant="outlined"
-										/>
+										<Chip label={order.payment_status} color={getPaymentColor(order.payment_status) as any} size="small" />
 									</TableCell>
 									<TableCell>
-										<Chip
-											label={order.order_status}
-											color={getOrderStatusColor(order.order_status) as any}
-											size="small"
-											variant="outlined"
-										/>
+										<Chip label={order.order_status} color={getOrderColor(order.order_status) as any} size="small" />
 									</TableCell>
 									<TableCell>
-										<Tooltip title={cancelled ? 'This order cannot be modified' : 'Order actions'}>
+										<Tooltip title="Order actions">
 											<span>
-												<IconButton
-													size="small"
-													onClick={(e) => handleMenuClick(e, order)}
-													disabled={cancelled || isBeingCancelled || isBeingRedirected}
-												>
+												<IconButton disabled={disabled} onClick={(e) => handleMenuClick(e, order)}>
 													<MoreVerticalIcon size={16} />
 												</IconButton>
 											</span>
@@ -275,34 +259,47 @@ const ServiceOrderPage: React.FC = () => {
 				</Table>
 			</TableContainer>
 
-			{/* Action Menu */}
-			<Menu
-				anchorEl={anchorEl}
-				open={menuOpen}
-				onClose={handleMenuClose}
-				anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-				transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-			>
+			{/* ACTION MENU */}
+			<Menu anchorEl={anchorEl} open={menuOpen} onClose={resetMenu}>
+				<MenuItem onClick={() => handleAction('update')}>Update Status</MenuItem>
 				<MenuItem onClick={() => handleAction('cancel')} disabled={isCancelling}>
-					{isCancelling ? 'Cancelling...' : 'Cancel Order'}
+					Cancel
 				</MenuItem>
-				<MenuItem onClick={() => handleAction('view')}>View Details</MenuItem>
-				<MenuItem onClick={() => handleAction('update')}>Update Order</MenuItem>
 				<MenuItem onClick={() => handleAction('redirect')} disabled={isRedirecting}>
-					{isRedirecting ? 'Redirecting...' : 'Redirect'}
+					Redirect
 				</MenuItem>
-				<MenuItem onClick={() => handleAction('print')}>Print Receipt</MenuItem>
+				<MenuItem onClick={() => handleAction('view')}>View</MenuItem>
 			</Menu>
 
-			{/* Pagination & Total count */}
-			<Box display="flex" justifyContent="space-between" alignItems="center" mt={2} p={1}>
-				<Box display="flex" alignItems="center" gap={1}>
-					<Typography variant="body2" color="textSecondary">
-						Total orders:
-					</Typography>
-					<span className={countStyle}>{totalCount}</span>
-				</Box>
-				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" size="small" />}
+			{/* STATUS UPDATE DIALOG */}
+			<Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)} fullWidth>
+				<DialogTitle>Update Order Status</DialogTitle>
+				<DialogContent>
+					<Select fullWidth value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} displayEmpty>
+						<MenuItem value="" disabled>
+							Select new status
+						</MenuItem>
+
+						{menuOrder &&
+							SERVICE_ORDER_STATUS_FLOW[menuOrder.order_status]?.map((status) => (
+								<MenuItem key={status} value={status}>
+									{status}
+								</MenuItem>
+							))}
+					</Select>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={() => setStatusDialogOpen(false)}>Cancel</Button>
+					<Button variant="contained" onClick={handleStatusUpdate} disabled={!selectedStatus || isUpdatingStatus}>
+						Update
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			{/* PAGINATION */}
+			<Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+				<span className={countStyle}>{totalCount}</span>
+				{totalPages > 1 && <Pagination count={totalPages} page={currentPage} onChange={(_, v) => setCurrentPage(v)} size="small" />}
 			</Box>
 		</div>
 	);

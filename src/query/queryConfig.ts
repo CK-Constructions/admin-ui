@@ -82,6 +82,7 @@ import {
 	updateApproval,
 	updateBrand,
 	UpdateListingCategory,
+	updateListingOrderStatus,
 	UpdateRental,
 	updateRentalApprovals,
 	UpdateRentalCategory,
@@ -89,6 +90,7 @@ import {
 	UpdateService,
 	updateServiceApprovals,
 	UpdateServiceCategory,
+	updateServiceOrderStatus,
 	updateSubCategory,
 } from '../api';
 import { queryKeys } from './keys';
@@ -210,12 +212,14 @@ export const queryConfigs = {
 	useGetAllOrders: { queryFn: getAllOrders, queryKeys: [queryKeys.orders] },
 	useGetOrderById: { queryFn: getOrderByID, queryKey: [queryKeys.order] },
 	useCancelListingOrder: { queryFn: cancelListingOrder, queryKey: [queryKeys.order] },
+	useUpdateListingOrder: { queryFn: updateListingOrderStatus, queryKey: [queryKeys.order] },
 	useRedirectListingOrder: { queryFn: redirectListingOrder, queryKeys: [queryKeys.order] },
 
 	//servcieorder
 	useGetAllServiceOrder: { queryFn: getAllServiceOrders, queryKeys: [queryKeys.serviceorders] },
 	useGetServiceOrder: { queryFn: getServiceOrder, queryKeys: [queryKeys.serviceorder] },
 	useCancelServiceOrder: { queryFn: cancelserviceOrder, queryKeys: [queryKeys.serviceorder] },
+	useUpdateServiceOrder: { queryFn: updateServiceOrderStatus, queryKeys: [queryKeys.serviceorder] },
 	useRedirectServiceOrder: { queryFn: redirectServiceOrder, queryKeys: [queryKeys.serviceorder] },
 
 	//rentalorder

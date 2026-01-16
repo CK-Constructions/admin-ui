@@ -192,6 +192,18 @@ export const updateRentalOrderStatus = ({ id, new_status, reason }: { id: number
 		'put',
 		{ id, new_status, reason: reason || '' }
 	);
+export const updateListingOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
+	_callApi(
+		`/orders/listings/update-order/${id}`, // ← This is the CORRECT path!
+		'put',
+		{ id, new_status, reason: reason || '' }
+	);
+export const updateServiceOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
+	_callApi(
+		`/orders/services/update-order/${id}`, // ← This is the CORRECT path!
+		'put',
+		{ id, new_status, reason: reason || '' }
+	);
 export const getAllAddress = ({ offset, limit }: TQueryParams) => _callApi(`/user-address?offset=${offset}&limit=${limit}`, 'get');
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;
 
