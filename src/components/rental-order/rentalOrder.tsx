@@ -80,8 +80,8 @@ const RentalOrderList: React.FC = () => {
 			closeStatusDialog();
 			refetch();
 		},
-		onError: (err: any) => {
-			showNotification('error', err?.response?.data?.message || 'Failed to update order status');
+		onError: () => {
+			showNotification('error', 'Failed to update order status');
 		},
 	});
 
