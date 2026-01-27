@@ -98,10 +98,10 @@ export default function ListingOrders() {
 			setOrderToCancel(null);
 			refetch();
 		},
-		onError: (error: any) => {
-			showNotification('error', error?.message || 'Failed to cancel order');
-			setIsCancelling(false);
-		},
+		// onError: (error: any) => {
+		// 	showNotification('error', error?.message || 'Failed to cancel order');
+		// 	setIsCancelling(false);
+		// },
 	});
 
 	// Update order status mutation
@@ -116,10 +116,10 @@ export default function ListingOrders() {
 			setNewStatus('');
 			refetch();
 		},
-		onError: (error: any) => {
-			showNotification('error', error?.message || 'Failed to update order status');
-			setIsUpdatingStatus(false);
-		},
+		// onError: (error: any) => {
+		// 	showNotification('error', error?.message || 'Failed to update order status');
+		// 	setIsUpdatingStatus(false);
+		// },
 	});
 
 	// Redirect order mutation
@@ -132,10 +132,10 @@ export default function ListingOrders() {
 			setOrderToRedirect(null);
 			refetch();
 		},
-		onError: (error: any) => {
-			showNotification('error', error?.message || 'Failed to redirect order');
-			setIsRedirecting(false);
-		},
+		// onError: (error: any) => {
+		// 	showNotification('error', error?.message || 'Failed to redirect order');
+		// 	setIsRedirecting(false);
+		// },
 	});
 
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
