@@ -178,9 +178,9 @@ export default function Rentals() {
 
 	return (
 		<>
+			<Link to="/addrental">Add rental</Link>
 			<div className="pb-4">
 				<Header onBackClick={handleClickBack} onReloadClick={refetch} showButton={false} pageName="Vehicle Rentals" />
-				<Link to="/addrental">Add rental</Link>
 			</div>
 
 			<div className="flex flex-col h-full p-6">

@@ -79,7 +79,7 @@ const ServiceUpdatePage: React.FC = () => {
 				id: r.id,
 				period: r.period,
 				rate: r.rate,
-			})) ?? []
+			})) ?? [],
 		);
 
 		const existingImages =
@@ -166,7 +166,7 @@ const ServiceUpdatePage: React.FC = () => {
 			contact_phone: contactPhone,
 			delivery_time: deliveryTime,
 			specifications: specifications.length ? specifications : undefined,
-			rates: rates.length ? rates : undefined,
+			// rates: rates.length ? rates : undefined,
 			images: finalImages.length ? finalImages : undefined,
 		};
 
@@ -180,7 +180,7 @@ const ServiceUpdatePage: React.FC = () => {
 				contact_phone: contactPhone,
 				delivery_time: deliveryTime,
 				specifications: specifications.length ? specifications : undefined,
-				rates: rates.length ? rates : undefined,
+				// rates: rates.length ? rates : undefined,
 				images: finalImages.length ? finalImages : undefined,
 			},
 		});
@@ -244,30 +244,6 @@ const ServiceUpdatePage: React.FC = () => {
 			</div>
 
 			{/* Rates */}
-			<div className="space-y-2">
-				<h3 className="font-semibold">Rates</h3>
-				<div className="flex gap-2">
-					<select value={newRate.period} onChange={(e) => setNewRate({ ...newRate, period: e.target.value as any })}>
-						<option value="Daily">Daily</option>
-						<option value="Weekly">Weekly</option>
-						<option value="Monthly">Monthly</option>
-					</select>
-					<input className="border p-2" placeholder="Rate" value={newRate.rate} onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })} />
-					<button onClick={addRate} className="bg-blue-600 text-white px-4 rounded">
-						Add
-					</button>
-				</div>
-				{rates.map((r, i) => (
-					<div key={i} className="flex justify-between">
-						<span>
-							{r.period}: ₹{r.rate}
-						</span>
-						<button onClick={() => removeRate(i)} className="text-red-600">
-							Remove
-						</button>
-					</div>
-				))}
-			</div>
 
 			<button onClick={handleSubmit} disabled={isPending} className="bg-green-600 text-white px-6 py-3 rounded">
 				{isPending ? 'Updating...' : 'Update Service'}

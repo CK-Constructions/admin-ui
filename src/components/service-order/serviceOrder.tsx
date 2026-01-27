@@ -142,7 +142,7 @@ const ServiceOrderPage: React.FC = () => {
 				break;
 
 			case 'view':
-				navigate(`/service-orders/${menuOrder?.id}`);
+				navigate(`/service-orders/${menuOrder.id}`);
 				resetMenu();
 				break;
 

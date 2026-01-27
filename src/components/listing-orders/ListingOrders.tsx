@@ -77,10 +77,10 @@ export default function ListingOrders() {
 	const { queryFn: updateStatusFunc } = queryConfigs.useUpdateListingOrder;
 	const { queryFn: redirectOrderFunc } = queryConfigs.useRedirectListingOrder;
 
-	// Fetch listing orders
+	// Fetch listing orders - Fixed: currentPage.toString() to avoid type error
 	const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError, refetch } = useGetQuery({
 		func: orderFunc,
-		key: [...orderKey, currentPage],
+		key: [...orderKey, currentPage.toString()], // Convert to string
 		params: {
 			limit,
 			offset: (currentPage - 1) * limit,
@@ -337,11 +337,11 @@ export default function ListingOrders() {
 			<div className="flex items-center justify-center mt-5">
 				<div className="flex items-center justify-end space-x-3">
 					{data?.result.length > 0 && (
-						<Pagination count={Math.ceil(data.total_count / limit)} size="medium" page={currentPage} onChange={handlePageChange} />
+						<Pagination count={Math.ceil(data.result?.count / limit)} size="medium" page={currentPage} onChange={handlePageChange} />
 					)}
 					<p className="flex items-center space-x-2 font-medium text-slate-700">
 						<span>Total result:</span>
-						<span className={countStyle}>{data?.total_count || data?.result.length}</span>
+						<span className={countStyle}>{data?.result?.count || data?.result.length}</span>
 					</p>
 				</div>
 			</div>

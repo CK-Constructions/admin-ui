@@ -91,10 +91,19 @@ export const getAllRentals = ({ offset, limit }: TQueryParams) => _callApi(`/ren
 export const getRentalByID = ({ id }: TQueryParams) => _callApi(`/rentals/${id}`, 'get');
 export const getAllRentalBans = ({ id, seller, offset, limit }: TQueryParams) =>
 	_callApi(`/rentals/bans?offset=${offset}&limit=${limit}&id=${id}&seller=${seller}`, 'get');
-export const getRentalBanByID = ({ id, rental_id, ban_reason }: { id: number; rental_id: number; ban_reason: string }) =>
-	_callApi(`/rentals/ban/${id}`, 'put', { rental_id, ban_reason });
-export const getRentalUnBanByID = ({ id, rental_id, lift_reason }: { id: number; rental_id: number; lift_reason: string }) =>
-	_callApi(`/rentals/unban/${id}`, 'put', { rental_id, lift_reason });
+export const banRentalById = (payload: { id: number; rental_id: number; ban_reason: string }) => {
+	return _callApi(`/rentals/ban/${payload.id}`, 'put', {
+		rental_id: payload.rental_id,
+		ban_reason: payload.ban_reason,
+	});
+};
+
+export const unbanRentalById = (payload: { id: number; rental_id: number; lift_reason: string }) => {
+	return _callApi(`/rentals/unban/${payload.id}`, 'put', {
+		rental_id: payload.rental_id,
+		lift_reason: payload.lift_reason,
+	});
+};
 
 export const AddRental = (body: RentalBody) => _callApi(`/rentals`, 'post', body);
 export const UpdateRental = ({ id, body }: { id: number; body: RentalBody }) => _callApi(`/rentals/${id}`, 'put', body);
@@ -190,19 +199,19 @@ export const updateRentalOrderStatus = ({ id, new_status, reason }: { id: number
 	_callApi(
 		`/orders/rentals/update-order/${id}`, // ← This is the CORRECT path!
 		'put',
-		{ id, new_status, reason: reason || '' }
+		{ id, new_status, reason: reason || '' },
 	);
 export const updateListingOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
 	_callApi(
 		`/orders/listings/update-order/${id}`, // ← This is the CORRECT path!
 		'put',
-		{ id, new_status, reason: reason || '' }
+		{ id, new_status, reason: reason || '' },
 	);
 export const updateServiceOrderStatus = ({ id, new_status, reason }: { id: number; new_status: string; reason?: string }) =>
 	_callApi(
 		`/orders/services/update-order/${id}`, // ← This is the CORRECT path!
 		'put',
-		{ id, new_status, reason: reason || '' }
+		{ id, new_status, reason: reason || '' },
 	);
 export const getAllAddress = ({ offset, limit }: TQueryParams) => _callApi(`/user-address?offset=${offset}&limit=${limit}`, 'get');
 export const baseMediaUril = `http://127.0.0.1:3060/api/media`;

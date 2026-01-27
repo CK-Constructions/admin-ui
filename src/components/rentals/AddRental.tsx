@@ -35,6 +35,48 @@ interface RentalFormData {
 	delivery_fee: number;
 }
 
+// Success Modal Component
+const SuccessModal: React.FC<{
+	isOpen: boolean;
+	onClose: () => void;
+	title?: string;
+	message?: string;
+}> = ({ isOpen, onClose, title = 'Success!', message = 'Rental created successfully' }) => {
+	if (!isOpen) return null;
+
+	return (
+		<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+			<div className="relative mx-4 w-full max-w-md transform rounded-2xl bg-white p-6 text-center shadow-2xl transition-all">
+				{/* Success Icon */}
+				<div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+					<svg className="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+					</svg>
+				</div>
+
+				{/* Title & Message */}
+				<h3 className="mb-2 text-xl font-semibold text-gray-900">{title}</h3>
+				<p className="mb-6 text-gray-600">{message}</p>
+
+				{/* Action Button */}
+				<button
+					onClick={onClose}
+					className="w-full rounded-lg bg-green-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+				>
+					Continue
+				</button>
+
+				{/* Close button */}
+				<button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+					<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	);
+};
+
 const createRental = async (rentalData: any) => {
 	const response = await axios.post('/rentals', rentalData);
 	return response.data;
@@ -43,13 +85,14 @@ const createRental = async (rentalData: any) => {
 const RentalAddPage: React.FC = () => {
 	const [categoryValue, setCategoryValue] = useState<number | null>(null);
 	const [insuranceValue, setInsuranceValue] = useState<number>(1);
+	const [showSuccessModal, setShowSuccessModal] = useState(false);
 
 	const [rental, setRental] = useState<RentalFormData>({
 		category: 0,
 		name: '',
 		description: '',
-		contact_phone: '',
-		delivery_time: '',
+		contact_phone: '8258974175',
+		delivery_time: '1 day',
 		is_active: 0,
 		insurance_required: 1,
 		specifications: [],
@@ -80,20 +123,24 @@ const RentalAddPage: React.FC = () => {
 		},
 	});
 
-	// Type assertion based on your known API response shape
-
 	const { mutate: addRental, isPending } = useMutation({
 		mutationFn: createRental,
 		onSuccess: () => {
-			alert('Rental created successfully');
+			// Show success modal instead of alert
+			setShowSuccessModal(true);
 			queryClient.invalidateQueries({ queryKey: ['rentals'] });
-			window.history.back();
 		},
 		onError: (error) => {
 			console.error('Error creating rental:', error);
-			alert('Failed to create rental');
+			alert('Failed to create rental'); // Keep alert for errors if needed
 		},
 	});
+
+	// Handle success modal close
+	const handleSuccessModalClose = () => {
+		setShowSuccessModal(false);
+		window.history.back();
+	};
 
 	// Sync insurance value
 	useEffect(() => {
@@ -140,7 +187,7 @@ const RentalAddPage: React.FC = () => {
 			prev.map((img, i) => ({
 				...img,
 				isPrimary: i === index,
-			}))
+			})),
 		);
 	};
 
@@ -240,15 +287,6 @@ const RentalAddPage: React.FC = () => {
 		);
 	}
 
-	// Error state
-	// if (isError || !Array.isArray(categories)) {
-	// 	return (
-	// 		<div className="flex h-screen items-center justify-center">
-	// 			<div className="text-xl text-red-600">Failed to load categories</div>
-	// 		</div>
-	// 	);
-	// }
-
 	return (
 		<div className="min-h-screen bg-gray-50 text-gray-900">
 			<div className="mx-auto max-w-7xl p-4 md:p-6">
@@ -267,6 +305,14 @@ const RentalAddPage: React.FC = () => {
 						</div>
 					</div>
 				)}
+
+				{/* Success Modal */}
+				<SuccessModal
+					isOpen={showSuccessModal}
+					onClose={handleSuccessModalClose}
+					title="Rental Created Successfully!"
+					message="Your rental listing has been created and is now visible to customers."
+				/>
 
 				<div className="grid gap-6 lg:grid-cols-3">
 					{/* Images Section */}
@@ -553,6 +599,6 @@ const RentalAddPage: React.FC = () => {
 			</div>
 		</div>
 	);
-};
+  };
 
 export default RentalAddPage;

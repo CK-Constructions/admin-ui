@@ -149,7 +149,7 @@ const ServiceAddPage: React.FC = () => {
 		if (!category) return alert('Category is required');
 		if (!title.trim()) return alert('Title is required');
 		if (!deliveryTime.trim()) return alert('Delivery time is required');
-		if (rates.length === 0) return alert('At least one rate is required');
+		// if (rates.length === 0) return alert('At least one rate is required');
 		if (pendingImages.length === 0) return alert('At least one image is required');
 
 		setUploading(true);
@@ -175,7 +175,6 @@ const ServiceAddPage: React.FC = () => {
 				contact_phone: contactPhone,
 				delivery_time: deliveryTime,
 				specifications: specifications.length ? specifications : undefined,
-				rates,
 				images: uploadedImages,
 				is_active: 0,
 			};
@@ -189,11 +188,9 @@ const ServiceAddPage: React.FC = () => {
 	if (isLoading) return <div className="p-10">Loading...</div>;
 
 	/* -------------------- UI -------------------- */
-	
+
 	return (
 		<div className="max-w-5xl mx-auto p-6 space-y-6">
-			
-
 			<h1 className="text-2xl font-bold">Add Admin Service</h1>
 
 			{/* Category */}
@@ -258,29 +255,6 @@ const ServiceAddPage: React.FC = () => {
 			))}
 
 			{/* Rates */}
-			<h3 className="font-semibold">Rates</h3>
-			<div className="flex gap-2">
-				<select value={newRate.period} onChange={(e) => setNewRate({ ...newRate, period: e.target.value as any })}>
-					<option value="Daily">Daily</option>
-					<option value="Weekly">Weekly</option>
-					<option value="Monthly">Monthly</option>
-				</select>
-				<input className="border p-2" placeholder="Rate" value={newRate.rate} onChange={(e) => setNewRate({ ...newRate, rate: e.target.value })} />
-				<button onClick={addRate} className="bg-blue-600 text-white px-4 rounded">
-					Add
-				</button>
-			</div>
-
-			{rates.map((r, i) => (
-				<div key={i} className="flex justify-between">
-					<span>
-						{r.period}: ₹{r.rate}
-					</span>
-					<button onClick={() => removeRate(i)} className="text-red-600">
-						Remove
-					</button>
-				</div>
-			))}
 
 			{/* Submit */}
 			<button onClick={handleSubmit} disabled={isPending || uploading} className="bg-green-600 text-white px-6 py-3 rounded">

@@ -1,115 +1,102 @@
-import React, { useState } from 'react';
-import {
-	Box,
-	Button,
-	Container,
-	Paper,
-	Typography,
-	Grid,
-	Divider,
-	Chip,
-	Card,
-	CardContent,
-	CardMedia,
-	IconButton,
-	Stack,
-	Dialog,
-	DialogContent,
-} from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom'; // Fixed import
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar, Phone, MapPin, Mail, Tag } from 'lucide-react';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-
-import Loading from '../common/Loader';
+import React from 'react';
+import { Box, Typography, Divider, IconButton, Paper, Stack, Chip, Button, Container, Grid } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PrintIcon from '@mui/icons-material/Print';
+import { useNavigate, useParams } from 'react-router-dom';
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetSingleQuery } from '../../query/hooks/queryHook';
+import Loading from '../common/Loader';
 
-/* ───────────────── TYPES ───────────────── */
+/* ---------------- TYPES ---------------- */
 
-type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
+interface ServiceOrder {
+	id: number;
+	user_id: number;
+	service_id: number;
 
-/* ───────────────── HELPERS ───────────────── */
+	service_name?: string | null;
+	service_description?: string | null;
+	service_rate?: number | string | null;
+	rate_period?: string | null;
+	service_contact_phone?: string | null;
+	service_delivery_time?: string | null;
 
-const getStatusColor = (status: string): ChipColor => {
-	switch (
-		status?.toLowerCase() // Added safe access
-	) {
-		case 'success':
-		case 'confirmed':
-			return 'success';
-		case 'pending':
-		case 'created':
-			return 'warning';
-		case 'failed':
-		case 'cancelled':
-			return 'error';
-		case 'completed':
-			return 'info';
-		default:
-			return 'default';
-	}
+	user_name?: string | null;
+	user_email?: string | null;
+	address?: string | null;
+	locality?: string | null;
+	landmark?: string | null;
+	pincode?: string | null;
+
+	total_amount?: number | string | null;
+	discount_amount?: number | string | null;
+	final_amount?: number | string | null;
+
+	payment_status?: string | null;
+	order_status?: string | null;
+
+	created_on?: string | null;
+	updated_on?: string | null;
+}
+
+/* ---------------- HELPERS ---------------- */
+
+const formatAmount = (val?: number | string | null) => {
+	if (!val) return '₹0';
+	const n = typeof val === 'string' ? parseFloat(val) : val;
+	return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN')}`;
 };
 
-const getStatusIcon = (status: string): React.ReactElement | null => {
-	// Return null instead of undefined
-	switch (
-		status?.toLowerCase() // Added safe access
-	) {
-		case 'success':
-		case 'confirmed':
-			return <CheckCircleIcon fontSize="small" />;
-		case 'pending':
-		case 'created':
-			return <AccessTimeIcon fontSize="small" />;
-		case 'failed':
-		case 'cancelled':
-			return <ErrorOutlineIcon fontSize="small" />;
-		default:
-			return null; // Return null for React
-	}
+const formatDate = (date?: string | null) => (date ? new Date(date).toLocaleString('en-IN') : 'N/A');
+
+const getStatusColor = (s?: string | null) => {
+	const v = (s || '').toLowerCase();
+	if (v.includes('success') || v === 'completed') return 'success';
+	if (v.includes('pending')) return 'warning';
+	if (v.includes('fail') || v.includes('cancel')) return 'error';
+	return 'default';
 };
 
-/* ───────────────── COMPONENT ───────────────── */
+/* ---------------- UI HELPERS ---------------- */
 
-const ServiceOrderView: React.FC = () => {
+const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+	<Box>
+		<Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
+			{title}
+		</Typography>
+		{children}
+	</Box>
+);
+
+const Row = ({ label, value }: { label: string; value?: React.ReactNode }) => (
+	<Box display="flex" justifyContent="space-between" py={0.8}>
+		<Typography color="text.secondary">{label}</Typography>
+		<Typography fontWeight={500}>{value ?? 'N/A'}</Typography>
+	</Box>
+);
+
+/* ---------------- COMPONENT ---------------- */
+
+const ServiceOrderDetailPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
-
-	const orderId = id ? parseInt(id, 10) : 0; // Use parseInt with base
-	const [currentImage, setCurrentImage] = useState(0);
-	const [openImageDialog, setOpenImageDialog] = useState(false);
+	const orderId = Number(id);
 
 	const { queryFn, queryKeys } = queryConfigs.useGetServiceOrder;
 
-	const { data, isLoading, isError, error } = useGetSingleQuery({
-		// Added error for debugging
+	const { data, isLoading, isError } = useGetSingleQuery({
 		func: queryFn,
 		key: [...queryKeys, orderId.toString()],
 		params: { id: orderId },
-		isEnabled: orderId > 0, // Changed from isEnabled to enabled (check your hook implementation)
+		isEnabled: orderId > 0,
 	});
 
-	const order = data?.result ?? null;
-	const serviceImages = order?.service_images ?? [];
+	// FIXED: Access data.data instead of data.result
+	const order = data?.data ?? null;
 
-	const handleBack = () => navigate(-1);
-	const handlePrint = () => window.print();
-
-	const nextImage = () => {
-		if (serviceImages.length > 0) {
-			setCurrentImage((p) => (p + 1) % serviceImages.length);
-		}
-	};
-
-	const prevImage = () => {
-		if (serviceImages.length > 0) {
-			setCurrentImage((p) => (p - 1 + serviceImages.length) % serviceImages.length);
-		}
-	};
-
-	/* ───────────────── STATES ───────────────── */
+	// Optional: Add console.log to debug
+	console.log('API Response:', data);
+	console.log('Order Data:', order);
 
 	if (isLoading) {
 		return (
@@ -120,17 +107,11 @@ const ServiceOrderView: React.FC = () => {
 	}
 
 	if (isError || !order) {
-		console.error('Error loading order:', error); // Debug logging
 		return (
-			<Container maxWidth="md" sx={{ py: 4 }}>
+			<Container sx={{ py: 4 }}>
 				<Paper sx={{ p: 4, textAlign: 'center' }}>
-					<Typography variant="h6" color="error">
-						Failed to load order details
-					</Typography>
-					<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-						{error?.message || 'Order not found'}
-					</Typography>
-					<Button sx={{ mt: 2 }} variant="contained" onClick={handleBack}>
+					<Typography color="error">Failed to load service order</Typography>
+					<Button sx={{ mt: 2 }} variant="contained" onClick={() => navigate(-1)}>
 						Go Back
 					</Button>
 				</Paper>
@@ -138,233 +119,72 @@ const ServiceOrderView: React.FC = () => {
 		);
 	}
 
-	/* ───────────────── RENDER ───────────────── */
-
-	// Safe access to order properties
-	const {
-		id: orderIdNum = '',
-		order_status = '',
-		payment_status = '',
-		created_on = '',
-		service_name = '',
-		service_id = '',
-		service_description = '',
-		service_contact_phone = '',
-		service_delivery_time = '',
-	} = order;
-
 	return (
-		<Container maxWidth="lg" sx={{ py: 4 }}>
-			{/* Header */}
-			<Box mb={3}>
-				<Button startIcon={<ArrowLeft size={18} />} onClick={handleBack}>
-					Back to Orders
-				</Button>
-
-				<Typography variant="h4" gutterBottom>
-					Service Order #{orderIdNum}
-				</Typography>
-
-				<Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-					<Chip label={order_status} color={getStatusColor(order_status)} icon={getStatusIcon(order_status)} size="small" />
-
-					<Chip label={payment_status} color={getStatusColor(payment_status)} variant="outlined" size="small" />
-
-					<Typography variant="body2" color="text.secondary">
-						Created: {created_on ? new Date(created_on).toLocaleDateString() : 'N/A'} at{' '}
-						{created_on ? new Date(created_on).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
-					</Typography>
-				</Stack>
+		<Box sx={{ bgcolor: '#f7f7f7', minHeight: '100vh' }}>
+			{/* HEADER */}
+			<Box position="sticky" top={0} bgcolor="white" borderBottom={1} borderColor="divider">
+				<Container maxWidth="lg">
+					<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
+						<Stack direction="row" spacing={2} alignItems="center">
+							<IconButton onClick={() => navigate(-1)}>
+								<ArrowBackIcon />
+							</IconButton>
+							<Typography variant="h5" fontWeight="bold">
+								Service Order
+							</Typography>
+							<Chip label={`#${order.id}`} color="primary" />
+						</Stack>
+						<Button startIcon={<PrintIcon />} variant="contained" onClick={() => window.print()}>
+							Print
+						</Button>
+					</Stack>
+				</Container>
 			</Box>
 
-			<Grid container spacing={3}>
-				{/* LEFT */}
-				<Grid item xs={12} md={8}>
-					{/* Service Details */}
-					<Card sx={{ mb: 3 }}>
-						<CardContent>
-							<Typography variant="h6">Service Details</Typography>
-							<Divider sx={{ my: 2 }} />
+			{/* CONTENT */}
+			<Container maxWidth="lg" sx={{ py: 4 }}>
+				<Paper sx={{ p: 4 }}>
+					<Stack spacing={4}>
+						<Section title="Service Details">
+							<Row label="Service Name" value={order.service_name} />
+							<Row label="Service ID" value={order.service_id} />
+							<Row label="Rate" value={formatAmount(order.service_rate)} />
+							<Row label="Rate Period" value={order.rate_period} />
+							<Row label="Delivery Time" value={order.service_delivery_time} />
+						</Section>
 
-							<Grid container spacing={2}>
-								<Grid item xs={12} sm={6}>
-									<Typography variant="subtitle2" color="text.secondary">
-										Service Name
-									</Typography>
-									<Typography>{service_name}</Typography>
-								</Grid>
+						<Divider />
 
-								<Grid item xs={12} sm={6}>
-									<Typography variant="subtitle2" color="text.secondary">
-										Service ID
-									</Typography>
-									<Typography>{service_id}</Typography>
-								</Grid>
+						<Section title="Customer Details">
+							<Row label="Name" value={order.user_name} />
+							<Row label="Email" value={order.user_email} />
+							<Row label="Address" value={`${order.address}, ${order.locality}, ${order.landmark} - ${order.pincode}`} />
+						</Section>
 
-								<Grid item xs={12}>
-									<Typography variant="subtitle2" color="text.secondary">
-										Description
-									</Typography>
-									<Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-										{service_description || 'No description provided'}
-									</Typography>
-								</Grid>
+						<Divider />
 
-								<Grid item xs={12} sm={6}>
-									<Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-										<Phone size={16} />
-										{service_contact_phone || 'N/A'}
-									</Typography>
-								</Grid>
-
-								<Grid item xs={12} sm={6}>
-									<Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-										<Calendar size={16} />
-										{service_delivery_time || '0'} hours
-									</Typography>
-								</Grid>
-							</Grid>
-						</CardContent>
-					</Card>
-
-					{/* Images */}
-					{serviceImages.length > 0 && (
-						<Card>
-							<CardContent>
-								<Typography variant="h6">Service Images</Typography>
-								<Divider sx={{ my: 2 }} />
-
-								{serviceImages[currentImage]?.image ? (
-									<CardMedia
-										component="img"
-										image={serviceImages[currentImage].image}
-										alt={`Service image ${currentImage + 1}`}
-										sx={{
-											height: 300,
-											objectFit: 'cover',
-											cursor: 'pointer',
-											borderRadius: 1,
-										}}
-										onClick={() => setOpenImageDialog(true)}
-									/>
-								) : (
-									<Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100' }}>
-										<Typography color="text.secondary">No image available</Typography>
-									</Box>
-								)}
-
-								{serviceImages.length > 1 && (
-									<Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 2 }}>
-										<IconButton onClick={prevImage} size="small">
-											<ChevronLeft size={20} />
-										</IconButton>
-										<Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-											{currentImage + 1} / {serviceImages.length}
-										</Typography>
-										<IconButton onClick={nextImage} size="small">
-											<ChevronRight size={20} />
-										</IconButton>
-									</Stack>
-								)}
-							</CardContent>
-						</Card>
-					)}
-				</Grid>
-
-				{/* RIGHT */}
-				<Grid item xs={12} md={4}>
-					<Card>
-						<CardContent>
-							<Typography variant="h6">Actions</Typography>
-							<Divider sx={{ my: 2 }} />
-
-							<Stack spacing={2}>
-								<Button variant="contained" onClick={handlePrint} fullWidth>
-									Print Receipt
-								</Button>
-
-								<Button variant="outlined" onClick={handleBack} fullWidth>
-									Back to Orders
-								</Button>
-							</Stack>
-						</CardContent>
-					</Card>
-
-					{/* Additional Info Card - Optional */}
-					<Card sx={{ mt: 3 }}>
-						<CardContent>
-							<Typography variant="h6" gutterBottom>
-								Order Information
-							</Typography>
-							<Divider sx={{ mb: 2 }} />
-							<Stack spacing={1}>
-								<Typography variant="body2">
-									<strong>Order ID:</strong> {orderIdNum}
-								</Typography>
-								<Typography variant="body2">
-									<strong>Created:</strong> {created_on ? new Date(created_on).toLocaleString() : 'N/A'}
-								</Typography>
-								{order.updated_on && (
-									<Typography variant="body2">
-										<strong>Last Updated:</strong> {new Date(order.updated_on).toLocaleString()}
-									</Typography>
-								)}
-							</Stack>
-						</CardContent>
-					</Card>
-				</Grid>
-			</Grid>
-
-			{/* Image Dialog */}
-			<Dialog open={openImageDialog} onClose={() => setOpenImageDialog(false)} maxWidth="lg" fullWidth>
-				<DialogContent sx={{ p: 0, position: 'relative' }}>
-					{serviceImages[currentImage]?.image ? (
-						<>
-							<img
-								src={serviceImages[currentImage].image}
-								style={{ width: '100%', height: 'auto', display: 'block' }}
-								alt={`Service image ${currentImage + 1}`}
+						<Section title="Payment Summary">
+							<Row label="Total Amount" value={formatAmount(order.total_amount)} />
+							<Row label="Discount" value={formatAmount(order.discount_amount)} />
+							<Row label="Final Amount" value={formatAmount(order.final_amount)} />
+							<Row
+								label="Payment Status"
+								value={<Chip label={order.payment_status} color={getStatusColor(order.payment_status)} size="small" />}
 							/>
-							{serviceImages.length > 1 && (
-								<>
-									<IconButton
-										onClick={prevImage}
-										sx={{
-											position: 'absolute',
-											left: 10,
-											top: '50%',
-											transform: 'translateY(-50%)',
-											bgcolor: 'rgba(255,255,255,0.8)',
-											'&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-										}}
-									>
-										<ChevronLeft />
-									</IconButton>
-									<IconButton
-										onClick={nextImage}
-										sx={{
-											position: 'absolute',
-											right: 10,
-											top: '50%',
-											transform: 'translateY(-50%)',
-											bgcolor: 'rgba(255,255,255,0.8)',
-											'&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-										}}
-									>
-										<ChevronRight />
-									</IconButton>
-								</>
-							)}
-						</>
-					) : (
-						<Box sx={{ p: 4, textAlign: 'center' }}>
-							<Typography>Image not available</Typography>
-						</Box>
-					)}
-				</DialogContent>
-			</Dialog>
-		</Container>
+							<Row label="Order Status" value={<Chip label={order.order_status} color={getStatusColor(order.order_status)} size="small" />} />
+						</Section>
+
+						<Divider />
+
+						<Section title="Timeline">
+							<Row label="Created On" value={formatDate(order.created_on)} />
+							<Row label="Updated On" value={formatDate(order.updated_on)} />
+						</Section>
+					</Stack>
+				</Paper>
+			</Container>
+		</Box>
 	);
 };
 
-export default ServiceOrderView;
+export default ServiceOrderDetailPage;
