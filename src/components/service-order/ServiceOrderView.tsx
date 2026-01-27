@@ -1,11 +1,10 @@
-import React from 'react';
-import { Box, Typography, Divider, IconButton, Paper, Stack, Chip, Button, Container, Grid } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Box, Typography, Divider, IconButton, Paper, Stack, Chip, Button, Container, Alert, CircularProgress, Grid } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
 import { useNavigate, useParams } from 'react-router-dom';
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetSingleQuery } from '../../query/hooks/queryHook';
-import Loading from '../common/Loader';
 
 /* ---------------- TYPES ---------------- */
 
@@ -39,28 +38,77 @@ interface ServiceOrder {
 	updated_on?: string | null;
 }
 
+interface ApiResponse {
+	data?: ServiceOrder | { data?: ServiceOrder };
+	result?: ServiceOrder;
+	[key: string]: any; // Allow other properties
+}
+
 /* ---------------- HELPERS ---------------- */
 
-const formatAmount = (val?: number | string | null) => {
-	if (!val) return '₹0';
+const formatAmount = (val?: number | string | null): string => {
+	if (val === null || val === undefined || val === '') return '₹0';
+
 	const n = typeof val === 'string' ? parseFloat(val) : val;
-	return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN')}`;
+	return isNaN(n) ? '₹0' : `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-const formatDate = (date?: string | null) => (date ? new Date(date).toLocaleString('en-IN') : 'N/A');
+const formatDate = (date?: string | null): string => {
+	if (!date) return 'N/A';
 
-const getStatusColor = (s?: string | null) => {
+	try {
+		return new Date(date).toLocaleString('en-IN', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+	} catch (error) {
+		return 'Invalid Date';
+	}
+};
+
+const getStatusColor = (s?: string | null): 'success' | 'warning' | 'error' | 'default' => {
 	const v = (s || '').toLowerCase();
-	if (v.includes('success') || v === 'completed') return 'success';
-	if (v.includes('pending')) return 'warning';
-	if (v.includes('fail') || v.includes('cancel')) return 'error';
+	if (v.includes('success') || v === 'completed' || v === 'paid' || v === 'delivered') return 'success';
+	if (v.includes('pending') || v === 'processing') return 'warning';
+	if (v.includes('fail') || v.includes('cancel') || v.includes('rejected')) return 'error';
 	return 'default';
 };
 
-/* ---------------- UI HELPERS ---------------- */
+const extractOrderData = (data: any): ServiceOrder | null => {
+	if (!data) return null;
+
+	// Debug log
+	console.log('Extracting order data from:', data);
+
+	// Try different common API response structures
+	if (data.data?.data) {
+		// Case: { data: { data: {...} } }
+		return data.data.data;
+	} else if (data.data) {
+		// Case: { data: {...} }
+		return data.data;
+	} else if (data.result) {
+		// Case: { result: {...} }
+		return data.result;
+	} else if (data.id !== undefined) {
+		// Case: Direct order object
+		return data;
+	} else if (typeof data === 'object') {
+		// Try to find any nested object that looks like an order
+		const possibleOrder = Object.values(data).find((value: any) => value && typeof value === 'object' && value.id !== undefined);
+		return (possibleOrder as ServiceOrder) || null;
+	}
+
+	return null;
+};
+
+/* ---------------- UI COMPONENTS ---------------- */
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-	<Box>
+	<Box sx={{ mb: 3 }}>
 		<Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
 			{title}
 		</Typography>
@@ -68,120 +116,296 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 	</Box>
 );
 
-const Row = ({ label, value }: { label: string; value?: React.ReactNode }) => (
-	<Box display="flex" justifyContent="space-between" py={0.8}>
-		<Typography color="text.secondary">{label}</Typography>
-		<Typography fontWeight={500}>{value ?? 'N/A'}</Typography>
+const Row: React.FC<{ label: string; value?: React.ReactNode }> = ({ label, value }) => (
+	<Box
+		sx={{
+			display: 'flex',
+			justifyContent: 'space-between',
+			alignItems: 'center',
+			py: 1.5,
+			borderBottom: '1px solid',
+			borderColor: 'divider',
+			'&:last-child': {
+				borderBottom: 'none',
+			},
+		}}
+	>
+		<Typography variant="body2" color="text.secondary">
+			{label}
+		</Typography>
+		<Typography variant="body1" fontWeight={500}>
+			{value ?? 'N/A'}
+		</Typography>
 	</Box>
 );
 
-/* ---------------- COMPONENT ---------------- */
+const LoadingState: React.FC = () => (
+	<Box
+		sx={{
+			minHeight: '70vh',
+			display: 'flex',
+			flexDirection: 'column',
+			justifyContent: 'center',
+			alignItems: 'center',
+			gap: 2,
+		}}
+	>
+		<CircularProgress size={60} />
+		<Typography variant="body1" color="text.secondary">
+			Loading order details...
+		</Typography>
+	</Box>
+);
+
+const ErrorState: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
+	<Container sx={{ py: 8 }}>
+		<Paper sx={{ p: 4, textAlign: 'center' }}>
+			<Alert severity="error" sx={{ mb: 3 }}>
+				Failed to load service order details. Please try again.
+			</Alert>
+			<Stack direction="row" spacing={2} justifyContent="center">
+				<Button variant="contained" onClick={() => window.history.back()}>
+					Go Back
+				</Button>
+				{onRetry && (
+					<Button variant="outlined" onClick={onRetry}>
+						Retry
+					</Button>
+				)}
+			</Stack>
+		</Paper>
+	</Container>
+);
+
+/* ---------------- MAIN COMPONENT ---------------- */
 
 const ServiceOrderDetailPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
-	const orderId = Number(id);
 
-	const { queryFn, queryKeys } = queryConfigs.useGetServiceOrder;
+	// Parse and validate ID
+	const orderId = React.useMemo(() => {
+		if (!id) return 0;
+		const parsed = parseInt(id, 10);
+		return isNaN(parsed) ? 0 : parsed;
+	}, [id]);
 
-	const { data, isLoading, isError } = useGetSingleQuery({
-		func: queryFn,
-		key: [...queryKeys, orderId.toString()],
+	// Get query configuration
+	const { queryFn: orderFunc, queryKeys: serviceOrderKey } = queryConfigs.useGetServiceOrder;
+
+	// Fetch data with proper error handling
+	const {
+		data: apiResponse,
+		isLoading,
+		isError,
+		error,
+		refetch,
+	} = useGetSingleQuery({
+		func: orderFunc,
+		key: [...serviceOrderKey, orderId.toString()],
 		params: { id: orderId },
 		isEnabled: orderId > 0,
 	});
 
-	// FIXED: Access data.data instead of data.result
-	const order = data?.data ?? null;
+	// Extract order data from API response
+	const order = React.useMemo(() => {
+		return extractOrderData(apiResponse);
+	}, [apiResponse]);
 
-	// Optional: Add console.log to debug
-	console.log('API Response:', data);
-	console.log('Order Data:', order);
+	// Debug logging
+	useEffect(() => {
+		if (apiResponse) {
+			console.group('📦 Service Order API Response');
+			console.log('Raw API Response:', apiResponse);
+			console.log('Extracted Order:', order);
+			console.log('Order ID from params:', orderId);
+			console.groupEnd();
+		}
 
-	if (isLoading) {
-		return (
-			<Box minHeight="70vh" display="flex" justifyContent="center" alignItems="center">
-				<Loading />
-			</Box>
-		);
+		if (error) {
+			console.error('Service Order Fetch Error:', error);
+		}
+	}, [apiResponse, order, orderId, error]);
+
+	// Handle invalid ID
+	if (!orderId) {
+		return <ErrorState onRetry={() => navigate('/service-orders')} />;
 	}
 
+	// Loading state
+	if (isLoading) {
+		return <LoadingState />;
+	}
+
+	// Error state
 	if (isError || !order) {
-		return (
-			<Container sx={{ py: 4 }}>
-				<Paper sx={{ p: 4, textAlign: 'center' }}>
-					<Typography color="error">Failed to load service order</Typography>
-					<Button sx={{ mt: 2 }} variant="contained" onClick={() => navigate(-1)}>
-						Go Back
-					</Button>
-				</Paper>
-			</Container>
-		);
+		return <ErrorState onRetry={refetch} />;
 	}
 
 	return (
-		<Box sx={{ bgcolor: '#f7f7f7', minHeight: '100vh' }}>
+		<Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pb: 4 }}>
 			{/* HEADER */}
-			<Box position="sticky" top={0} bgcolor="white" borderBottom={1} borderColor="divider">
+			<Paper
+				square
+				elevation={0}
+				sx={{
+					position: 'sticky',
+					top: 0,
+					zIndex: 1000,
+					borderBottom: 1,
+					borderColor: 'divider',
+					mb: 3,
+				}}
+			>
 				<Container maxWidth="lg">
-					<Stack direction="row" justifyContent="space-between" alignItems="center" py={2}>
+					<Stack direction="row" justifyContent="space-between" alignItems="center" py={2} spacing={2}>
 						<Stack direction="row" spacing={2} alignItems="center">
-							<IconButton onClick={() => navigate(-1)}>
+							<IconButton onClick={() => navigate(-1)} aria-label="Go back" size="large">
 								<ArrowBackIcon />
 							</IconButton>
-							<Typography variant="h5" fontWeight="bold">
-								Service Order
-							</Typography>
-							<Chip label={`#${order.id}`} color="primary" />
+							<Box>
+								<Typography variant="h5" fontWeight="bold" noWrap>
+									Service Order Details
+								</Typography>
+								<Stack direction="row" spacing={1} alignItems="center">
+									<Chip label={`Order #${order.id}`} color="primary" size="small" />
+									<Chip label={order.order_status || 'Unknown'} color={getStatusColor(order.order_status)} size="small" variant="outlined" />
+								</Stack>
+							</Box>
 						</Stack>
-						<Button startIcon={<PrintIcon />} variant="contained" onClick={() => window.print()}>
-							Print
-						</Button>
+						<Stack direction="row" spacing={1}>
+							<Button startIcon={<PrintIcon />} variant="outlined" onClick={() => window.print()}>
+								Print
+							</Button>
+							<Button variant="contained" onClick={() => navigate(`/service-orders/${order.id}/edit`)}>
+								Edit Order
+							</Button>
+						</Stack>
 					</Stack>
 				</Container>
-			</Box>
+			</Paper>
 
-			{/* CONTENT */}
-			<Container maxWidth="lg" sx={{ py: 4 }}>
-				<Paper sx={{ p: 4 }}>
-					<Stack spacing={4}>
-						<Section title="Service Details">
-							<Row label="Service Name" value={order.service_name} />
-							<Row label="Service ID" value={order.service_id} />
-							<Row label="Rate" value={formatAmount(order.service_rate)} />
-							<Row label="Rate Period" value={order.rate_period} />
-							<Row label="Delivery Time" value={order.service_delivery_time} />
-						</Section>
+			{/* MAIN CONTENT */}
+			<Container maxWidth="lg">
+				<Grid container spacing={3}>
+					{/* Left Column - Order Details */}
+					<Grid item xs={12} md={8}>
+						<Paper sx={{ p: 3, mb: 3 }}>
+							<Section title="Service Information">
+								<Row label="Service Name" value={order.service_name} />
+								<Row label="Service Description" value={order.service_description} />
+								<Row label="Service ID" value={order.service_id} />
+								<Row label="Rate" value={formatAmount(order.service_rate)} />
+								<Row label="Rate Period" value={order.rate_period} />
+								<Row label="Delivery Time" value={order.service_delivery_time} />
+								<Row label="Contact Phone" value={order.service_contact_phone} />
+							</Section>
 
-						<Divider />
+							<Divider sx={{ my: 3 }} />
 
-						<Section title="Customer Details">
-							<Row label="Name" value={order.user_name} />
-							<Row label="Email" value={order.user_email} />
-							<Row label="Address" value={`${order.address}, ${order.locality}, ${order.landmark} - ${order.pincode}`} />
-						</Section>
+							<Section title="Customer Information">
+								<Row label="Customer Name" value={order.user_name} />
+								<Row label="Email Address" value={order.user_email} />
+								<Row label="Customer ID" value={order.user_id} />
+								<Row
+									label="Delivery Address"
+									value={
+										<Box sx={{ textAlign: 'right' }}>
+											<Typography variant="body1">{order.address}</Typography>
+											<Typography variant="body2" color="text.secondary">
+												{order.locality}, {order.landmark} - {order.pincode}
+											</Typography>
+										</Box>
+									}
+								/>
+							</Section>
+						</Paper>
+					</Grid>
 
-						<Divider />
+					{/* Right Column - Payment & Status */}
+					<Grid item xs={12} md={4}>
+						<Paper sx={{ p: 3, mb: 3 }}>
+							<Section title="Payment Summary">
+								<Row label="Total Amount" value={formatAmount(order.total_amount)} />
+								<Row label="Discount Applied" value={formatAmount(order.discount_amount)} />
+								<Box sx={{ bgcolor: 'primary.light', p: 2, borderRadius: 1, mt: 1 }}>
+									<Row
+										label="Final Amount"
+										value={
+											<Typography variant="h6" color="primary" fontWeight="bold">
+												{formatAmount(order.final_amount)}
+											</Typography>
+										}
+									/>
+								</Box>
+							</Section>
 
-						<Section title="Payment Summary">
-							<Row label="Total Amount" value={formatAmount(order.total_amount)} />
-							<Row label="Discount" value={formatAmount(order.discount_amount)} />
-							<Row label="Final Amount" value={formatAmount(order.final_amount)} />
-							<Row
-								label="Payment Status"
-								value={<Chip label={order.payment_status} color={getStatusColor(order.payment_status)} size="small" />}
-							/>
-							<Row label="Order Status" value={<Chip label={order.order_status} color={getStatusColor(order.order_status)} size="small" />} />
-						</Section>
+							<Divider sx={{ my: 3 }} />
 
-						<Divider />
+							<Section title="Order Status">
+								<Stack spacing={2}>
+									<Box>
+										<Typography variant="body2" color="text.secondary" gutterBottom>
+											Payment Status
+										</Typography>
+										<Chip
+											label={order.payment_status || 'Unknown'}
+											color={getStatusColor(order.payment_status)}
+											size="medium"
+											sx={{ width: '100%', justifyContent: 'center' }}
+										/>
+									</Box>
+									<Box>
+										<Typography variant="body2" color="text.secondary" gutterBottom>
+											Order Status
+										</Typography>
+										<Chip
+											label={order.order_status || 'Unknown'}
+											color={getStatusColor(order.order_status)}
+											size="medium"
+											sx={{ width: '100%', justifyContent: 'center' }}
+										/>
+									</Box>
+								</Stack>
+							</Section>
 
-						<Section title="Timeline">
-							<Row label="Created On" value={formatDate(order.created_on)} />
-							<Row label="Updated On" value={formatDate(order.updated_on)} />
-						</Section>
-					</Stack>
-				</Paper>
+							<Divider sx={{ my: 3 }} />
+
+							<Section title="Timeline">
+								<Row label="Order Created" value={formatDate(order.created_on)} />
+								<Row label="Last Updated" value={formatDate(order.updated_on)} />
+							</Section>
+						</Paper>
+
+						{/* Quick Actions */}
+						<Paper sx={{ p: 3 }}>
+							<Typography variant="h6" fontWeight="bold" color="primary" gutterBottom>
+								Quick Actions
+							</Typography>
+							<Stack spacing={1}>
+								<Button variant="outlined" fullWidth onClick={() => navigate(`/users/${order.user_id}`)}>
+									View Customer Profile
+								</Button>
+								<Button variant="outlined" fullWidth onClick={() => navigate(`/services/${order.service_id}`)}>
+									View Service Details
+								</Button>
+								<Button
+									variant="outlined"
+									fullWidth
+									color="error"
+									onClick={() => {
+										if (window.confirm('Are you sure you want to cancel this order?')) {
+											// Add cancellation logic here
+										}
+									}}
+									disabled={order.order_status === 'cancelled'}
+								>
+									Cancel Order
+								</Button>
+							</Stack>
+						</Paper>
+					</Grid>
+				</Grid>
 			</Container>
 		</Box>
 	);
