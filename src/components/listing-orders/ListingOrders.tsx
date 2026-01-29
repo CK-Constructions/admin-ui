@@ -35,6 +35,8 @@ import { showNotification } from '../utils/utils';
 export const countStyle = 'flex items-center justify-center px-2 py-1 text-lg font-bold text-black rounded-full bg-gray-200';
 
 // Status options for the dropdown
+
+// Status options for the dropdown
 const LISTING_STATUS_OPTIONS = [
 	'pending',
 	'confirmed',
@@ -69,7 +71,7 @@ export default function ListingOrders() {
 
 	// Redirect State
 	const [isRedirecting, setIsRedirecting] = useState(false);
-	const [orderToRedirect, setOrderToRedirect] = useState<Order | null>(null);
+	const [orderToRedirect, setOrderToRedirect] = useState<number | null>(null);
 
 	// Query Configurations
 	const { queryFn: orderFunc, queryKeys: orderKey } = queryConfigs.useGetAllOrders;
@@ -77,10 +79,10 @@ export default function ListingOrders() {
 	const { queryFn: updateStatusFunc } = queryConfigs.useUpdateListingOrder;
 	const { queryFn: redirectOrderFunc } = queryConfigs.useRedirectListingOrder;
 
-	// Fetch listing orders - Fixed: currentPage.toString() to avoid type error
+	// Fetch listing orders
 	const { data, isLoading, isLoadingError, isFetching, isRefetching, isRefetchError, refetch } = useGetQuery({
 		func: orderFunc,
-		key: [...orderKey, currentPage.toString()], // Convert to string
+		key: [...orderKey, currentPage.toString()],
 		params: {
 			limit,
 			offset: (currentPage - 1) * limit,
@@ -98,10 +100,6 @@ export default function ListingOrders() {
 			setOrderToCancel(null);
 			refetch();
 		},
-		// onError: (error: any) => {
-		// 	showNotification('error', error?.message || 'Failed to cancel order');
-		// 	setIsCancelling(false);
-		// },
 	});
 
 	// Update order status mutation
@@ -116,26 +114,23 @@ export default function ListingOrders() {
 			setNewStatus('');
 			refetch();
 		},
-		// onError: (error: any) => {
-		// 	showNotification('error', error?.message || 'Failed to update order status');
-		// 	setIsUpdatingStatus(false);
-		// },
 	});
 
-	// Redirect order mutation
+	// Redirect order mutation (only this part was updated)
 	const { mutate: redirectOrder } = useMutationQuery({
 		func: redirectOrderFunc,
 		invalidateKey: orderKey,
 		onSuccess: () => {
-			showNotification('success', `Order ${orderToRedirect?.id} redirected successfully`);
+			showNotification('success', `Vendor order(s) generated for order #${orderToRedirect}`);
 			setIsRedirecting(false);
 			setOrderToRedirect(null);
 			refetch();
 		},
-		// onError: (error: any) => {
-		// 	showNotification('error', error?.message || 'Failed to redirect order');
-		// 	setIsRedirecting(false);
-		// },
+		onError: (error: any) => {
+			showNotification('error', error?.message || 'Failed to generate vendor order');
+			setIsRedirecting(false);
+			setOrderToRedirect(null);
+		},
 	});
 
 	const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
@@ -192,11 +187,15 @@ export default function ListingOrders() {
 		});
 	};
 
-	// Redirect action
+	// Redirect action – only this part changed
 	const handleRedirectOrder = (order: Order) => {
+		if (isRedirecting) return;
+
 		setIsRedirecting(true);
-		setOrderToRedirect(order);
-		redirectOrder({ listing_order_id: order.id });
+		setOrderToRedirect(order.id);
+
+		// Use order.id as order_id (main client_orders.id)
+		redirectOrder({ order_id: order.id });
 	};
 
 	// Helper function to format status display
@@ -305,13 +304,13 @@ export default function ListingOrders() {
 												<FaEdit />
 											</IconButton>
 										</Tooltip>
-										<Tooltip title="Redirect Order">
+										<Tooltip title="Generate Vendor Order">
 											<IconButton
 												onClick={() => handleRedirectOrder(order)}
 												size="small"
-												disabled={isRedirecting && orderToRedirect?.id === order.id}
+												disabled={isRedirecting && orderToRedirect === order.id}
 											>
-												<FaShare color={isRedirecting && orderToRedirect?.id === order.id ? 'gray' : undefined} />
+												<FaShare color={isRedirecting && orderToRedirect === order.id ? 'gray' : undefined} />
 											</IconButton>
 										</Tooltip>
 										<Tooltip title="Cancel Order">

@@ -24,6 +24,7 @@ import {
 	deleteSubCatImage,
 	disableBanner,
 	enableBanner,
+	generateVendorOrder,
 	getActiveRentalApprovals,
 	getActiveRentalCategories,
 	getActiveServiceApprovals,
@@ -68,7 +69,6 @@ import {
 	getVendorByID,
 	getVendors,
 	logoutUser,
-	redirectListingOrder,
 	redirectRentalOrder,
 	redirectServiceOrder,
 	unbanAdminByID,
@@ -213,7 +213,7 @@ export const queryConfigs = {
 	useGetOrderById: { queryFn: getOrderByID, queryKey: [queryKeys.order] },
 	useCancelListingOrder: { queryFn: cancelListingOrder, queryKey: [queryKeys.order] },
 	useUpdateListingOrder: { queryFn: updateListingOrderStatus, queryKey: [queryKeys.order] },
-	useRedirectListingOrder: { queryFn: redirectListingOrder, queryKeys: [queryKeys.order] },
+	useRedirectListingOrder: { queryFn: generateVendorOrder, queryKeys: [queryKeys.order] },
 
 	//servcieorder
 	useGetAllServiceOrder: { queryFn: getAllServiceOrders, queryKeys: [queryKeys.serviceorders] },

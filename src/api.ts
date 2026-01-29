@@ -172,8 +172,7 @@ export const getAllOrders = ({ offset, limit, name, id }: TQueryParams) =>
 	_callApi(`/orders/listings?offset=${offset}&limit=${limit}&id=${id}&name=${name}`, 'get');
 export const getOrderByID = ({ id }: TQueryParams) => _callApi(`/orders/listings/${id}`, 'get');
 export const cancelListingOrder = ({ id }: { id: number }) => _callApi(`/orders/listings/cancel-order/${id}`, 'put', '');
-export const redirectListingOrder = (body: { listing_order_id: number }) => _callApi(`/orders/listings/generate-listing-order`, 'post', body);
-
+export const generateVendorOrder = ({ order_id }: { order_id: number }) => _callApi(`/orders/listings/generate-seller-order`, 'post', { order_id: order_id });
 // Service Orders
 export const getAllServiceOrders = ({ offset, limit, name, id }: TQueryParams) => _callApi(`/orders/services?offset=${offset}&limit=${limit}`, 'get');
 export const getServiceOrder = ({ id }: TQueryParams) => _callApi(`/orders/services/${id}`, 'get');
