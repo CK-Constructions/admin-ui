@@ -126,8 +126,8 @@ export default function ListingOrders() {
 			setOrderToRedirect(null);
 			refetch();
 		},
-		onError: (error: any) => {
-			showNotification('error', error?.message || 'Failed to generate vendor order');
+		onError: () => {
+			showNotification('error', 'Failed to generate vendor order');
 			setIsRedirecting(false);
 			setOrderToRedirect(null);
 		},
