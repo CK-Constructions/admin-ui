@@ -122,7 +122,6 @@ export default function ListingCategory() {
 
 		addCategory({
 			name: newName.trim().toLowerCase(),
-			image: newImage,
 		});
 	};
 
@@ -136,7 +135,6 @@ export default function ListingCategory() {
 			id: editCategory.id,
 			body: {
 				name: editCategory.name.trim(),
-				image: editCategory.image,
 			},
 		});
 	};
