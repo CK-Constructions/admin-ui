@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-	Avatar,
 	Box,
 	Button,
 	Chip,
@@ -21,44 +20,45 @@ import {
 	Tooltip,
 	Typography,
 } from '@mui/material';
-import { MdOutlineAddToPhotos } from 'react-icons/md';
+
 import { FaBan, FaEdit } from 'react-icons/fa';
 import { BsUniversalAccessCircle } from 'react-icons/bs';
+
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router';
 
 import Header from '../common/Header';
 import Loading from '../common/Loader';
-import { uploadFileToS3 } from '../../api';
+
 import { queryConfigs } from '../../query/queryConfig';
 import { useGetQuery, useMutationQuery } from '../../query/hooks/queryHook';
 import { sanitizeValue, showNotification } from '../utils/utils';
 import { countStyle } from '../vendors/Vendors';
 
 import type { TCategory } from '../lib/types/response';
-import type { TQueryParams } from '../lib/types/common';
 
 const LIMIT = 10;
 
 export default function ListingCategory() {
 	const navigate = useNavigate();
 
-	/* ───────────── State ───────────── */
+	// ==============================
+	// STATE
+	// ==============================
 	const [page, setPage] = useState(1);
-	const [search, setSearch] = useState<TQueryParams>({ id: '', name: '' });
-	const [appliedSearch, setAppliedSearch] = useState<TQueryParams>({ id: '', name: '' });
 
 	const [addOpen, setAddOpen] = useState(false);
 	const [editOpen, setEditOpen] = useState(false);
 
+	// Add Category
 	const [newName, setNewName] = useState('');
-	const [newImage, setNewImage] = useState<string | null>(null);
-	const [newPreview, setNewPreview] = useState<string | null>(null);
 
+	// Edit Category
 	const [editCategory, setEditCategory] = useState<TCategory | null>(null);
-	const [editPreview, setEditPreview] = useState<string | null>(null);
 
-	/* ───────────── Queries ───────────── */
+	// ==============================
+	// FETCH CATEGORIES
+	// ==============================
 	const { queryFn, queryKey } = queryConfigs.useGetAllCategories;
 
 	const { data, isLoading, isError, refetch } = useGetQuery({
@@ -67,16 +67,17 @@ export default function ListingCategory() {
 		params: {
 			offset: (page - 1) * LIMIT,
 			limit: LIMIT,
-			...appliedSearch,
 		},
 	});
 
-	/* ───────────── Mutations ───────────── */
+	// ==============================
+	// MUTATIONS
+	// ==============================
 	const { mutate: addCategory, isPending: isAdding } = useMutationQuery({
 		func: queryConfigs.useAddCategories.queryFn,
 		invalidateKey: queryKey,
 		onSuccess: () => {
-			showNotification('success', 'Category added');
+			showNotification('success', 'Category added successfully!');
 			closeAdd();
 		},
 	});
@@ -85,49 +86,34 @@ export default function ListingCategory() {
 		func: queryConfigs.useUpdateCategories.queryFn,
 		invalidateKey: queryKey,
 		onSuccess: () => {
-			showNotification('success', 'Category updated');
+			showNotification('success', 'Category updated successfully!');
 			setEditOpen(false);
 			setEditCategory(null);
-			setEditPreview(null);
 		},
 	});
 
-	/* ───────────── Image Upload ───────────── */
-	const uploadImage = async (file?: File, onSuccess?: (url: string) => void, setPreview?: (p: string) => void) => {
-		if (!file) return;
-		setPreview?.(URL.createObjectURL(file));
-
-		try {
-			const url = await uploadFileToS3(file);
-			onSuccess?.(url);
-			showNotification('success', 'Image uploaded');
-		} catch {
-			showNotification('error', 'Upload failed');
-		}
-	};
-
-	/* ───────────── Handlers ───────────── */
+	// ==============================
+	// HANDLERS
+	// ==============================
 	const closeAdd = () => {
 		setAddOpen(false);
 		setNewName('');
-		setNewImage(null);
-		setNewPreview(null);
 	};
 
 	const handleAdd = () => {
-		if (!newName.trim() || !newImage) {
-			showNotification('error', 'Name & image required');
+		if (!newName.trim()) {
+			showNotification('error', 'Category name is required');
 			return;
 		}
 
 		addCategory({
-			name: newName.trim().toLowerCase(),
+			name: newName.trim(),
 		});
 	};
 
 	const handleUpdate = () => {
 		if (!editCategory?.name.trim()) {
-			showNotification('error', 'Name required');
+			showNotification('error', 'Category name is required');
 			return;
 		}
 
@@ -139,10 +125,12 @@ export default function ListingCategory() {
 		});
 	};
 
-	/* ───────────── UI STATES ───────────── */
+	// ==============================
+	// LOADING & ERROR UI
+	// ==============================
 	if (isLoading) {
 		return (
-			<Box minHeight="60vh" display="flex" alignItems="center" justifyContent="center">
+			<Box minHeight="60vh" display="flex" justifyContent="center" alignItems="center">
 				<Loading />
 			</Box>
 		);
@@ -150,13 +138,15 @@ export default function ListingCategory() {
 
 	if (isError) {
 		return (
-			<Box minHeight="60vh" display="flex" alignItems="center" justifyContent="center">
+			<Box minHeight="60vh" display="flex" justifyContent="center" alignItems="center">
 				<Typography color="error">Failed to load categories</Typography>
 			</Box>
 		);
 	}
 
-	/* ───────────── Render ───────────── */
+	// ==============================
+	// MAIN UI
+	// ==============================
 	return (
 		<>
 			<Header
@@ -168,43 +158,32 @@ export default function ListingCategory() {
 				buttonFunc={() => setAddOpen(true)}
 			/>
 
-			{/* Search */}
-			{/* <Box className="flex gap-2 my-4">
-				<TextField size="small" label="Name" value={search.name} onChange={(e) => setSearch({ ...search, name: e.target.value })} />
-				<TextField size="small" label="ID" value={search.id} onChange={(e) => setSearch({ ...search, id: e.target.value })} />
-				<Button onClick={() => setAppliedSearch(search)}>Search</Button>
-				<Button onClick={() => setSearch({ id: '', name: '' }) || setAppliedSearch({ id: '', name: '' })}>Clear</Button>
-			</Box> */}
-
-			{/* Table */}
+			{/* CATEGORY TABLE */}
 			<TableContainer component={Paper}>
 				<Table stickyHeader>
 					<TableHead>
 						<TableRow>
-							{['ID', 'Image', 'Name', 'Status', 'Created', 'Actions'].map((h) => (
+							{['ID', 'Name', 'Status', 'Created', 'Actions'].map((h) => (
 								<TableCell key={h} sx={{ bgcolor: 'black', color: 'white' }}>
 									{h}
 								</TableCell>
 							))}
 						</TableRow>
 					</TableHead>
+
 					<TableBody>
 						{data?.result?.list.map((cat: TCategory) => (
 							<TableRow key={cat.id}>
 								<TableCell>{cat.id}</TableCell>
-								<TableCell>
-									<Avatar src={cat.image || undefined} sx={{ width: 48, height: 48 }} />
-								</TableCell>
+
 								<TableCell className="capitalize">{cat.name}</TableCell>
+
 								<TableCell>
-									<Chip
-										label={cat.is_active === 0 ? 'Active' : 'Disabled'}
-										color={cat.is_active === 0 ? 'success' : 'error'}
-										size="small"
-										variant="outlined"
-									/>
+									<Chip label={cat.is_active === 0 ? 'Active' : 'Disabled'} color={cat.is_active === 0 ? 'success' : 'error'} size="small" />
 								</TableCell>
+
 								<TableCell>{dayjs(cat.created_on).format('DD-MM-YYYY')}</TableCell>
+
 								<TableCell>
 									<Tooltip title="Edit">
 										<button
@@ -216,6 +195,7 @@ export default function ListingCategory() {
 											<FaEdit />
 										</button>
 									</Tooltip>
+
 									{cat.is_active === 0 ? <FaBan /> : <BsUniversalAccessCircle />}
 								</TableCell>
 							</TableRow>
@@ -224,7 +204,7 @@ export default function ListingCategory() {
 				</Table>
 			</TableContainer>
 
-			{/* Pagination */}
+			{/* PAGINATION */}
 			<Box mt={4} display="flex" justifyContent="center" gap={2}>
 				<Pagination page={page} count={Math.ceil(sanitizeValue(data?.result?.count) / LIMIT)} onChange={(_, v) => setPage(v)} />
 				<p>
@@ -232,61 +212,47 @@ export default function ListingCategory() {
 				</p>
 			</Box>
 
-			{/* Add Modal */}
+			{/* ============================= */}
+			{/* ADD CATEGORY MODAL */}
+			{/* ============================= */}
 			<Dialog open={addOpen} onClose={closeAdd} fullWidth maxWidth="sm">
 				<DialogTitle>Add Category</DialogTitle>
-				<DialogContent>
-					<Box className="space-y-4 mt-2">
-						<Box className="border-dashed border-2 p-4 text-center cursor-pointer" onClick={() => document.getElementById('add-img')?.click()}>
-							<input
-								id="add-img"
-								type="file"
-								hidden
-								accept="image/*"
-								onChange={(e) => uploadImage(e.target.files?.[0], setNewImage, (p) => setNewPreview(p))}
-							/>
-							{newPreview ? <img src={newPreview} style={{ maxHeight: 200 }} /> : <MdOutlineAddToPhotos size={48} />}
-						</Box>
 
+				<DialogContent>
+					<Box mt={2}>
 						<TextField fullWidth label="Category Name" value={newName} onChange={(e) => setNewName(e.target.value)} />
 					</Box>
 				</DialogContent>
+
 				<DialogActions>
 					<Button onClick={closeAdd}>Cancel</Button>
+
 					<Button variant="contained" onClick={handleAdd} disabled={isAdding}>
 						{isAdding ? <CircularProgress size={22} /> : 'Add'}
 					</Button>
 				</DialogActions>
 			</Dialog>
 
-			{/* Edit Modal */}
+			{/* ============================= */}
+			{/* EDIT CATEGORY MODAL */}
+			{/* ============================= */}
 			<Dialog open={editOpen} onClose={() => setEditOpen(false)} fullWidth maxWidth="sm">
 				<DialogTitle>Edit Category</DialogTitle>
-				<DialogContent>
-					<Box className="space-y-4 mt-2">
-						<Box className="border-dashed border-2 p-4 text-center cursor-pointer" onClick={() => document.getElementById('edit-img')?.click()}>
-							<input
-								id="edit-img"
-								type="file"
-								hidden
-								accept="image/*"
-								onChange={(e) =>
-									uploadImage(e.target.files?.[0], (url) => setEditCategory((p) => (p ? { ...p, image: url } : p)), setEditPreview)
-								}
-							/>
-							<img src={editPreview || editCategory?.image} style={{ maxHeight: 200 }} />
-						</Box>
 
+				<DialogContent>
+					<Box mt={2}>
 						<TextField
 							fullWidth
 							label="Category Name"
 							value={editCategory?.name || ''}
-							onChange={(e) => setEditCategory((p) => (p ? { ...p, name: e.target.value } : p))}
+							onChange={(e) => setEditCategory((prev) => (prev ? { ...prev, name: e.target.value } : prev))}
 						/>
 					</Box>
 				</DialogContent>
+
 				<DialogActions>
 					<Button onClick={() => setEditOpen(false)}>Cancel</Button>
+
 					<Button variant="contained" onClick={handleUpdate} disabled={isUpdating}>
 						{isUpdating ? <CircularProgress size={22} /> : 'Update'}
 					</Button>
